@@ -1,25 +1,10 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  User,
-  Building2,
-  Lock,
-  LogOut,
-  Trash2,
-  ChevronRight,
-  Check,
-  Loader2,
-  Eye,
-  EyeOff,
-  Camera,
-  Shield,
-  Bell,
-  Palette,
-  Globe,
-  CreditCard,
-  AlertTriangle,
-  Home,
-  X,
+  User, Building2, Lock, LogOut, Trash2, ChevronRight,
+  Check, Loader2, Eye, EyeOff, Camera, Shield,
+  Bell, Palette, Globe, CreditCard, AlertTriangle,
+  Home, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
@@ -37,24 +22,19 @@ const C = {
 };
 
 /* ─── Helpers ─────────────────────────────────────────── */
-const inputCls = (err?: boolean) =>
-  ({
-    width: "100%",
-    background: C.input,
-    border: `1px solid ${err ? "#f87171" : "rgba(255,255,255,0.1)"}`,
-    borderRadius: "12px",
-    padding: "10px 14px",
-    color: "#f1f5f9",
-    fontSize: "14px",
-    outline: "none",
-  }) as React.CSSProperties;
+const inputCls = (err?: boolean) => ({
+  width: "100%",
+  background: C.input,
+  border: `1px solid ${err ? "#f87171" : "rgba(255,255,255,0.1)"}`,
+  borderRadius: "12px",
+  padding: "10px 14px",
+  color: "#f1f5f9",
+  fontSize: "14px",
+  outline: "none",
+} as React.CSSProperties);
 
 /* ─── Section Header ──────────────────────────────────── */
-const SectionHead = ({
-  icon: Icon,
-  title,
-  desc,
-}: {
+const SectionHead = ({ icon: Icon, title, desc }: {
   icon: React.ElementType;
   title: string;
   desc?: string;
@@ -68,11 +48,7 @@ const SectionHead = ({
     </div>
     <div>
       <p className="text-sm font-semibold text-white">{title}</p>
-      {desc && (
-        <p className="text-xs" style={{ color: "#475569" }}>
-          {desc}
-        </p>
-      )}
+      {desc && <p className="text-xs" style={{ color: "#475569" }}>{desc}</p>}
     </div>
   </div>
 );
@@ -85,20 +61,13 @@ const ProfileSection = () => {
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [saving, setSaving] = useState(false);
 
-  const initials =
-    `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase();
+  const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase();
 
   const handleSave = async () => {
-    if (!firstName.trim()) {
-      toast.error("First name required");
-      return;
-    }
+    if (!firstName.trim()) { toast.error("First name required"); return; }
     setSaving(true);
     try {
-      const { data } = await api.patch("/auth/profile", {
-        firstName,
-        lastName,
-      });
+      const { data } = await api.patch("/auth/profile", { firstName, lastName });
       setAuth(data.data, token!);
       toast.success("Profile updated");
     } catch {
@@ -113,11 +82,7 @@ const ProfileSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead
-        icon={User}
-        title="Profile"
-        desc="Your personal information"
-      />
+      <SectionHead icon={User} title="Profile" desc="Your personal information" />
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-5">
@@ -139,9 +104,7 @@ const ProfileSection = () => {
           <p className="text-sm font-semibold text-white">
             {user?.firstName} {user?.lastName}
           </p>
-          <p className="text-xs" style={{ color: "#475569" }}>
-            {user?.email}
-          </p>
+          <p className="text-xs" style={{ color: "#475569" }}>{user?.email}</p>
         </div>
       </div>
 
@@ -156,14 +119,8 @@ const ProfileSection = () => {
             onChange={(e) => setFirstName(e.target.value)}
             style={inputCls()}
             placeholder="First name"
-            onFocus={(e) => {
-              (e.target as HTMLInputElement).style.borderColor =
-                "rgba(16,185,129,0.4)";
-            }}
-            onBlur={(e) => {
-              (e.target as HTMLInputElement).style.borderColor =
-                "rgba(255,255,255,0.1)";
-            }}
+            onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
+            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.1)"; }}
           />
         </div>
         <div>
@@ -175,14 +132,8 @@ const ProfileSection = () => {
             onChange={(e) => setLastName(e.target.value)}
             style={inputCls()}
             placeholder="Last name"
-            onFocus={(e) => {
-              (e.target as HTMLInputElement).style.borderColor =
-                "rgba(16,185,129,0.4)";
-            }}
-            onBlur={(e) => {
-              (e.target as HTMLInputElement).style.borderColor =
-                "rgba(255,255,255,0.1)";
-            }}
+            onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
+            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.1)"; }}
           />
         </div>
       </div>
@@ -207,11 +158,7 @@ const ProfileSection = () => {
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
         style={{ background: "#10b981", color: "#022c22" }}
       >
-        {saving ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <Check size={14} />
-        )}
+        {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
         Save Changes
       </button>
     </div>
@@ -247,13 +194,10 @@ const PasswordSection = () => {
         newPassword: next,
       });
       toast.success("Password changed successfully");
-      setCurrent("");
-      setNext("");
-      setConfirm("");
+      setCurrent(""); setNext(""); setConfirm("");
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to change password";
+      const msg = (err as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message ?? "Failed to change password";
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -261,12 +205,7 @@ const PasswordSection = () => {
   };
 
   const PwField = ({
-    label,
-    value,
-    onChange,
-    show,
-    onToggle,
-    name,
+    label, value, onChange, show, onToggle, name,
   }: {
     label: string;
     value: string;
@@ -276,24 +215,15 @@ const PasswordSection = () => {
     name: string;
   }) => (
     <div>
-      <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>
-        {label}
-      </label>
+      <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>{label}</label>
       <div className="relative">
         <input
           type={show ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           style={{ ...inputCls(!!errors[name]), paddingRight: "40px" }}
-          onFocus={(e) => {
-            (e.target as HTMLInputElement).style.borderColor =
-              "rgba(16,185,129,0.4)";
-          }}
-          onBlur={(e) => {
-            (e.target as HTMLInputElement).style.borderColor = errors[name]
-              ? "#f87171"
-              : "rgba(255,255,255,0.1)";
-          }}
+          onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
+          onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors[name] ? "#f87171" : "rgba(255,255,255,0.1)"; }}
         />
         <button
           type="button"
@@ -305,9 +235,7 @@ const PasswordSection = () => {
         </button>
       </div>
       {errors[name] && (
-        <p className="text-[11px] mt-1" style={{ color: "#f87171" }}>
-          {errors[name]}
-        </p>
+        <p className="text-[11px] mt-1" style={{ color: "#f87171" }}>{errors[name]}</p>
       )}
     </div>
   );
@@ -317,28 +245,18 @@ const PasswordSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead
-        icon={Lock}
-        title="Password"
-        desc="Keep your account secure"
-      />
+      <SectionHead icon={Lock} title="Password" desc="Keep your account secure" />
 
       <div className="space-y-3 mb-4">
         <PwField
-          label="Current Password"
-          value={current}
-          onChange={setCurrent}
-          show={showCur}
-          onToggle={() => setShowCur((p) => !p)}
-          name="current"
+          label="Current Password" value={current}
+          onChange={setCurrent} show={showCur}
+          onToggle={() => setShowCur((p) => !p)} name="current"
         />
         <PwField
-          label="New Password"
-          value={next}
-          onChange={setNext}
-          show={showNew}
-          onToggle={() => setShowNew((p) => !p)}
-          name="next"
+          label="New Password" value={next}
+          onChange={setNext} show={showNew}
+          onToggle={() => setShowNew((p) => !p)} name="next"
         />
         <div>
           <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>
@@ -349,20 +267,11 @@ const PasswordSection = () => {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             style={inputCls(!!errors.confirm)}
-            onFocus={(e) => {
-              (e.target as HTMLInputElement).style.borderColor =
-                "rgba(16,185,129,0.4)";
-            }}
-            onBlur={(e) => {
-              (e.target as HTMLInputElement).style.borderColor = errors.confirm
-                ? "#f87171"
-                : "rgba(255,255,255,0.1)";
-            }}
+            onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
+            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.confirm ? "#f87171" : "rgba(255,255,255,0.1)"; }}
           />
           {errors.confirm && (
-            <p className="text-[11px] mt-1" style={{ color: "#f87171" }}>
-              {errors.confirm}
-            </p>
+            <p className="text-[11px] mt-1" style={{ color: "#f87171" }}>{errors.confirm}</p>
           )}
         </div>
       </div>
@@ -371,17 +280,9 @@ const PasswordSection = () => {
         onClick={handleChange}
         disabled={saving}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
-        style={{
-          background: "rgba(255,255,255,0.06)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          color: "#e2e8f0",
-        }}
+        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0" }}
       >
-        {saving ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <Shield size={14} />
-        )}
+        {saving ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
         Update Password
       </button>
     </div>
@@ -396,7 +297,7 @@ const BusinessSection = () => {
   const TYPE_META = {
     personal: { icon: User, color: "#10b981", label: "Personal" },
     company: { icon: Building2, color: "#3b82f6", label: "Company" },
-    mass: { icon: Home, color: "#8b5cf6", label: "Household" },
+    mass: { icon: Home, color: "#8b5cf6", label: "Mess" },
   };
 
   if (!activeBusiness) {
@@ -405,14 +306,8 @@ const BusinessSection = () => {
         className="rounded-2xl p-5 mb-4"
         style={{ background: C.card, border: `1px solid ${C.border}` }}
       >
-        <SectionHead
-          icon={Building2}
-          title="Business"
-          desc="Active business settings"
-        />
-        <p className="text-sm" style={{ color: "#475569" }}>
-          No active business selected.
-        </p>
+        <SectionHead icon={Building2} title="Business" desc="Active business settings" />
+        <p className="text-sm" style={{ color: "#475569" }}>No active business selected.</p>
       </div>
     );
   }
@@ -425,19 +320,12 @@ const BusinessSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead
-        icon={Building2}
-        title="Business"
-        desc="Active business settings"
-      />
+      <SectionHead icon={Building2} title="Business" desc="Active business settings" />
 
       {/* Active business card */}
       <div
         className="rounded-xl p-4 mb-4 flex items-center gap-3"
-        style={{
-          background: `${meta.color}08`,
-          border: `1px solid ${meta.color}20`,
-        }}
+        style={{ background: `${meta.color}08`, border: `1px solid ${meta.color}20` }}
       >
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -446,9 +334,7 @@ const BusinessSection = () => {
           <Icon size={16} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white truncate">
-            {activeBusiness.name}
-          </p>
+          <p className="text-sm font-semibold text-white truncate">{activeBusiness.name}</p>
           <p className="text-xs" style={{ color: "#475569" }}>
             {meta.label} · {activeBusiness.currency}
           </p>
@@ -470,23 +356,13 @@ const BusinessSection = () => {
           key={to}
           onClick={() => navigate(to)}
           className="w-full flex items-center justify-between px-4 py-3 rounded-xl mb-2 transition-all"
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.05)",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = C.hover;
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background =
-              "rgba(255,255,255,0.03)";
-          }}
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = C.hover; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
         >
           <div className="flex items-center gap-2.5">
             <LIcon size={14} style={{ color: "#64748b" }} />
-            <span className="text-sm" style={{ color: "#cbd5e1" }}>
-              {label}
-            </span>
+            <span className="text-sm" style={{ color: "#cbd5e1" }}>{label}</span>
           </div>
           <ChevronRight size={14} style={{ color: "#334155" }} />
         </button>
@@ -500,25 +376,17 @@ const PreferencesSection = () => {
   const [notifs, setNotifs] = useState(true);
 
   const Toggle = ({
-    label,
-    desc,
-    value,
-    onChange,
+    label, desc, value, onChange,
   }: {
     label: string;
     desc: string;
     value: boolean;
     onChange: (v: boolean) => void;
   }) => (
-    <div
-      className="flex items-center justify-between py-3"
-      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
-    >
+    <div className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
       <div>
         <p className="text-sm text-white">{label}</p>
-        <p className="text-xs" style={{ color: "#475569" }}>
-          {desc}
-        </p>
+        <p className="text-xs" style={{ color: "#475569" }}>{desc}</p>
       </div>
       <button
         onClick={() => onChange(!value)}
@@ -538,35 +406,23 @@ const PreferencesSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead
-        icon={Palette}
-        title="Preferences"
-        desc="App behavior & notifications"
-      />
+      <SectionHead icon={Palette} title="Preferences" desc="App behavior & notifications" />
 
       <Toggle
         label="Push Notifications"
         desc="Get alerts for new transactions and dues"
         value={notifs}
-        onChange={(v) => {
-          setNotifs(v);
-          toast.success(v ? "Notifications enabled" : "Notifications disabled");
-        }}
+        onChange={(v) => { setNotifs(v); toast.success(v ? "Notifications enabled" : "Notifications disabled"); }}
       />
 
       <div className="flex items-center justify-between py-3">
         <div>
           <p className="text-sm text-white">Currency</p>
-          <p className="text-xs" style={{ color: "#475569" }}>
-            Default display currency
-          </p>
+          <p className="text-xs" style={{ color: "#475569" }}>Default display currency</p>
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           <Globe size={12} style={{ color: "#64748b" }} />
           <span className="text-xs text-white">BDT</span>
@@ -611,39 +467,21 @@ const DangerZone = () => {
   return (
     <div
       className="rounded-2xl p-5"
-      style={{
-        background: "rgba(239,68,68,0.04)",
-        border: "1px solid rgba(239,68,68,0.15)",
-      }}
+      style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.15)" }}
     >
-      <SectionHead
-        icon={AlertTriangle}
-        title="Danger Zone"
-        desc="Irreversible actions"
-      />
+      <SectionHead icon={AlertTriangle} title="Danger Zone" desc="Irreversible actions" />
 
       {/* Logout */}
       <button
         onClick={handleLogout}
         className="w-full flex items-center justify-between px-4 py-3 rounded-xl mb-2 transition-all"
-        style={{
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.background =
-            "rgba(255,255,255,0.06)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.background =
-            "rgba(255,255,255,0.03)";
-        }}
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
       >
         <div className="flex items-center gap-2.5">
           <LogOut size={14} style={{ color: "#f59e0b" }} />
-          <span className="text-sm" style={{ color: "#fbbf24" }}>
-            Sign Out
-          </span>
+          <span className="text-sm" style={{ color: "#fbbf24" }}>Sign Out</span>
         </div>
         <ChevronRight size={14} style={{ color: "#334155" }} />
       </button>
@@ -653,74 +491,44 @@ const DangerZone = () => {
         <button
           onClick={() => setShowDeleteConfirm(true)}
           className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all"
-          style={{
-            background: "rgba(239,68,68,0.06)",
-            border: "1px solid rgba(239,68,68,0.15)",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background =
-              "rgba(239,68,68,0.1)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background =
-              "rgba(239,68,68,0.06)";
-          }}
+          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.06)"; }}
         >
           <div className="flex items-center gap-2.5">
             <Trash2 size={14} style={{ color: "#ef4444" }} />
-            <span className="text-sm" style={{ color: "#f87171" }}>
-              Delete Account
-            </span>
+            <span className="text-sm" style={{ color: "#f87171" }}>Delete Account</span>
           </div>
           <ChevronRight size={14} style={{ color: "#334155" }} />
         </button>
       ) : (
         <div
           className="rounded-xl p-4"
-          style={{
-            background: "rgba(239,68,68,0.08)",
-            border: "1px solid rgba(239,68,68,0.2)",
-          }}
+          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}
         >
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold" style={{ color: "#f87171" }}>
               Delete Account?
             </p>
-            <button
-              onClick={() => {
-                setShowDeleteConfirm(false);
-                setDeleteInput("");
-              }}
-            >
+            <button onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}>
               <X size={14} style={{ color: "#64748b" }} />
             </button>
           </div>
           <p className="text-xs mb-3" style={{ color: "#64748b" }}>
-            This will permanently delete your account and all associated data.
-            Type <strong style={{ color: "#ef4444" }}>DELETE</strong> to
-            confirm.
+            This will permanently delete your account and all associated data. Type{" "}
+            <strong style={{ color: "#ef4444" }}>DELETE</strong> to confirm.
           </p>
           <input
             value={deleteInput}
             onChange={(e) => setDeleteInput(e.target.value)}
             placeholder='Type "DELETE"'
-            style={{
-              ...inputCls(!!(deleteInput && deleteInput !== "DELETE")),
-              marginBottom: "12px",
-            }}
+            style={{ ...inputCls(!!deleteInput && deleteInput !== "DELETE"), marginBottom: "12px" }}
           />
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                setShowDeleteConfirm(false);
-                setDeleteInput("");
-              }}
+              onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
               className="flex-1 py-2 rounded-xl text-sm"
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#94a3b8",
-              }}
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8" }}
             >
               Cancel
             </button>
@@ -730,11 +538,7 @@ const DangerZone = () => {
               className="flex-1 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
               style={{ background: "#ef4444", color: "#fff" }}
             >
-              {deleting ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <Trash2 size={13} />
-              )}
+              {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
               Delete
             </button>
           </div>
@@ -745,12 +549,7 @@ const DangerZone = () => {
 };
 
 /* ─── Main Settings Page ──────────────────────────────── */
-type SettingsTab =
-  | "profile"
-  | "business"
-  | "security"
-  | "preferences"
-  | "danger";
+type SettingsTab = "profile" | "business" | "security" | "preferences" | "danger";
 
 const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
   { id: "profile", label: "Profile", icon: User },
@@ -766,6 +565,7 @@ const SettingsPage = () => {
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-3xl mx-auto px-4 py-6 lg:px-8 lg:py-8">
+
         {/* ── Header ──────────────────────────────────── */}
         <div className="mb-6">
           <h1
@@ -780,6 +580,7 @@ const SettingsPage = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-5">
+
           {/* ── Sidebar tabs (desktop) / Pills (mobile) ── */}
           <div className="lg:w-48 flex-shrink-0">
             {/* Mobile: horizontal scroll pills */}
@@ -794,21 +595,13 @@ const SettingsPage = () => {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium flex-shrink-0 transition-all"
                     style={{
                       background: isActive
-                        ? isDanger
-                          ? "rgba(239,68,68,0.1)"
-                          : "rgba(16,185,129,0.1)"
+                        ? isDanger ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)"
                         : C.card,
-                      border: `1px solid ${
-                        isActive
-                          ? isDanger
-                            ? "rgba(239,68,68,0.25)"
-                            : "rgba(16,185,129,0.25)"
-                          : C.border
-                      }`,
+                      border: `1px solid ${isActive
+                        ? isDanger ? "rgba(239,68,68,0.25)" : "rgba(16,185,129,0.25)"
+                        : C.border}`,
                       color: isActive
-                        ? isDanger
-                          ? "#ef4444"
-                          : "#10b981"
+                        ? isDanger ? "#ef4444" : "#10b981"
                         : "#64748b",
                     }}
                   >
@@ -834,30 +627,21 @@ const SettingsPage = () => {
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-left transition-all"
                     style={{
                       background: isActive
-                        ? isDanger
-                          ? "rgba(239,68,68,0.08)"
-                          : "rgba(16,185,129,0.08)"
+                        ? isDanger ? "rgba(239,68,68,0.08)" : "rgba(16,185,129,0.08)"
                         : "transparent",
                       color: isActive
-                        ? isDanger
-                          ? "#ef4444"
-                          : "#10b981"
+                        ? isDanger ? "#ef4444" : "#10b981"
                         : "#64748b",
                       fontWeight: isActive ? 500 : 400,
-                      borderBottom:
-                        i < TABS.length - 1
-                          ? "1px solid rgba(255,255,255,0.04)"
-                          : "none",
+                      borderBottom: i < TABS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive)
-                        (e.currentTarget as HTMLElement).style.background =
-                          C.hover;
+                        (e.currentTarget as HTMLElement).style.background = C.hover;
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive)
-                        (e.currentTarget as HTMLElement).style.background =
-                          "transparent";
+                        (e.currentTarget as HTMLElement).style.background = "transparent";
                     }}
                   >
                     <Icon size={15} />

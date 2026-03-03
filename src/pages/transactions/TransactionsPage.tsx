@@ -1,21 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  Plus,
-  TrendingUp,
-  TrendingDown,
-  ArrowLeftRight,
-  Pencil,
-  Trash2,
-  ArrowUpRight,
-  ArrowDownRight,
-  Loader2,
-  RefreshCw,
-  MoreVertical,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  HandCoins,
+  Plus, TrendingUp, TrendingDown, ArrowLeftRight,
+  Pencil, Trash2, ArrowUpRight, ArrowDownRight,
+  Loader2, RefreshCw, MoreVertical, CheckCircle2,
+  Clock, AlertCircle, HandCoins,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useBusinessStore } from "../../store/businessStore";
@@ -27,7 +16,6 @@ import {
 } from "../../services/transaction.service";
 import TxnModal from "../../components/shared/TxnModal";
 import SettleModal from "../../components/shared/SettleModal";
-// import SettleModal from "../../components/shared/SettleModal";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -42,30 +30,13 @@ const fmt = (n: number) =>
 
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("en-BD", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+    day: "2-digit", month: "short", year: "numeric",
   });
 
 const TYPE_META = {
-  income: {
-    color: "#10b981",
-    bg: "rgba(16,185,129,0.1)",
-    icon: TrendingUp,
-    sign: "+",
-  },
-  expense: {
-    color: "#ef4444",
-    bg: "rgba(239,68,68,0.1)",
-    icon: TrendingDown,
-    sign: "-",
-  },
-  transfer: {
-    color: "#3b82f6",
-    bg: "rgba(59,130,246,0.1)",
-    icon: ArrowLeftRight,
-    sign: "",
-  },
+  income: { color: "#10b981", bg: "rgba(16,185,129,0.1)", icon: TrendingUp, sign: "+" },
+  expense: { color: "#ef4444", bg: "rgba(239,68,68,0.1)", icon: TrendingDown, sign: "-" },
+  transfer: { color: "#3b82f6", bg: "rgba(59,130,246,0.1)", icon: ArrowLeftRight, sign: "" },
 };
 
 const SETTLE_META = {
@@ -77,15 +48,13 @@ const SETTLE_META = {
 
 /* ─── Transaction Row ─────────────────────────────────── */
 const TxnRow = ({
-  txn,
-  onEdit,
-  onDelete,
-  onSettle,
+  txn, onEdit, onDelete, onSettle, isMass = false,
 }: {
   txn: ITransaction;
   onEdit: (t: ITransaction) => void;
   onDelete: (t: ITransaction) => void;
   onSettle: (t: ITransaction) => void;
+  isMass?: boolean;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const meta = TYPE_META[txn.type];
@@ -97,13 +66,8 @@ const TxnRow = ({
     <div
       className="flex items-center gap-3 px-4 py-3.5 transition-all group"
       style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.background =
-          "rgba(255,255,255,0.02)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "transparent";
-      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
     >
       {/* Type icon */}
       <div
@@ -118,9 +82,7 @@ const TxnRow = ({
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm text-white font-medium truncate">
             {txn.category?.name ?? "Uncategorized"}
-            {txn.category?.icon && (
-              <span className="ml-1">{txn.category.icon}</span>
-            )}
+            {txn.category?.icon && <span className="ml-1">{txn.category.icon}</span>}
           </p>
           {/* Settlement badge */}
           {txn.settlementStatus !== "not_applicable" && SettleIcon && (
@@ -138,16 +100,11 @@ const TxnRow = ({
           )}
         </div>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs" style={{ color: "#475569" }}>
-            {fmtDate(txn.date)}
-          </span>
+          <span className="text-xs" style={{ color: "#475569" }}>{fmtDate(txn.date)}</span>
           {txn.note && (
             <>
               <span style={{ color: "#1e293b" }}>·</span>
-              <span
-                className="text-xs truncate max-w-[140px]"
-                style={{ color: "#475569" }}
-              >
+              <span className="text-xs truncate max-w-[140px]" style={{ color: "#475569" }}>
                 {txn.note}
               </span>
             </>
@@ -170,8 +127,7 @@ const TxnRow = ({
           style={{ background: "linear-gradient(135deg, #10b981, #0d9488)" }}
         >
           <span className="text-[9px] font-bold text-white">
-            {txn.member?.firstName?.[0]}
-            {txn.member?.lastName?.[0]}
+            {txn.member?.firstName?.[0]}{txn.member?.lastName?.[0]}
           </span>
         </div>
         <span className="text-xs" style={{ color: "#475569" }}>
@@ -204,10 +160,7 @@ const TxnRow = ({
         {menuOpen && (
           <>
             {/* Backdrop */}
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setMenuOpen(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
             <div
               className="absolute right-0 top-full mt-1 w-40 rounded-xl overflow-hidden z-50"
               style={{
@@ -218,77 +171,41 @@ const TxnRow = ({
             >
               {canSettle && (
                 <button
-                  onClick={() => {
-                    onSettle(txn);
-                    setMenuOpen(false);
-                  }}
+                  onClick={() => { onSettle(txn); setMenuOpen(false); }}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-all"
                   style={{ color: "#10b981" }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background =
-                      "rgba(16,185,129,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.background =
-                      "transparent";
-                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(16,185,129,0.08)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   <HandCoins size={13} /> Settle
                 </button>
               )}
               {txn.settlementStatus === "settled" && (
                 <button
-                  onClick={() => {
-                    onSettle(txn);
-                    setMenuOpen(false);
-                  }}
+                  onClick={() => { onSettle(txn); setMenuOpen(false); }}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-all"
                   style={{ color: "#64748b" }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background =
-                      "rgba(255,255,255,0.04)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.background =
-                      "transparent";
-                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   <CheckCircle2 size={13} /> View Settlement
                 </button>
               )}
               <button
-                onClick={() => {
-                  onEdit(txn);
-                  setMenuOpen(false);
-                }}
+                onClick={() => { onEdit(txn); setMenuOpen(false); }}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-all"
                 style={{ color: "#94a3b8" }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(255,255,255,0.05)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "transparent";
-                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <Pencil size={13} /> Edit
               </button>
               <button
-                onClick={() => {
-                  onDelete(txn);
-                  setMenuOpen(false);
-                }}
+                onClick={() => { onDelete(txn); setMenuOpen(false); }}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-all"
                 style={{ color: "#f87171" }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(239,68,68,0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "transparent";
-                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <Trash2 size={13} /> Delete
               </button>
@@ -304,6 +221,7 @@ const TxnRow = ({
 const TransactionsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
+  const isMass = activeBusiness?.type === "mass";
 
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [summary, setSummary] = useState<ITxnSummary | null>(null);
@@ -319,34 +237,25 @@ const TransactionsPage = () => {
   const [deleting, setDeleting] = useState<ITransaction | null>(null);
   const [settling, setSettling] = useState<ITransaction | null>(null);
 
-  const fetchTxns = useCallback(
-    async (p = 1) => {
-      if (!activeBusiness) return;
-      setLoading(true);
-      try {
-        const params: Record<string, string> = { page: String(p), limit: "20" };
-        if (typeFilter) params.type = typeFilter;
-        const result = await transactionService.getAll(
-          activeBusiness._id,
-          params,
-        );
-        setTransactions(result.transactions);
-        setSummary(result.summary);
-        setTotalPages(result.pagination.totalPages);
-        setTotal(result.pagination.total);
-      } catch {
-        toast.error("Failed to load transactions");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [activeBusiness, typeFilter],
-  );
+  const fetchTxns = useCallback(async (p = 1) => {
+    if (!activeBusiness) return;
+    setLoading(true);
+    try {
+      const params: Record<string, string> = { page: String(p), limit: "20" };
+      if (typeFilter) params.type = typeFilter;
+      const result = await transactionService.getAll(activeBusiness._id, params);
+      setTransactions(result.transactions);
+      setSummary(result.summary);
+      setTotalPages(result.pagination.totalPages);
+      setTotal(result.pagination.total);
+    } catch {
+      toast.error("Failed to load transactions");
+    } finally {
+      setLoading(false);
+    }
+  }, [activeBusiness, typeFilter]);
 
-  useEffect(() => {
-    fetchTxns(1);
-    setPage(1);
-  }, [fetchTxns]);
+  useEffect(() => { fetchTxns(1); setPage(1); }, [fetchTxns]);
 
   // Handle ?type= from quick actions / dashboard
   useEffect(() => {
@@ -358,30 +267,20 @@ const TransactionsPage = () => {
     }
   }, [searchParams]);
 
-  const openAdd = (type: TxnType) => {
-    setEditing(null);
-    setDefaultType(type);
-    setModalOpen(true);
-  };
-  const openEdit = (txn: ITransaction) => {
-    setEditing(txn);
-    setDefaultType(txn.type);
-    setModalOpen(true);
-  };
+  const openAdd = (type: TxnType) => { setEditing(null); setDefaultType(type); setModalOpen(true); };
+  const openEdit = (txn: ITransaction) => { setEditing(txn); setDefaultType(txn.type); setModalOpen(true); };
   const openSettle = (txn: ITransaction) => setSettling(txn);
 
   const handleSuccess = (txn: ITransaction) => {
     if (editing) {
-      setTransactions((prev) => prev.map((t) => (t._id === txn._id ? txn : t)));
+      setTransactions((prev) => prev.map((t) => t._id === txn._id ? txn : t));
     } else {
       setTransactions((prev) => [txn, ...prev]);
     }
   };
 
   const handleSettleUpdate = (updated: ITransaction) => {
-    setTransactions((prev) =>
-      prev.map((t) => (t._id === updated._id ? updated : t)),
-    );
+    setTransactions((prev) => prev.map((t) => t._id === updated._id ? updated : t));
   };
 
   const handleDelete = async () => {
@@ -400,6 +299,7 @@ const TransactionsPage = () => {
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-4xl mx-auto px-4 py-6 lg:px-8 lg:py-8 space-y-5">
+
         {/* ── Header ──────────────────────────────────── */}
         <div className="flex items-start justify-between">
           <div>
@@ -411,7 +311,8 @@ const TransactionsPage = () => {
             </h1>
             {activeBusiness && (
               <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
-                {activeBusiness.name} · {total} entries
+                {activeBusiness.name} · {total} {isMass ? "এন্ট্রি" : "entries"}
+                {isMass && <span style={{ color: "#8b5cf6" }}> · Mess</span>}
               </p>
             )}
           </div>
@@ -419,33 +320,21 @@ const TransactionsPage = () => {
             <button
               onClick={() => fetchTxns(page)}
               className="w-9 h-9 flex items-center justify-center rounded-xl"
-              style={{
-                background: C.card,
-                border: `1px solid ${C.border}`,
-                color: "#64748b",
-              }}
+              style={{ background: C.card, border: `1px solid ${C.border}`, color: "#64748b" }}
             >
               <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             </button>
             <button
               onClick={() => openAdd("income")}
               className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium active:scale-95"
-              style={{
-                background: "rgba(16,185,129,0.1)",
-                border: "1px solid rgba(16,185,129,0.2)",
-                color: "#10b981",
-              }}
+              style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981" }}
             >
               <TrendingUp size={13} /> Income
             </button>
             <button
               onClick={() => openAdd("expense")}
               className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium active:scale-95"
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                color: "#ef4444",
-              }}
+              style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}
             >
               <TrendingDown size={13} /> Expense
             </button>
@@ -463,18 +352,8 @@ const TransactionsPage = () => {
         {summary && (
           <div className="grid grid-cols-3 gap-3">
             {[
-              {
-                label: "Income",
-                value: summary.totalIncome,
-                color: "#10b981",
-                icon: ArrowUpRight,
-              },
-              {
-                label: "Expense",
-                value: summary.totalExpense,
-                color: "#ef4444",
-                icon: ArrowDownRight,
-              },
+              { label: "Income", value: summary.totalIncome, color: "#10b981", icon: ArrowUpRight },
+              { label: "Expense", value: summary.totalExpense, color: "#ef4444", icon: ArrowDownRight },
               {
                 label: "Balance",
                 value: summary.balance,
@@ -482,15 +361,9 @@ const TransactionsPage = () => {
                 icon: summary.balance >= 0 ? ArrowUpRight : ArrowDownRight,
               },
             ].map(({ label, value, color, icon: Icon }) => (
-              <div
-                key={label}
-                className="rounded-2xl p-4"
-                style={{ background: C.card, border: `1px solid ${C.border}` }}
-              >
+              <div key={label} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs" style={{ color: "#475569" }}>
-                    {label}
-                  </span>
+                  <span className="text-xs" style={{ color: "#475569" }}>{label}</span>
                   <div
                     className="w-6 h-6 rounded-md flex items-center justify-center"
                     style={{ background: `${color}15`, color }}
@@ -518,9 +391,7 @@ const TransactionsPage = () => {
             { label: "Transfer", value: "transfer" },
           ].map(({ label, value }) => {
             const isActive = typeFilter === value;
-            const color = value
-              ? TYPE_META[value as TxnType]?.color
-              : "#10b981";
+            const color = value ? TYPE_META[value as TxnType]?.color : "#10b981";
             return (
               <button
                 key={value}
@@ -545,11 +416,7 @@ const TransactionsPage = () => {
         >
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2
-                size={22}
-                className="animate-spin"
-                style={{ color: "#10b981" }}
-              />
+              <Loader2 size={22} className="animate-spin" style={{ color: "#10b981" }} />
             </div>
           ) : !activeBusiness ? (
             <div className="text-center py-16">
@@ -565,9 +432,7 @@ const TransactionsPage = () => {
               >
                 <ArrowLeftRight size={20} style={{ color: "#334155" }} />
               </div>
-              <p className="text-sm font-medium text-white mb-1">
-                No transactions yet
-              </p>
+              <p className="text-sm font-medium text-white mb-1">No transactions yet</p>
               <p className="text-xs mb-5" style={{ color: "#475569" }}>
                 Add your first income or expense
               </p>
@@ -575,24 +440,16 @@ const TransactionsPage = () => {
                 <button
                   onClick={() => openAdd("income")}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
-                  style={{
-                    background: "rgba(16,185,129,0.1)",
-                    border: "1px solid rgba(16,185,129,0.25)",
-                    color: "#10b981",
-                  }}
+                  style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#10b981" }}
                 >
-                  <TrendingUp size={13} /> Add Income
+                  <TrendingUp size={13} /> {isMass ? "Add Deposit" : "Add Income"}
                 </button>
                 <button
                   onClick={() => openAdd("expense")}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
-                  style={{
-                    background: "rgba(239,68,68,0.1)",
-                    border: "1px solid rgba(239,68,68,0.25)",
-                    color: "#ef4444",
-                  }}
+                  style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444" }}
                 >
-                  <TrendingDown size={13} /> Add Expense
+                  <TrendingDown size={13} /> {isMass ? "Add Cost" : "Add Expense"}
                 </button>
               </div>
             </div>
@@ -605,6 +462,7 @@ const TransactionsPage = () => {
                   onEdit={openEdit}
                   onDelete={setDeleting}
                   onSettle={openSettle}
+                  isMass={isMass}
                 />
               ))}
 
@@ -615,18 +473,10 @@ const TransactionsPage = () => {
                   style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
                 >
                   <button
-                    onClick={() => {
-                      const p = page - 1;
-                      setPage(p);
-                      fetchTxns(p);
-                    }}
+                    onClick={() => { const p = page - 1; setPage(p); fetchTxns(p); }}
                     disabled={page <= 1}
                     className="px-4 py-1.5 rounded-xl text-xs disabled:opacity-40"
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: `1px solid ${C.border}`,
-                      color: "#94a3b8",
-                    }}
+                    style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, color: "#94a3b8" }}
                   >
                     Previous
                   </button>
@@ -634,18 +484,10 @@ const TransactionsPage = () => {
                     {page} / {totalPages}
                   </span>
                   <button
-                    onClick={() => {
-                      const p = page + 1;
-                      setPage(p);
-                      fetchTxns(p);
-                    }}
+                    onClick={() => { const p = page + 1; setPage(p); fetchTxns(p); }}
                     disabled={page >= totalPages}
                     className="px-4 py-1.5 rounded-xl text-xs disabled:opacity-40"
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: `1px solid ${C.border}`,
-                      color: "#94a3b8",
-                    }}
+                    style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, color: "#94a3b8" }}
                   >
                     Next
                   </button>
@@ -661,20 +503,14 @@ const TransactionsPage = () => {
         <button
           onClick={() => openAdd("income")}
           className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95"
-          style={{
-            background: "#10b981",
-            boxShadow: "0 8px 24px rgba(16,185,129,0.35)",
-          }}
+          style={{ background: "#10b981", boxShadow: "0 8px 24px rgba(16,185,129,0.35)" }}
         >
           <TrendingUp size={20} className="text-emerald-950" />
         </button>
         <button
           onClick={() => openAdd("expense")}
           className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95"
-          style={{
-            background: "#ef4444",
-            boxShadow: "0 8px 24px rgba(239,68,68,0.35)",
-          }}
+          style={{ background: "#ef4444", boxShadow: "0 8px 24px rgba(239,68,68,0.35)" }}
         >
           <TrendingDown size={20} className="text-white" />
         </button>
@@ -683,13 +519,11 @@ const TransactionsPage = () => {
       {/* ── Add / Edit Modal ─────────────────────────── */}
       <TxnModal
         open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditing(null);
-        }}
+        onClose={() => { setModalOpen(false); setEditing(null); }}
         onSuccess={handleSuccess}
         editing={editing}
         defaultType={defaultType}
+        isMass={isMass}
       />
 
       {/* ── Settle Modal ─────────────────────────────── */}
@@ -706,17 +540,11 @@ const TransactionsPage = () => {
       {deleting && (
         <div
           className="fixed inset-0 z-[300] flex items-center justify-center p-4"
-          style={{
-            background: "rgba(0,0,0,0.75)",
-            backdropFilter: "blur(8px)",
-          }}
+          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
         >
           <div
             className="w-full max-w-sm rounded-2xl p-6"
-            style={{
-              background: "#0d1424",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
+            style={{ background: "#0d1424", border: "1px solid rgba(255,255,255,0.1)" }}
           >
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center mx-auto mb-4"
@@ -724,24 +552,15 @@ const TransactionsPage = () => {
             >
               <Trash2 size={18} style={{ color: "#ef4444" }} />
             </div>
-            <p className="text-white text-center font-semibold mb-1">
-              Delete transaction?
-            </p>
-            <p
-              className="text-xs text-center mb-5"
-              style={{ color: "#475569" }}
-            >
+            <p className="text-white text-center font-semibold mb-1">Delete transaction?</p>
+            <p className="text-xs text-center mb-5" style={{ color: "#475569" }}>
               ৳{fmt(deleting.amount)} · {deleting.category?.name}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleting(null)}
                 className="flex-1 py-2.5 rounded-xl text-sm"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: `1px solid ${C.border}`,
-                  color: "#94a3b8",
-                }}
+                style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, color: "#94a3b8" }}
               >
                 Cancel
               </button>

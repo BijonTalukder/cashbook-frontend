@@ -11,6 +11,7 @@ import {
   Bell,
   HandCoins,
   ChevronLeft,
+  Calculator,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useBusinessStore } from "../store/businessStore";
@@ -31,6 +32,8 @@ const navItems = [
   { to: "/meals", icon: UtensilsCrossed, label: "Meals", massOnly: true },
   { to: "/settings", icon: Settings, label: "Settings" },
   { to: "/dues", icon: HandCoins, label: "Dues" },
+  { to: '/mess', icon: Calculator, label: 'Mess', massOnly: true }
+
 ];
 
 // Root-level pages where back button should NOT show

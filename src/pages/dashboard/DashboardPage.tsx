@@ -82,7 +82,7 @@ const TYPE_META: Record<
     accent: "#8b5cf6",
     bg: "rgba(139,92,246,0.08)",
     border: "rgba(139,92,246,0.2)",
-    label: "Household",
+    label: "Mess",
   },
 };
 
@@ -97,33 +97,13 @@ const ROLE_META: Record<
 };
 
 const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
 const MONTHS_BN = [
-  "জানুয়ারি",
-  "ফেব্রুয়ারি",
-  "মার্চ",
-  "এপ্রিল",
-  "মে",
-  "জুন",
-  "জুলাই",
-  "আগস্ট",
-  "সেপ্টেম্বর",
-  "অক্টোবর",
-  "নভেম্বর",
-  "ডিসেম্বর",
+  "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর",
 ];
 
 /* ─── Helpers ─────────────────────────────────────────── */
@@ -137,27 +117,16 @@ const fmtDate = (d: string) =>
 /* ─── Meal Dashboard Widget ───────────────────────────── */
 const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
   const navigate = useNavigate();
-  const [data, setData] = useState<{ total: number; days: number } | null>(
-    null,
-  );
+  const [data, setData] = useState<{ total: number; days: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    mealService
-      .getSummary(businessId)
-      .then((res) => {
-        if (!cancelled) setData(res);
-      })
-      .catch(() => {
-        /* silent */
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+    mealService.getSummary(businessId)
+      .then((res) => { if (!cancelled) setData(res); })
+      .catch(() => {/* silent */ })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [businessId]);
 
   const monthName = MONTHS_BN[new Date().getMonth()];
@@ -172,21 +141,16 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
         border: "1px solid rgba(139,92,246,0.2)",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.background =
-          "rgba(139,92,246,0.1)";
+        (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.1)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background =
-          "rgba(139,92,246,0.06)";
+        (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.06)";
       }}
     >
       {/* top shimmer line */}
       <div
         className="absolute top-0 left-8 right-8 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, rgba(139,92,246,0.5), transparent)",
-        }}
+        style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.5), transparent)" }}
       />
 
       {/* Header */}
@@ -210,7 +174,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
             className="text-[10px] px-2 py-0.5 rounded-full font-medium"
             style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}
           >
-            Household
+            Mess
           </span>
           <ChevronRight
             size={14}
@@ -223,14 +187,8 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
       {/* Stats */}
       {loading ? (
         <div className="flex items-center gap-2 py-1">
-          <Loader2
-            size={14}
-            className="animate-spin"
-            style={{ color: "#8b5cf6" }}
-          />
-          <span className="text-xs" style={{ color: "#475569" }}>
-            লোড হচ্ছে...
-          </span>
+          <Loader2 size={14} className="animate-spin" style={{ color: "#8b5cf6" }} />
+          <span className="text-xs" style={{ color: "#475569" }}>লোড হচ্ছে...</span>
         </div>
       ) : (
         <div className="flex items-end gap-6">
@@ -238,10 +196,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
           <div>
             <p
               className="text-3xl font-bold leading-none"
-              style={{
-                color: "#8b5cf6",
-                fontFamily: "'DM Serif Display', serif",
-              }}
+              style={{ color: "#8b5cf6", fontFamily: "'DM Serif Display', serif" }}
             >
               {fmtBn(data?.total ?? 0)}
             </p>
@@ -252,28 +207,20 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
 
           {/* Days */}
           <div className="mb-0.5">
-            <p
-              className="text-xl font-bold leading-none text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
-            >
+            <p className="text-xl font-bold leading-none text-white"
+              style={{ fontFamily: "'DM Serif Display', serif" }}>
               {fmtBn(data?.days ?? 0)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "#475569" }}>
-              দিন
-            </p>
+            <p className="text-[11px] mt-1" style={{ color: "#475569" }}>দিন</p>
           </div>
 
           {/* Avg */}
           <div className="mb-0.5">
-            <p
-              className="text-xl font-bold leading-none text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
-            >
+            <p className="text-xl font-bold leading-none text-white"
+              style={{ fontFamily: "'DM Serif Display', serif" }}>
               {fmtBn(avg)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "#475569" }}>
-              গড়/দিন
-            </p>
+            <p className="text-[11px] mt-1" style={{ color: "#475569" }}>গড়/দিন</p>
           </div>
 
           {/* CTA */}
@@ -399,11 +346,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         {label}
       </p>
       {payload.map((p: any) => (
-        <p
-          key={p.name}
-          className="text-xs font-semibold"
-          style={{ color: p.color }}
-        >
+        <p key={p.name} className="text-xs font-semibold" style={{ color: p.color }}>
           {p.name}: ৳{fmt(p.value)}
         </p>
       ))}
@@ -470,10 +413,7 @@ const DashboardPage = () => {
       const year = new Date().getFullYear();
       const [summaryRes, recentRes] = await Promise.all([
         transactionService.getMonthlySummary(activeBusiness._id, year),
-        transactionService.getAll(activeBusiness._id, {
-          page: "1",
-          limit: "5",
-        }),
+        transactionService.getAll(activeBusiness._id, { page: "1", limit: "5" }),
       ]);
 
       const chart = summaryRes.months.map(
@@ -503,12 +443,8 @@ const DashboardPage = () => {
     }
   }, [activeBusiness]);
 
-  useEffect(() => {
-    fetchBusinesses();
-  }, []);
-  useEffect(() => {
-    fetchBusinessData();
-  }, [fetchBusinessData]);
+  useEffect(() => { fetchBusinesses(); }, []);
+  useEffect(() => { fetchBusinessData(); }, [fetchBusinessData]);
 
   const handleSelect = (b: IBusiness) => {
     setActiveBusiness(b);
@@ -532,6 +468,7 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-5xl mx-auto space-y-5">
+
         {/* ── Header ──────────────────────────────────── */}
         <div className="flex items-start justify-between">
           <div>
@@ -546,16 +483,9 @@ const DashboardPage = () => {
             </h1>
           </div>
           <button
-            onClick={() => {
-              fetchBusinesses(true);
-              fetchBusinessData();
-            }}
+            onClick={() => { fetchBusinesses(true); fetchBusinessData(); }}
             className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
-            style={{
-              background: C.card,
-              border: `1px solid ${C.border}`,
-              color: "#64748b",
-            }}
+            style={{ background: C.card, border: `1px solid ${C.border}`, color: "#64748b" }}
           >
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
           </button>
@@ -599,9 +529,7 @@ const DashboardPage = () => {
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs" style={{ color: "#475569" }}>
-                  {label}
-                </span>
+                <span className="text-xs" style={{ color: "#475569" }}>{label}</span>
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: `${color}15`, color }}
@@ -622,9 +550,7 @@ const DashboardPage = () => {
                   {value}
                 </p>
               )}
-              <p className="text-[11px] mt-1" style={{ color: "#334155" }}>
-                {sub}
-              </p>
+              <p className="text-[11px] mt-1" style={{ color: "#334155" }}>{sub}</p>
             </div>
           ))}
         </div>
@@ -665,10 +591,7 @@ const DashboardPage = () => {
                     onClick={() => setChartMode(mode)}
                     className="px-3 py-1 rounded-lg text-xs font-medium capitalize transition-all"
                     style={{
-                      background:
-                        chartMode === mode
-                          ? "rgba(16,185,129,0.15)"
-                          : "transparent",
+                      background: chartMode === mode ? "rgba(16,185,129,0.15)" : "transparent",
                       color: chartMode === mode ? "#10b981" : "#475569",
                     }}
                   >
@@ -680,11 +603,7 @@ const DashboardPage = () => {
 
             {dataLoading ? (
               <div className="h-52 flex items-center justify-center">
-                <RefreshCw
-                  size={18}
-                  className="animate-spin"
-                  style={{ color: "#334155" }}
-                />
+                <RefreshCw size={18} className="animate-spin" style={{ color: "#334155" }} />
               </div>
             ) : chartData.every((d) => d.income === 0 && d.expense === 0) ? (
               <div className="h-52 flex flex-col items-center justify-center gap-2">
@@ -694,138 +613,39 @@ const DashboardPage = () => {
                 >
                   <TrendingUp size={18} style={{ color: "#334155" }} />
                 </div>
-                <p className="text-xs" style={{ color: "#334155" }}>
-                  No transaction data yet
-                </p>
+                <p className="text-xs" style={{ color: "#334155" }}>No transaction data yet</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={210}>
                 {chartMode === "area" ? (
-                  <AreaChart
-                    data={chartData}
-                    margin={{ top: 5, right: 5, bottom: 0, left: -20 }}
-                  >
+                  <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
                     <defs>
-                      <linearGradient
-                        id="incomeGrad"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor="#10b981"
-                          stopOpacity={0.25}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#10b981"
-                          stopOpacity={0}
-                        />
+                      <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                       </linearGradient>
-                      <linearGradient
-                        id="expenseGrad"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor="#ef4444"
-                          stopOpacity={0.2}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#ef4444"
-                          stopOpacity={0}
-                        />
+                      <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="rgba(255,255,255,0.04)"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fill: "#334155", fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: "#334155", fontSize: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(v) =>
-                        v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v
-                      }
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: "#334155", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "#334155", fontSize: 10 }} axisLine={false} tickLine={false}
+                      tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Area
-                      type="monotone"
-                      dataKey="income"
-                      name="Income"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      fill="url(#incomeGrad)"
-                      dot={false}
-                      activeDot={{ r: 4, fill: "#10b981" }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="expense"
-                      name="Expense"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      fill="url(#expenseGrad)"
-                      dot={false}
-                      activeDot={{ r: 4, fill: "#ef4444" }}
-                    />
+                    <Area type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={2} fill="url(#incomeGrad)" dot={false} activeDot={{ r: 4, fill: "#10b981" }} />
+                    <Area type="monotone" dataKey="expense" name="Expense" stroke="#ef4444" strokeWidth={2} fill="url(#expenseGrad)" dot={false} activeDot={{ r: 4, fill: "#ef4444" }} />
                   </AreaChart>
                 ) : (
-                  <BarChart
-                    data={chartData}
-                    margin={{ top: 5, right: 5, bottom: 0, left: -20 }}
-                    barGap={4}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="rgba(255,255,255,0.04)"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fill: "#334155", fontSize: 11 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: "#334155", fontSize: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(v) =>
-                        v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v
-                      }
-                    />
+                  <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: "#334155", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "#334155", fontSize: 10 }} axisLine={false} tickLine={false}
+                      tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar
-                      dataKey="income"
-                      name="Income"
-                      fill="#10b981"
-                      radius={[4, 4, 0, 0]}
-                      fillOpacity={0.85}
-                      maxBarSize={20}
-                    />
-                    <Bar
-                      dataKey="expense"
-                      name="Expense"
-                      fill="#ef4444"
-                      radius={[4, 4, 0, 0]}
-                      fillOpacity={0.85}
-                      maxBarSize={20}
-                    />
+                    <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
+                    <Bar dataKey="expense" name="Expense" fill="#ef4444" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
                   </BarChart>
                 )}
               </ResponsiveContainer>
@@ -837,13 +657,8 @@ const DashboardPage = () => {
                 { color: "#ef4444", label: "Expense" },
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-1.5">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ background: color }}
-                  />
-                  <span className="text-xs" style={{ color: "#475569" }}>
-                    {label}
-                  </span>
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+                  <span className="text-xs" style={{ color: "#475569" }}>{label}</span>
                 </div>
               ))}
             </div>
@@ -864,10 +679,7 @@ const DashboardPage = () => {
               >
                 <div className="flex items-center gap-2">
                   <Clock size={13} style={{ color: "#475569" }} />
-                  <span
-                    className="text-xs font-medium"
-                    style={{ color: "#475569" }}
-                  >
+                  <span className="text-xs font-medium" style={{ color: "#475569" }}>
                     Recent Transactions
                   </span>
                 </div>
@@ -883,11 +695,8 @@ const DashboardPage = () => {
               {dataLoading ? (
                 <div className="p-4 space-y-2">
                   {[...Array(4)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-12 rounded-xl animate-pulse"
-                      style={{ background: "rgba(255,255,255,0.03)" }}
-                    />
+                    <div key={i} className="h-12 rounded-xl animate-pulse"
+                      style={{ background: "rgba(255,255,255,0.03)" }} />
                   ))}
                 </div>
               ) : recentTxns.length === 0 ? (
@@ -898,9 +707,7 @@ const DashboardPage = () => {
                   >
                     <ArrowLeftRight size={16} style={{ color: "#334155" }} />
                   </div>
-                  <p className="text-xs" style={{ color: "#334155" }}>
-                    No transactions yet
-                  </p>
+                  <p className="text-xs" style={{ color: "#334155" }}>No transactions yet</p>
                 </div>
               ) : (
                 recentTxns.map((txn) => {
@@ -910,24 +717,13 @@ const DashboardPage = () => {
                     <div
                       key={txn._id}
                       className="flex items-center gap-3 px-5 py-3 transition-all"
-                      style={{
-                        borderBottom: "1px solid rgba(255,255,255,0.03)",
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.background =
-                          "rgba(255,255,255,0.02)";
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.background =
-                          "transparent";
-                      }}
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                     >
                       <div
                         className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{
-                          background: `${meta.color}15`,
-                          color: meta.color,
-                        }}
+                        style={{ background: `${meta.color}15`, color: meta.color }}
                       >
                         <Icon size={14} />
                       </div>
@@ -942,10 +738,7 @@ const DashboardPage = () => {
                           {fmtDate(txn.date)} · {txn.member?.firstName}
                         </p>
                       </div>
-                      <p
-                        className="text-sm font-semibold flex-shrink-0"
-                        style={{ color: meta.color }}
-                      >
+                      <p className="text-sm font-semibold flex-shrink-0" style={{ color: meta.color }}>
                         {meta.sign}৳{fmt(txn.amount)}
                       </p>
                     </div>
@@ -962,22 +755,15 @@ const DashboardPage = () => {
               <div
                 className="rounded-2xl p-5 relative overflow-hidden"
                 style={{
-                  background:
-                    "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04))",
+                  background: "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04))",
                   border: "1px solid rgba(16,185,129,0.2)",
                 }}
               >
                 <div
                   className="absolute top-0 left-0 right-0 h-px"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent, rgba(16,185,129,0.6), transparent)",
-                  }}
+                  style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.6), transparent)" }}
                 />
-                <p
-                  className="text-xs mb-1"
-                  style={{ color: "rgba(16,185,129,0.7)" }}
-                >
+                <p className="text-xs mb-1" style={{ color: "rgba(16,185,129,0.7)" }}>
                   This month's balance
                 </p>
                 <p
@@ -987,35 +773,18 @@ const DashboardPage = () => {
                     color: monthSummary.balance >= 0 ? "#10b981" : "#ef4444",
                   }}
                 >
-                  {monthSummary.balance < 0 ? "-" : ""}৳
-                  {fmt(Math.abs(monthSummary.balance))}
+                  {monthSummary.balance < 0 ? "-" : ""}৳{fmt(Math.abs(monthSummary.balance))}
                 </p>
                 <div className="flex gap-4">
                   <div>
-                    <p
-                      className="text-[10px]"
-                      style={{ color: "rgba(255,255,255,0.3)" }}
-                    >
-                      In
-                    </p>
-                    <p
-                      className="text-xs font-semibold"
-                      style={{ color: "#10b981" }}
-                    >
+                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>In</p>
+                    <p className="text-xs font-semibold" style={{ color: "#10b981" }}>
                       ৳{fmt(monthSummary.income)}
                     </p>
                   </div>
                   <div>
-                    <p
-                      className="text-[10px]"
-                      style={{ color: "rgba(255,255,255,0.3)" }}
-                    >
-                      Out
-                    </p>
-                    <p
-                      className="text-xs font-semibold"
-                      style={{ color: "#ef4444" }}
-                    >
+                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>Out</p>
+                    <p className="text-xs font-semibold" style={{ color: "#ef4444" }}>
                       ৳{fmt(monthSummary.expense)}
                     </p>
                   </div>
@@ -1034,55 +803,21 @@ const DashboardPage = () => {
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    {
-                      label: "Income",
-                      icon: TrendingUp,
-                      color: "#10b981",
-                      to: "/transactions?type=income",
-                    },
-                    {
-                      label: "Expense",
-                      icon: TrendingDown,
-                      color: "#ef4444",
-                      to: "/transactions?type=expense",
-                    },
-                    {
-                      label: "Members",
-                      icon: Users,
-                      color: "#3b82f6",
-                      to: "/members",
-                    },
+                    { label: "Income", icon: TrendingUp, color: "#10b981", to: "/transactions?type=income" },
+                    { label: "Expense", icon: TrendingDown, color: "#ef4444", to: "/transactions?type=expense" },
+                    { label: "Members", icon: Users, color: "#3b82f6", to: "/members" },
                     ...(isMass
-                      ? [
-                          {
-                            label: "Meals",
-                            icon: UtensilsCrossed,
-                            color: "#8b5cf6",
-                            to: "/meals",
-                          },
-                        ]
-                      : [
-                          {
-                            label: "Transactions",
-                            icon: Wallet,
-                            color: "#f59e0b",
-                            to: "/transactions",
-                          },
-                        ]),
+                      ? [{ label: "Meals", icon: UtensilsCrossed, color: "#8b5cf6", to: "/meals" }]
+                      : [{ label: "Transactions", icon: Wallet, color: "#f59e0b", to: "/transactions" }]
+                    ),
                   ].map(({ label, icon: Icon, color, to }) => (
                     <button
                       key={label}
                       onClick={() => navigate(to)}
                       className="flex flex-col items-center gap-1.5 p-3 rounded-xl active:scale-95 transition-all group"
                       style={{ border: `1px solid ${C.borderLight}` }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.background =
-                          "rgba(255,255,255,0.03)";
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.background =
-                          "transparent";
-                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                     >
                       <div
                         className="w-8 h-8 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
@@ -1090,10 +825,7 @@ const DashboardPage = () => {
                       >
                         <Icon size={15} />
                       </div>
-                      <span
-                        className="text-[11px] text-center leading-tight"
-                        style={{ color: "#64748b" }}
-                      >
+                      <span className="text-[11px] text-center leading-tight" style={{ color: "#64748b" }}>
                         {label}
                       </span>
                     </button>
@@ -1128,26 +860,16 @@ const DashboardPage = () => {
 
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} />
-              ))}
+              {[...Array(3)].map((_, i) => <Skeleton key={i} />)}
             </div>
           ) : memberships.length === 0 ? (
             <div
               className="rounded-2xl p-10 text-center"
               style={{ background: C.card, border: `1px dashed ${C.border}` }}
             >
-              <Building2
-                size={20}
-                className="mx-auto mb-3"
-                style={{ color: "#334155" }}
-              />
-              <p className="text-white text-sm font-medium mb-1">
-                No businesses yet
-              </p>
-              <p className="text-xs mb-5" style={{ color: "#475569" }}>
-                Set one up to get started
-              </p>
+              <Building2 size={20} className="mx-auto mb-3" style={{ color: "#334155" }} />
+              <p className="text-white text-sm font-medium mb-1">No businesses yet</p>
+              <p className="text-xs mb-5" style={{ color: "#475569" }}>Set one up to get started</p>
               <button
                 onClick={() => navigate("/onboarding")}
                 className="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold active:scale-95 transition-all"
@@ -1184,8 +906,7 @@ const DashboardPage = () => {
                     className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
                     style={{ color: "#334155" }}
                   >
-                    <Users size={10} style={{ color: "#60a5fa" }} /> Joined via
-                    invite
+                    <Users size={10} style={{ color: "#60a5fa" }} /> Joined via invite
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {joined.map((m) => (
