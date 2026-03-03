@@ -206,7 +206,7 @@ const OnboardingPage = () => {
       });
       await businessService.completeOnboarding();
       if (user && token) {
-        setAuth({ ...user, defaultBusiness: business._id, onboardingCompleted: true }, token);
+        setAuth({ ...user, defaultBusiness: business._id }, token);
       }
 
       clearDraft();
