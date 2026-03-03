@@ -5,6 +5,7 @@ export interface IUser {
   email: string;
   role: string;
   defaultBusiness?: string;
+  onboardingCompleted: boolean;
   avatar?: string;
 }
 

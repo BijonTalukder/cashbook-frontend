@@ -53,6 +53,9 @@ export const businessService = {
     const { data } = await api.post("/businesses", payload);
     return data.data;
   },
+  completeOnboarding: async (): Promise<void> => {
+    await api.post('/businesses/complete-onboarding');
+  },
   getMembers: async (
     businessId: string,
   ): Promise<
