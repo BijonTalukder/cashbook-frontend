@@ -204,15 +204,14 @@ const OnboardingPage = () => {
         type: savedDraft.business.type,
         category: savedDraft.selectedCategoryId ?? undefined,
       });
-      await businessService.completeOnboarding();
+      // await businessService.completeOnboarding();
       if (user && token) {
         setAuth({ ...user, defaultBusiness: business._id }, token);
       }
 
       clearDraft();
       setStep(3);
-      // ✅ useEffect will auto-navigate when defaultBusiness updates in store
-      // setTimeout fallback in case useEffect doesn't fire fast enough
+
       setTimeout(() => navigate("/dashboard", { replace: true }), 1600);
     } catch (err: unknown) {
       const message =
