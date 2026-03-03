@@ -204,9 +204,9 @@ const OnboardingPage = () => {
         type: savedDraft.business.type,
         category: savedDraft.selectedCategoryId ?? undefined,
       });
-      // await businessService.completeOnboarding();
+      await businessService.completeOnboarding();
       if (user && token) {
-        setAuth({ ...user, defaultBusiness: business._id }, token);
+        setAuth({ ...user, defaultBusiness: business._id, onboardingCompleted: true }, token);
       }
 
       clearDraft();
