@@ -36,17 +36,18 @@ const LoginPage = () => {
 
       // ✅ Fix: defaultBusiness আছে কিনা দেখে navigate করো
       // GuestRoute এও handle করা আছে, কিন্তু explicit navigate better UX
-      if (res.data.user?.defaultBusiness) {
-        navigate("/dashboard", { replace: true });
-      } else {
-        navigate("/onboarding", { replace: true });
-      }
+      navigate("/dashboard", { replace: true });
+      // if (res.data.user?.defaultBusiness) {
+      //   navigate("/dashboard", { replace: true });
+      // } else {
+      //   navigate("/onboarding", { replace: true });
+      // }
     } catch (err: unknown) {
       const message =
         err instanceof Error
           ? err.message
           : ((err as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message ?? "Login failed");
+            ?.data?.message ?? "Login failed");
       toast.error(message);
     } finally {
       setLoading(false);
@@ -168,10 +169,9 @@ const LoginPage = () => {
                 placeholder="you@example.com"
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
-                  ${
-                    errors.email
-                      ? "border-red-500/50 focus:ring-red-500/20"
-                      : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+                  ${errors.email
+                    ? "border-red-500/50 focus:ring-red-500/20"
+                    : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
                   }`}
               />
               {errors.email && (
@@ -192,10 +192,9 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-11 text-white placeholder-slate-600 
                     focus:outline-none focus:ring-2 transition-all text-sm
-                    ${
-                      errors.password
-                        ? "border-red-500/50 focus:ring-red-500/20"
-                        : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+                    ${errors.password
+                      ? "border-red-500/50 focus:ring-red-500/20"
+                      : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
                     }`}
                 />
                 <button

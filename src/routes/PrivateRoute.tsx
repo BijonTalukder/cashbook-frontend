@@ -10,14 +10,13 @@ import { useAuthStore } from "../store/authStore";
 const PrivateRoute = () => {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  console.log(user, token)
 
   if (!token) return <Navigate to="/login" replace />;
 
-  // onboardingCompleted false হলে onboarding এ পাঠাও
-  // defaultBusiness না থাকলেও onboarding এ পাঠাও (extra safety)
-  if (!user?.onboardingCompleted || !user?.defaultBusiness) {
-    return <Navigate to="/onboarding" replace />;
-  }
+  // if (!user?.onboardingCompleted || !user?.defaultBusiness) {
+  //   return <Navigate to="/onboarding" replace />;
+  // }
 
   return <Outlet />;
 };
