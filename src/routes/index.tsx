@@ -13,6 +13,7 @@ import InvitePage from "../pages/invite/InvitePage";
 import PendingDuesPage from "../pages/dues/PendingDuesPage";
 import SettingsPage from "../pages/settings/SettingsPage";
 import MealsPage from "../pages/meal/MealsPage";
+import NewBusinessPage from "../pages/business/NewBusinessPage";
 
 export const router = createBrowserRouter([
   /* ── Guest routes (login/register) ─────────────────────
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
           { path: "/dues", element: <PendingDuesPage /> },
           { path: "/settings", element: <SettingsPage /> },
           { path: "/meals", element: <MealsPage /> },
+          { path: "/business/new", element: <NewBusinessPage /> },
         ],
       },
     ],

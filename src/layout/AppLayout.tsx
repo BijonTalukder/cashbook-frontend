@@ -1,4 +1,5 @@
 import { useLocation, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import {
   TrendingUp,
   LayoutDashboard,
@@ -8,8 +9,8 @@ import {
   Settings,
   LogOut,
   Bell,
-  ChevronRight,
   HandCoins,
+  ChevronLeft,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useBusinessStore } from "../store/businessStore";
@@ -32,6 +33,38 @@ const navItems = [
   { to: "/dues", icon: HandCoins, label: "Dues" },
 ];
 
+// Root-level pages where back button should NOT show
+const ROOT_PATHS = [
+  "/dashboard",
+  "/transactions",
+  "/members",
+  "/meals",
+  "/settings",
+  "/dues",
+];
+const isRootPath = (path: string) => ROOT_PATHS.some((r) => path === r);
+
+// Page titles for mobile header
+const PAGE_TITLES: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/transactions": "Transactions",
+  "/members": "Members",
+  "/meals": "Meals",
+  "/settings": "Settings",
+  "/dues": "Dues",
+  "/invoice": "Invoice",
+  "/business/new": "New Business",
+};
+
+const getPageTitle = (path: string) => {
+  const exact = PAGE_TITLES[path];
+  if (exact) return exact;
+  const partial = Object.entries(PAGE_TITLES).find(
+    ([k]) => path.startsWith(k) && k !== "/",
+  );
+  return partial ? partial[1] : "CashBook";
+};
+
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +73,9 @@ const AppLayout = () => {
 
   const isMass = activeBusiness?.type === "mass";
   const visibleNav = navItems.filter((n) => !n.massOnly || isMass);
+
+  const showBack = !isRootPath(location.pathname);
+  const pageTitle = getPageTitle(location.pathname);
 
   const handleLogout = () => {
     logout();
@@ -51,11 +87,82 @@ const AppLayout = () => {
       ? location.pathname === "/dashboard"
       : location.pathname.startsWith(to);
 
+  /* ── Swipe-to-go-back gesture ─────────────────────────
+     Edge swipe from left (within 40px) → go back
+     Only active on mobile (touch devices)
+  ─────────────────────────────────────────────────────── */
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const swipeActive = useRef(false);
+  const [swipeProgress, setSwipeProgress] = useState(0); // 0–1
+
+  useEffect(() => {
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+      swipeActive.current = touchStartX.current < 40; // only edge swipe
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!swipeActive.current) return;
+      const dx = e.touches[0].clientX - touchStartX.current;
+      const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+      if (dy > 30) {
+        swipeActive.current = false;
+        setSwipeProgress(0);
+        return;
+      }
+      if (dx > 0) {
+        const progress = Math.min(dx / 120, 1);
+        setSwipeProgress(progress);
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!swipeActive.current) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      setSwipeProgress(0);
+      swipeActive.current = false;
+      if (dx > 80) navigate(-1);
+    };
+
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [navigate]);
+
   return (
     <div
       className="min-h-screen flex flex-col lg:flex-row"
       style={{ background: C.bg }}
     >
+      {/* ── Swipe indicator (left edge) ─────────── */}
+      {swipeProgress > 0 && (
+        <div
+          className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] pointer-events-none flex items-center"
+          style={{
+            width: `${swipeProgress * 60}px`,
+            background:
+              "linear-gradient(to right, rgba(16,185,129,0.15), transparent)",
+          }}
+        >
+          <div
+            className="ml-1 flex items-center justify-center"
+            style={{
+              opacity: swipeProgress,
+              transform: `translateX(${swipeProgress * 8}px)`,
+            }}
+          >
+            <ChevronLeft size={20} style={{ color: "#10b981" }} />
+          </div>
+        </div>
+      )}
+
       {/* ── Desktop Sidebar ──────────────────────── */}
       <aside
         className="hidden lg:flex w-60 flex-col flex-shrink-0 min-h-screen sticky top-0"
@@ -74,7 +181,7 @@ const AppLayout = () => {
           </span>
         </div>
 
-        {/* Business switcher in sidebar */}
+        {/* Business switcher */}
         <div className="px-3 mb-4">
           <BusinessSwitcher onSelect={() => navigate("/transactions")} />
         </div>
@@ -163,27 +270,46 @@ const AppLayout = () => {
           backdropFilter: "blur(20px)",
         }}
       >
-        <div className="flex items-center px-4 h-14 gap-3">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-emerald-400 rounded-lg flex items-center justify-center">
-              <TrendingUp size={13} className="text-emerald-950" />
-            </div>
-            <span
-              className="text-white font-bold text-base"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+        <div className="flex items-center px-3 h-14 gap-2">
+          {/* Left: back button OR logo */}
+          {showBack ? (
+            <button
+              onClick={() => navigate(-1)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 transition-all active:scale-90"
+              style={{ background: "rgba(255,255,255,0.05)", color: "#94a3b8" }}
             >
-              CashBook
-            </span>
-          </div>
+              <ChevronLeft size={20} />
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="w-7 h-7 bg-emerald-400 rounded-lg flex items-center justify-center">
+                <TrendingUp size={13} className="text-emerald-950" />
+              </div>
+              <span
+                className="text-white font-bold text-base"
+                style={{ fontFamily: "'DM Serif Display', serif" }}
+              >
+                CashBook
+              </span>
+            </div>
+          )}
 
-          {/* Business switcher — center */}
+          {/* Center: page title (when back) or business switcher (root) */}
           <div className="flex-1 flex justify-center">
-            <BusinessSwitcher onSelect={() => navigate("/transactions")} />
+            {showBack ? (
+              <p
+                className="text-sm font-semibold text-white truncate px-2"
+                style={{ fontFamily: "'DM Serif Display', serif" }}
+              >
+                {pageTitle}
+              </p>
+            ) : (
+              <BusinessSwitcher onSelect={() => navigate("/transactions")} />
+            )}
           </div>
 
-          {/* Right */}
-          <div className="flex items-center gap-1.5">
+          {/* Right: bell + avatar */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               className="w-8 h-8 flex items-center justify-center rounded-lg"
               style={{ color: "#64748b" }}
