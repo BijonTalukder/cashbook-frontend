@@ -4,8 +4,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  TrendingUp, User, Building2, Home,
-  ArrowRight, ArrowLeft, Plus, Check, Tag, Loader2,
+  TrendingUp,
+  User,
+  Building2,
+  Home,
+  ArrowRight,
+  ArrowLeft,
+  Plus,
+  Check,
+  Tag,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
@@ -32,7 +40,10 @@ interface OnboardingDraft {
 /* ─── localStorage helpers ────────────────────────────── */
 const saveDraft = (draft: Partial<OnboardingDraft>) => {
   const existing = getDraft();
-  localStorage.setItem(ONBOARDING_KEY, JSON.stringify({ ...existing, ...draft }));
+  localStorage.setItem(
+    ONBOARDING_KEY,
+    JSON.stringify({ ...existing, ...draft }),
+  );
 };
 
 const getDraft = (): Partial<OnboardingDraft> => {
@@ -68,8 +79,8 @@ const BUSINESS_TYPES = [
   },
   {
     value: "mass" as const,
-    label: "Mess",
-    sub: "Shared mess accounting",
+    label: "Household",
+    sub: "Family budget & meals",
     icon: Home,
     accent: "#8b5cf6",
     bg: "rgba(139,92,246,0.08)",
@@ -89,12 +100,12 @@ const OnboardingPage = () => {
   const token = useAuthStore((s) => s.token);
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  // onboarding শেষ হলে আর এই page দেখাবে না
+  // ✅ Fix: শুধু defaultBusiness (string | undefined) dependency — object নয়
   useEffect(() => {
-    if (defaultBusiness && user?.onboardingCompleted) {
+    if (defaultBusiness) {
       navigate("/dashboard", { replace: true });
     }
-  }, [defaultBusiness]); // eslint-disable-line
+  }, [defaultBusiness]); // ✅ navigate বাদ — stable reference, lint warning suppress করো
 
   const draft = getDraft();
 
@@ -135,7 +146,11 @@ const OnboardingPage = () => {
     setLoadingCats(true);
     try {
       const cats = await businessService.getCategories();
-      setGlobalCats(cats.filter((c: IBusinessCategory & { isGlobal?: boolean }) => c.isGlobal));
+      setGlobalCats(
+        cats.filter(
+          (c: IBusinessCategory & { isGlobal?: boolean }) => c.isGlobal,
+        ),
+      );
     } catch {
       toast.error("Failed to load categories");
     } finally {
@@ -189,19 +204,15 @@ const OnboardingPage = () => {
         type: savedDraft.business.type,
         category: savedDraft.selectedCategoryId ?? undefined,
       });
-
-      // Mark onboarding complete in backend
       await businessService.completeOnboarding();
-
       if (user && token) {
-        setAuth(
-          { ...user, defaultBusiness: business._id, onboardingCompleted: true },
-          token,
-        );
+        setAuth({ ...user, defaultBusiness: business._id, onboardingCompleted: true }, token);
       }
 
       clearDraft();
       setStep(3);
+      // ✅ useEffect will auto-navigate when defaultBusiness updates in store
+      // setTimeout fallback in case useEffect doesn't fire fast enough
       setTimeout(() => navigate("/dashboard", { replace: true }), 1600);
     } catch (err: unknown) {
       const message =
@@ -253,14 +264,21 @@ const OnboardingPage = () => {
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all
-                      ${done ? "bg-emerald-500 text-emerald-950" : active
-                        ? "bg-emerald-500/20 border border-emerald-500/60 text-emerald-400"
-                        : "bg-white/5 border border-white/10 text-slate-600"}`}
+                      ${done
+                        ? "bg-emerald-500 text-emerald-950"
+                        : active
+                          ? "bg-emerald-500/20 border border-emerald-500/60 text-emerald-400"
+                          : "bg-white/5 border border-white/10 text-slate-600"
+                      }`}
                   >
                     {done ? <Check size={13} /> : idx}
                   </div>
                   <span
-                    className={`text-sm transition-colors ${active ? "text-white" : done ? "text-emerald-400" : "text-slate-600"
+                    className={`text-sm transition-colors ${active
+                      ? "text-white"
+                      : done
+                        ? "text-emerald-400"
+                        : "text-slate-600"
                       }`}
                   >
                     {label}
@@ -311,7 +329,7 @@ const OnboardingPage = () => {
                     selectedType === "personal"
                       ? "Rahim's Personal"
                       : selectedType === "mass"
-                        ? "Our Mess"
+                        ? "Our Home"
                         : "Acme Ltd."
                   }
                   className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600
@@ -322,7 +340,9 @@ const OnboardingPage = () => {
                     }`}
                 />
                 {errors.name && (
-                  <p className="mt-1.5 text-xs text-red-400">{errors.name.message}</p>
+                  <p className="mt-1.5 text-xs text-red-400">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
 
@@ -331,39 +351,51 @@ const OnboardingPage = () => {
                   Business type
                 </label>
                 <div className="grid grid-cols-3 gap-3">
-                  {BUSINESS_TYPES.map(({ value, label, sub, icon: Icon, accent, bg, border }) => {
-                    const isSelected = selectedType === value;
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => handleTypeChange(value)}
-                        className="relative rounded-xl p-4 text-left transition-all duration-200 border"
-                        style={{
-                          background: isSelected ? bg : "rgba(255,255,255,0.03)",
-                          borderColor: isSelected ? border : "rgba(255,255,255,0.08)",
-                        }}
-                      >
-                        {isSelected && (
-                          <div
-                            className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full"
-                            style={{ background: accent }}
-                          />
-                        )}
-                        <div
-                          className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
+                  {BUSINESS_TYPES.map(
+                    ({ value, label, sub, icon: Icon, accent, bg, border }) => {
+                      const isSelected = selectedType === value;
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => handleTypeChange(value)}
+                          className="relative rounded-xl p-4 text-left transition-all duration-200 border"
                           style={{
-                            background: isSelected ? `${accent}22` : "rgba(255,255,255,0.06)",
-                            color: isSelected ? accent : "#64748b",
+                            background: isSelected
+                              ? bg
+                              : "rgba(255,255,255,0.03)",
+                            borderColor: isSelected
+                              ? border
+                              : "rgba(255,255,255,0.08)",
                           }}
                         >
-                          <Icon size={15} />
-                        </div>
-                        <div className="text-white text-sm font-medium mb-0.5">{label}</div>
-                        <div className="text-slate-500 text-xs leading-relaxed">{sub}</div>
-                      </button>
-                    );
-                  })}
+                          {isSelected && (
+                            <div
+                              className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full"
+                              style={{ background: accent }}
+                            />
+                          )}
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
+                            style={{
+                              background: isSelected
+                                ? `${accent}22`
+                                : "rgba(255,255,255,0.06)",
+                              color: isSelected ? accent : "#64748b",
+                            }}
+                          >
+                            <Icon size={15} />
+                          </div>
+                          <div className="text-white text-sm font-medium mb-0.5">
+                            {label}
+                          </div>
+                          <div className="text-slate-500 text-xs leading-relaxed">
+                            {sub}
+                          </div>
+                        </button>
+                      );
+                    },
+                  )}
                 </div>
               </div>
             </div>
@@ -374,7 +406,10 @@ const OnboardingPage = () => {
                 rounded-xl py-3 flex items-center justify-center gap-2 transition-all text-sm group"
             >
               Continue
-              <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight
+                size={16}
+                className="group-hover:translate-x-0.5 transition-transform"
+              />
             </button>
           </form>
         )}
@@ -393,12 +428,16 @@ const OnboardingPage = () => {
                 Choose a category
               </h2>
               <p className="text-slate-500 text-sm mb-7">
-                Pick one that fits your business, or create your own. You can skip.
+                Pick one that fits your business, or create your own. You can
+                skip.
               </p>
 
               {loadingCats ? (
                 <div className="flex items-center justify-center py-10">
-                  <Loader2 size={22} className="animate-spin text-emerald-500" />
+                  <Loader2
+                    size={22}
+                    className="animate-spin text-emerald-500"
+                  />
                 </div>
               ) : (
                 <>
@@ -418,15 +457,25 @@ const OnboardingPage = () => {
                               onClick={() => handleSelectCat(cat._id)}
                               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all border"
                               style={{
-                                background: isSelected ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.04)",
-                                borderColor: isSelected ? "rgba(16,185,129,0.45)" : "rgba(255,255,255,0.08)",
+                                background: isSelected
+                                  ? "rgba(16,185,129,0.12)"
+                                  : "rgba(255,255,255,0.04)",
+                                borderColor: isSelected
+                                  ? "rgba(16,185,129,0.45)"
+                                  : "rgba(255,255,255,0.08)",
                                 color: isSelected ? "#10b981" : "#94a3b8",
                               }}
                             >
-                              {isSelected ? <Check size={13} /> : <Tag size={13} />}
+                              {isSelected ? (
+                                <Check size={13} />
+                              ) : (
+                                <Tag size={13} />
+                              )}
                               {cat.name}
                               {isCustom && (
-                                <span className="text-[10px] text-slate-600 ml-0.5">(custom)</span>
+                                <span className="text-[10px] text-slate-600 ml-0.5">
+                                  (custom)
+                                </span>
                               )}
                             </button>
                           );
@@ -463,7 +512,11 @@ const OnboardingPage = () => {
                             border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20
                             disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                         >
-                          {addingCat ? <Loader2 size={15} className="animate-spin" /> : <Plus size={17} />}
+                          {addingCat ? (
+                            <Loader2 size={15} className="animate-spin" />
+                          ) : (
+                            <Plus size={17} />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -472,7 +525,9 @@ const OnboardingPage = () => {
                       <Check size={13} className="text-emerald-400" />
                       <span>
                         Custom category{" "}
-                        <span className="text-emerald-400">"{customCat.name}"</span>{" "}
+                        <span className="text-emerald-400">
+                          "{customCat.name}"
+                        </span>{" "}
                         created
                       </span>
                     </div>
@@ -510,7 +565,10 @@ const OnboardingPage = () => {
                 ) : (
                   <>
                     {!selectedCatId ? "Skip & Finish" : "Finish Setup"}
-                    <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight
+                      size={16}
+                      className="group-hover:translate-x-0.5 transition-transform"
+                    />
                   </>
                 )}
               </button>
@@ -533,7 +591,9 @@ const OnboardingPage = () => {
             >
               You're all set!
             </h2>
-            <p className="text-slate-500 text-sm">Taking you to your dashboard...</p>
+            <p className="text-slate-500 text-sm">
+              Taking you to your dashboard...
+            </p>
             <div className="mt-6 flex justify-center">
               <div className="w-32 h-1 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full animate-[progress_1.6s_linear_forwards]" />
