@@ -146,7 +146,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
 
   return (
     <div
-      className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-[400] flex items-center sm:items-center justify-center p-0 sm:p-4"
       style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -238,7 +238,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
             </div>
 
             {/* Progress bar */}
-            <div className="flex flex-col items-end gap-1">
+            <div className="flex flex-col items-center gap-1">
               <span className="text-[10px]" style={{ color: "#475569" }}>
                 {Math.round(((txn.settledAmount ?? 0) / txn.amount) * 100)}%
               </span>

@@ -253,7 +253,7 @@ const TxnModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
       style={{ background: C.overlay, backdropFilter: "blur(8px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

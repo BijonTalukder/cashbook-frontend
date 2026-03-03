@@ -151,7 +151,7 @@ const MealModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 flex items-center justify-center"
       style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
