@@ -14,6 +14,7 @@ import PendingDuesPage from "../pages/dues/PendingDuesPage";
 import SettingsPage from "../pages/settings/SettingsPage";
 import MealsPage from "../pages/meal/MealsPage";
 import NewBusinessPage from "../pages/business/NewBusinessPage";
+import OnboardingRoute from "./OnboardingRoute";
 
 export const router = createBrowserRouter([
   /* ── Guest routes (login/register) ─────────────────────
@@ -26,12 +27,17 @@ export const router = createBrowserRouter([
     ],
   },
 
+  {
+    element: <OnboardingRoute />,
+    children: [{ path: "/onboarding", element: <OnboardingPage /> }],
+  },
+
   /* ── Private routes ─────────────────────────────────── */
   {
     element: <PrivateRoute />,
     children: [
       /* onboarding — AppLayout ছাড়া (no sidebar needed) */
-      { path: "/onboarding", element: <OnboardingPage /> },
+      // { path: "/onboarding", element: <OnboardingPage /> },
 
       /* ✅ AppLayout এর ভেতরে — সব protected pages যেখানে header/sidebar দরকার */
       {

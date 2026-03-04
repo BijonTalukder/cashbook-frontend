@@ -26,7 +26,7 @@ export default defineConfig({
       manifest: {
         name: "CashBook",
         short_name: "CashBook",
-        description: "Business cashbook, meal tracker & invoice generator",
+        description: "Business cashbook, mess accounting & invoice generator",
         theme_color: "#0a0f1e",
         background_color: "#0a0f1e",
         display: "standalone",
@@ -58,8 +58,9 @@ export default defineConfig({
         // Cache all static assets
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
 
-        // Don't cache API calls by default — use NetworkFirst
-        navigateFallback: "/offline.html",
+        // ✅ index.html কে fallback হিসেবে ব্যবহার করো (SPA standard approach)
+        // offline.html আলাদা precache করতে হতো তাই এটা সহজ সমাধান
+        navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//],
 
         runtimeCaching: [

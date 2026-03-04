@@ -10,7 +10,7 @@ import { useAuthStore } from "../store/authStore";
 const PrivateRoute = () => {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
-  console.log(user, token)
+  console.log(user, token);
 
   if (!token) return <Navigate to="/login" replace />;
 
