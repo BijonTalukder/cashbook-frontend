@@ -11,6 +11,7 @@ import {
   Bell,
   HandCoins,
   ChevronLeft,
+  FileText,
   Calculator,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
@@ -30,10 +31,10 @@ const navItems = [
   { to: "/transactions", icon: ArrowLeftRight, label: "Transactions" },
   { to: "/members", icon: Users, label: "Members" },
   { to: "/meals", icon: UtensilsCrossed, label: "Meals", massOnly: true },
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/mess", icon: Calculator, label: "Mess", massOnly: true },
+  { to: "/invoices", icon: FileText, label: "Invoices" },
   { to: "/dues", icon: HandCoins, label: "Dues" },
-  { to: '/mess', icon: Calculator, label: 'Mess', massOnly: true }
-
+  { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
 // Root-level pages where back button should NOT show
@@ -44,10 +45,11 @@ const ROOT_PATHS = [
   "/meals",
   "/settings",
   "/dues",
+  "/invoices",
+  "/mess",
 ];
 const isRootPath = (path: string) => ROOT_PATHS.some((r) => path === r);
 
-// Page titles for mobile header
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/transactions": "Transactions",
@@ -55,7 +57,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/meals": "Meals",
   "/settings": "Settings",
   "/dues": "Dues",
-  "/invoice": "Invoice",
+  "/invoices": "Invoices",
+  "/mess": "Mess Summary",
   "/business/new": "New Business",
 };
 
