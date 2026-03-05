@@ -19,6 +19,7 @@ import { transactionService } from "../../services/transaction.service";
 import {
   businessService,
   type IBusinessCategory,
+  type IBusinessTransactionCategory,
 } from "../../services/business.service";
 import {
   invoiceService,
@@ -83,13 +84,13 @@ const GenerateModal = ({
   useEffect(() => {
     if (!isMess) return;
     setLoadingCats(true);
-    // businessService
-    //   .getCategories(businessId)
-    //   .then((all: IBusinessCategory[]) =>
-    //     setCats(all.filter((c) => c.type === "expense" || c.type === "both")),
-    //   )
-    //   .catch(() => toast.error("Failed to load categories"))
-    //   .finally(() => setLoadingCats(false));
+    businessService
+      .geTransactiontCategories(businessId)
+      .then((all: IBusinessTransactionCategory[]) =>
+        setCats(all.filter((c) => c.type === "expense" || c.type === "both")),
+      )
+      .catch(() => toast.error("Failed to load categories"))
+      .finally(() => setLoadingCats(false));
   }, [isMess, businessId]);
 
   const handleGenerate = async () => {
