@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+:root {
+    /* Android WebView থেকে inject হয় — default 0 */
+    --android-status-bar-height: 0px;
+}
+
+/* iOS safe area fallback (PWA এর জন্য) */
+@supports (padding-top: env(safe-area-inset-top)) {
+    :root {
+        --android-status-bar-height: env(safe-area-inset-top, 0px);
+    }
+}
