@@ -14,9 +14,9 @@ const PrivateRoute = () => {
 
   if (!token) return <Navigate to="/login" replace />;
 
-  if (user?.onboardingCompleted) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  // if (user?.onboardingCompleted) {
+  //   return <Navigate to="/dashboard" replace />;
+  // }
 
   return <Outlet />;
 };
