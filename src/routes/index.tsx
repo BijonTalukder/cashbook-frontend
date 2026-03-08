@@ -17,6 +17,7 @@ import NewBusinessPage from "../pages/business/NewBusinessPage";
 import OnboardingRoute from "./OnboardingRoute";
 import InvoicePage from "../pages/invoice/InvoicePage";
 import InvoiceDetailPage from "../pages/invoice/InvoiceDetailPage";
+import MessSummaryPage from "../pages/mass/MessSummaryPage";
 
 export const router = createBrowserRouter([
   /* ── Guest routes (login/register) ─────────────────────
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
           { path: "/meals", element: <MealsPage /> },
           { path: "/business/new", element: <NewBusinessPage /> },
           { path: "/invoices", element: <InvoicePage /> },
+          {
+            path: "/mess",
+            element: <MessSummaryPage />,
+          },
           {
             path: "/invoices/:businessId/:invoiceId",
             element: <InvoiceDetailPage />,
