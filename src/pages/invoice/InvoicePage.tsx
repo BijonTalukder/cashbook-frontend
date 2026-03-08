@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FileText,
@@ -11,15 +11,14 @@ import {
   Trash2,
   Eye,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useBusinessStore } from "../../store/businessStore";
-import { transactionService } from "../../services/transaction.service";
-
 import {
-  businessService,
-  type IBusinessCategory,
-} from "../../services/business.service";
+  transactionService,
+  type ITxnCategory,
+} from "../../services/transaction.service";
 import {
   invoiceService,
   monthName,
@@ -59,6 +58,91 @@ interface Tx {
   member: { _id: string; firstName: string; lastName: string } | null;
 }
 
+/* ── Custom Category Dropdown ──────────────────────── */
+const CategorySelect = ({
+  value,
+  onChange,
+  categories,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  categories: ITxnCategory[];
+}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = categories.find((c) => c._id === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selCls =
+    "w-full rounded-xl px-4 py-2.5 text-sm outline-none bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-white";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={selCls + " flex items-center justify-between"}
+      >
+        <span style={{ color: selected ? "white" : "#475569" }}>
+          {selected ? selected.name : "Select meal category..."}
+        </span>
+        <ChevronDown size={14} style={{ color: "#475569", flexShrink: 0 }} />
+      </button>
+      {open && (
+        <div
+          className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden shadow-2xl"
+          style={{
+            background: "#1e293b",
+            border: "1px solid rgba(255,255,255,0.12)",
+            maxHeight: 200,
+            overflowY: "auto",
+          }}
+        >
+          {categories.map((c) => (
+            <button
+              key={c._id}
+              type="button"
+              onClick={() => {
+                onChange(c._id);
+                setOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 text-sm transition-colors"
+              style={{
+                color: c._id === value ? "#10b981" : "#cbd5e1",
+                background:
+                  c._id === value ? "rgba(16,185,129,0.1)" : "transparent",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  "rgba(255,255,255,0.05)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  c._id === value ? "rgba(16,185,129,0.1)" : "transparent";
+              }}
+            >
+              {c.name}
+            </button>
+          ))}
+          {categories.length === 0 && (
+            <p className="px-4 py-3 text-sm" style={{ color: "#475569" }}>
+              No expense categories found
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 /* ── Generate Modal ─────────────────────────────────── */
 const GenerateModal = ({
   isMess,
@@ -74,22 +158,23 @@ const GenerateModal = ({
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const [cats, setCats] = useState<IBusinessCategory[]>([]);
+  const [cats, setCats] = useState<ITxnCategory[]>([]);
   const [mealCatId, setMealCatId] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingCats, setLoadingCats] = useState(false);
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
 
+  // ✅ Fixed: use transactionService.getCategories with businessId
   useEffect(() => {
     if (!isMess) return;
     setLoadingCats(true);
-    // businessService
-    //   .getCategories(businessId)
-    //   .then((all: IBusinessCategory[]) =>
-    //     setCats(all.filter((c) => c.type === "expense" || c.type === "both")),
-    //   )
-    //   .catch(() => toast.error("Failed to load categories"))
-    //   .finally(() => setLoadingCats(false));
+    transactionService
+      .getCategories(businessId)
+      .then((all) =>
+        setCats(all.filter((c) => c.type === "expense" || c.type === "both")),
+      )
+      .catch(() => toast.error("Failed to load categories"))
+      .finally(() => setLoadingCats(false));
   }, [isMess, businessId]);
 
   const handleGenerate = async () => {
@@ -149,6 +234,8 @@ const GenerateModal = ({
             <X size={14} />
           </button>
         </div>
+
+        {/* Month / Year */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label
@@ -161,6 +248,7 @@ const GenerateModal = ({
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
               className={selCls}
+              style={{ background: "#1e293b" }}
             >
               {MONTHS.map((m, i) => (
                 <option key={m} value={i + 1}>
@@ -180,6 +268,7 @@ const GenerateModal = ({
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
               className={selCls}
+              style={{ background: "#1e293b" }}
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -189,6 +278,8 @@ const GenerateModal = ({
             </select>
           </div>
         </div>
+
+        {/* Meal category — custom dropdown, no white text bug */}
         {isMess && (
           <div className="mb-4">
             <label
@@ -209,24 +300,18 @@ const GenerateModal = ({
                 </span>
               </div>
             ) : (
-              <select
+              <CategorySelect
                 value={mealCatId}
-                onChange={(e) => setMealCatId(e.target.value)}
-                className={selCls}
-              >
-                <option value="">Select meal category...</option>
-                {cats.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setMealCatId}
+                categories={cats}
+              />
             )}
             <p className="text-xs mt-1.5" style={{ color: "#475569" }}>
               এই category র সব expense ÷ total meals = meal rate।
             </p>
           </div>
         )}
+
         <div
           className="rounded-xl p-3 mb-4"
           style={{
@@ -238,6 +323,7 @@ const GenerateModal = ({
             Same month/year এ আগে invoice থাকলে overwrite হবে।
           </p>
         </div>
+
         <button
           onClick={handleGenerate}
           disabled={loading}

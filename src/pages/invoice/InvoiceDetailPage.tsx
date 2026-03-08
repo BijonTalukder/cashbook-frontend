@@ -6,12 +6,10 @@ import {
   TrendingUp,
   TrendingDown,
   Loader2,
-  Users,
   Utensils,
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-
 import { toast } from "sonner";
 import {
   invoiceService,
@@ -83,172 +81,247 @@ const InvoiceDetailPage = () => {
 
   return (
     <>
-      {/* ── Print CSS ── */}
+      {/* ══════════════════════════════════════════════
+          PRINT STYLES
+          - hide everything except #invoice-print-root
+          - white background, black text, no margins
+      ══════════════════════════════════════════════ */}
       <style>{`
         @media print {
-          body { background: white !important; }
-          .no-print { display: none !important; }
-          .print-root { background: white !important; padding: 0 !important; }
-          .print-card {
-            background: white !important; border: 1px solid #e2e8f0 !important;
-            box-shadow: none !important; break-inside: avoid;
+          /* hide the entire app shell */
+          body > * { display: none !important; }
+
+          /* show only our print root */
+          #invoice-print-root,
+          #invoice-print-root * { display: revert !important; }
+
+          /* page setup */
+          @page {
+            size: A4;
+            margin: 14mm 12mm;
           }
-          .print-text-dark { color: #1e293b !important; }
-          .print-text-muted { color: #64748b !important; }
-          th, td { color: #1e293b !important; border-color: #e2e8f0 !important; }
-          .print-header-bg { background: #f8fafc !important; }
+
+          body {
+            background: white !important;
+            color: #1e293b !important;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          #invoice-print-root {
+            background: white !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+          }
+
+          /* hide screen-only elements */
+          .no-print { display: none !important; }
+
+          /* card borders become subtle lines */
+          .p-card {
+            background: white !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            page-break-inside: avoid;
+          }
+
+          /* table rows */
+          tr { page-break-inside: avoid; }
+
+          /* text overrides */
+          .p-white  { color: #0f172a !important; }
+          .p-muted  { color: #64748b !important; }
+          .p-border { border-color: #e2e8f0 !important; }
+
+          /* section headers */
+          .p-section-header {
+            background: #f8fafc !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+          }
+
+          thead tr { background: #f8fafc !important; }
+          th, td    { color: #1e293b !important; border-color: #e2e8f0 !important; }
         }
       `}</style>
 
+      {/* ── Screen nav bar (hidden in print) ── */}
+      <div className="no-print p-4 md:p-6" style={{ background: C.bg }}>
+        <div className="max-w-4xl mx-auto flex items-center justify-between mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl"
+            style={{
+              background: C.card,
+              border: `1px solid ${C.border}`,
+              color: "#64748b",
+            }}
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold"
+            style={{ background: "#10b981", color: "#022c22" }}
+          >
+            <Printer size={14} /> Print / PDF
+          </button>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════
+          PRINT ROOT — this is what gets printed
+      ══════════════════════════════════════════════ */}
       <div
-        className="print-root min-h-screen p-4 md:p-6"
+        id="invoice-print-root"
+        ref={printRef}
+        className="p-4 md:p-6"
         style={{ background: C.bg }}
       >
-        <div className="max-w-4xl mx-auto" ref={printRef}>
-          {/* ── Nav bar (no-print) ── */}
-          <div className="no-print flex items-center justify-between mb-6">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl"
-              style={{
-                background: C.card,
-                border: `1px solid ${C.border}`,
-                color: "#64748b",
-              }}
-            >
-              <ArrowLeft size={14} /> Back
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold"
-              style={{ background: "#10b981", color: "#022c22" }}
-            >
-              <Printer size={14} /> Print / PDF
-            </button>
-          </div>
-
+        <div className="max-w-4xl mx-auto space-y-4">
           {/* ── Invoice Header ── */}
           <div
-            className="print-card rounded-2xl p-6 mb-4"
+            className="p-card rounded-2xl p-6"
             style={{ background: C.card, border: `1px solid ${C.border}` }}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: "#10b981" }}
+            {/* Top row: brand + period */}
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "#10b981" }}
+                >
+                  <span
+                    className="text-xl font-bold"
+                    style={{ color: "#022c22" }}
                   >
-                    <span
-                      className="text-lg font-bold"
-                      style={{ color: "#022c22" }}
-                    >
-                      H
-                    </span>
-                  </div>
-                  <div>
-                    <p
-                      className="text-lg font-bold text-white print-text-dark"
-                      style={{ fontFamily: "'DM Serif Display', serif" }}
-                    >
-                      {invoice.businessName}
-                    </p>
-                    <p
-                      className="text-xs capitalize"
-                      style={{ color: "#475569" }}
-                    >
-                      {invoice.businessType === "mass"
-                        ? "Mess"
-                        : invoice.businessType}{" "}
-                      Account
-                    </p>
-                  </div>
+                    H
+                  </span>
+                </div>
+                <div>
+                  <p
+                    className="p-white text-lg font-bold text-white"
+                    style={{ fontFamily: "'DM Serif Display', serif" }}
+                  >
+                    {invoice.businessName}
+                  </p>
+                  <p
+                    className="p-muted text-xs capitalize"
+                    style={{ color: "#475569" }}
+                  >
+                    {invoice.businessType === "mass"
+                      ? "Mess"
+                      : invoice.businessType}{" "}
+                    Account
+                  </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs" style={{ color: "#475569" }}>
+                <p
+                  className="p-muted text-xs mb-1"
+                  style={{ color: "#475569" }}
+                >
                   Invoice Period
                 </p>
                 <p
-                  className="text-xl font-bold text-white print-text-dark mt-1"
+                  className="p-white text-2xl font-bold text-white"
                   style={{ fontFamily: "'DM Serif Display', serif" }}
                 >
                   {monthName(invoice.month)} {invoice.year}
                 </p>
-                <p className="text-xs mt-1" style={{ color: "#334155" }}>
+                <p
+                  className="p-muted text-xs mt-1"
+                  style={{ color: "#64748b" }}
+                >
                   Generated{" "}
-                  {new Date(invoice.generatedAt).toLocaleDateString("en-BD")}
+                  {new Date(invoice.generatedAt).toLocaleDateString("en-BD", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
             </div>
 
-            {/* Summary row */}
+            {/* Divider */}
             <div
-              className="grid grid-cols-3 gap-3 mt-5 pt-5"
               style={{ borderTop: `1px solid ${C.border}` }}
+              className="p-border pt-5"
             >
-              {[
-                {
-                  label: "Total Income",
-                  value: invoice.totalIncome,
-                  color: "#10b981",
-                  Icon: TrendingUp,
-                },
-                {
-                  label: "Total Expense",
-                  value: invoice.totalExpense,
-                  color: "#ef4444",
-                  Icon: TrendingDown,
-                },
-                {
-                  label: "Net Balance",
-                  value: invoice.netBalance,
-                  color: invoice.netBalance >= 0 ? "#10b981" : "#ef4444",
-                  Icon: invoice.netBalance >= 0 ? ArrowUpRight : ArrowDownRight,
-                },
-              ].map(({ label, value, color, Icon }) => (
-                <div key={label} className="text-center">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <Icon size={12} style={{ color }} />
-                    <span
-                      className="text-xs print-text-muted"
-                      style={{ color: "#475569" }}
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  {
+                    label: "Total Income",
+                    value: invoice.totalIncome,
+                    color: "#10b981",
+                    Icon: TrendingUp,
+                  },
+                  {
+                    label: "Total Expense",
+                    value: invoice.totalExpense,
+                    color: "#ef4444",
+                    Icon: TrendingDown,
+                  },
+                  {
+                    label: "Net Balance",
+                    value: invoice.netBalance,
+                    color: invoice.netBalance >= 0 ? "#10b981" : "#ef4444",
+                    Icon:
+                      invoice.netBalance >= 0 ? ArrowUpRight : ArrowDownRight,
+                  },
+                ].map(({ label, value, color, Icon }) => (
+                  <div key={label} className="text-center py-2">
+                    <div className="flex items-center justify-center gap-1.5 mb-2">
+                      <div
+                        className="w-6 h-6 rounded-lg flex items-center justify-center"
+                        style={{ background: `${color}18` }}
+                      >
+                        <Icon size={13} style={{ color }} />
+                      </div>
+                      <span
+                        className="p-muted text-xs"
+                        style={{ color: "#64748b" }}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                    <p
+                      className="text-2xl font-bold p-white"
+                      style={{ color, fontFamily: "'DM Serif Display', serif" }}
                     >
-                      {label}
-                    </span>
+                      {fmt(value)}
+                    </p>
                   </div>
-                  <p
-                    className="text-xl font-bold"
-                    style={{ color, fontFamily: "'DM Serif Display', serif" }}
-                  >
-                    {fmt(value)}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
           {/* ── MESS: Member Summary ── */}
           {invoice.isMess && invoice.members && invoice.members.length > 0 && (
             <div
-              className="print-card rounded-2xl p-5 mb-4"
+              className="p-card rounded-2xl overflow-hidden"
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
-              {/* Meal rate info */}
-              <div className="flex items-center justify-between mb-4">
+              {/* Section header */}
+              <div
+                className="p-section-header px-5 py-3 flex items-center justify-between"
+                style={{ borderBottom: `1px solid ${C.border}` }}
+              >
                 <div className="flex items-center gap-2">
-                  <Utensils size={15} style={{ color: "#8b5cf6" }} />
-                  <span className="text-sm font-semibold text-white print-text-dark">
-                    Mess Summary
+                  <Utensils size={14} style={{ color: "#8b5cf6" }} />
+                  <span className="p-white text-sm font-bold text-white">
+                    Mess Member Summary
                   </span>
                 </div>
                 <div
                   className="flex items-center gap-4 text-xs"
-                  style={{ color: "#475569" }}
+                  style={{ color: "#64748b" }}
                 >
                   <span>
                     Meal Category:{" "}
-                    <strong style={{ color: "#94a3b8" }}>
+                    <strong style={{ color: "#8b5cf6" }}>
                       {invoice.mealCategoryName}
                     </strong>
                   </span>
@@ -271,10 +344,7 @@ const InvoiceDetailPage = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr
-                      className="print-header-bg"
-                      style={{ borderBottom: `1px solid ${C.border}` }}
-                    >
+                    <tr style={{ borderBottom: `1px solid ${C.border}` }}>
                       {[
                         "Member",
                         "Deposit",
@@ -286,7 +356,7 @@ const InvoiceDetailPage = () => {
                       ].map((h) => (
                         <th
                           key={h}
-                          className="px-3 py-2.5 text-xs font-semibold text-left print-text-muted"
+                          className="px-4 py-3 text-xs font-semibold text-left p-muted"
                           style={{ color: "#475569" }}
                         >
                           {h}
@@ -302,7 +372,7 @@ const InvoiceDetailPage = () => {
                           borderBottom: "1px solid rgba(255,255,255,0.04)",
                         }}
                       >
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div
                               className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -315,50 +385,50 @@ const InvoiceDetailPage = () => {
                                 {m.name[0]}
                               </span>
                             </div>
-                            <span className="text-sm text-white print-text-dark font-medium">
+                            <span className="p-white text-sm font-medium text-white">
                               {m.name}
                             </span>
                           </div>
                         </td>
                         <td
-                          className="px-3 py-3 text-sm font-medium"
+                          className="px-4 py-3 text-sm font-semibold"
                           style={{ color: "#10b981" }}
                         >
                           {fmt(m.totalDeposit)}
                         </td>
                         <td
-                          className="px-3 py-3 text-sm"
+                          className="px-4 py-3 text-sm"
                           style={{ color: "#94a3b8" }}
                         >
                           {m.totalMeals}
                         </td>
                         <td
-                          className="px-3 py-3 text-sm"
+                          className="px-4 py-3 text-sm"
                           style={{ color: "#8b5cf6" }}
                         >
                           {fmt(m.mealCost)}
                         </td>
                         <td
-                          className="px-3 py-3 text-sm"
+                          className="px-4 py-3 text-sm"
                           style={{ color: "#ef4444" }}
                         >
                           {m.otherExpense > 0 ? fmt(m.otherExpense) : "—"}
                         </td>
                         <td
-                          className="px-3 py-3 text-sm font-medium"
+                          className="px-4 py-3 text-sm font-medium"
                           style={{ color: "#f87171" }}
                         >
                           {fmt(m.totalCost)}
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3">
                           <span
-                            className={`text-sm font-bold px-2 py-0.5 rounded-lg`}
+                            className="text-sm font-bold px-2.5 py-1 rounded-lg"
                             style={{
                               color: m.balance >= 0 ? "#10b981" : "#ef4444",
                               background:
                                 m.balance >= 0
-                                  ? "rgba(16,185,129,0.1)"
-                                  : "rgba(239,68,68,0.1)",
+                                  ? "rgba(16,185,129,0.12)"
+                                  : "rgba(239,68,68,0.12)",
                             }}
                           >
                             {m.balance >= 0 ? "+" : ""}
@@ -368,14 +438,13 @@ const InvoiceDetailPage = () => {
                       </tr>
                     ))}
                   </tbody>
-                  {/* Totals row */}
-                  <tfoot>
-                    <tr style={{ borderTop: `1px solid ${C.border}` }}>
-                      <td className="px-3 py-3 text-xs font-bold text-white print-text-dark">
+                  <tfoot style={{ borderTop: `2px solid ${C.border}` }}>
+                    <tr>
+                      <td className="px-4 py-3 text-xs font-bold p-white text-white">
                         Total
                       </td>
                       <td
-                        className="px-3 py-3 text-sm font-bold"
+                        className="px-4 py-3 text-sm font-bold"
                         style={{ color: "#10b981" }}
                       >
                         {fmt(
@@ -386,19 +455,19 @@ const InvoiceDetailPage = () => {
                         )}
                       </td>
                       <td
-                        className="px-3 py-3 text-sm font-bold"
+                        className="px-4 py-3 text-sm font-bold"
                         style={{ color: "#94a3b8" }}
                       >
                         {invoice.totalMeals}
                       </td>
                       <td
-                        className="px-3 py-3 text-sm font-bold"
+                        className="px-4 py-3 text-sm font-bold"
                         style={{ color: "#8b5cf6" }}
                       >
                         {fmt(invoice.totalMealCost ?? 0)}
                       </td>
                       <td
-                        className="px-3 py-3 text-sm font-bold"
+                        className="px-4 py-3 text-sm font-bold"
                         style={{ color: "#ef4444" }}
                       >
                         {fmt(
@@ -409,38 +478,37 @@ const InvoiceDetailPage = () => {
                         )}
                       </td>
                       <td
-                        className="px-3 py-3 text-sm font-bold"
+                        className="px-4 py-3 text-sm font-bold"
                         style={{ color: "#f87171" }}
                       >
                         {fmt(
                           invoice.members.reduce((s, m) => s + m.totalCost, 0),
                         )}
                       </td>
-                      <td className="px-3 py-3" />
+                      <td className="px-4 py-3" />
                     </tr>
                   </tfoot>
                 </table>
               </div>
 
-              {/* Mess formula explanation */}
+              {/* Formula */}
               <div
-                className="mt-4 p-3 rounded-xl text-xs"
+                className="mx-5 mb-4 mt-3 p-3 rounded-xl text-xs"
                 style={{
                   background: "rgba(139,92,246,0.06)",
                   border: "1px solid rgba(139,92,246,0.15)",
                   color: "#8b5cf6",
                 }}
               >
-                Meal Cost Formula: Total {invoice.mealCategoryName} Expense (
-                {fmt(invoice.totalMealCost ?? 0)}) ÷ Total Meals (
+                <strong>Formula:</strong> Total {invoice.mealCategoryName}{" "}
+                Expense ({fmt(invoice.totalMealCost ?? 0)}) ÷ Total Meals (
                 {invoice.totalMeals}) = Meal Rate ({fmt2(invoice.mealRate ?? 0)}
-                ) per meal · Balance = Deposit − (Meals × Meal Rate) − Other
-                Expenses
+                ) · Balance = Deposit − (Meals × Rate) − Other Expenses
               </div>
             </div>
           )}
 
-          {/* ── Transaction sections ── */}
+          {/* ── Transaction Sections ── */}
           {[
             {
               label: "Income Transactions",
@@ -460,17 +528,17 @@ const InvoiceDetailPage = () => {
               rows.length > 0 && (
                 <div
                   key={label}
-                  className="print-card rounded-2xl mb-4 overflow-hidden"
+                  className="p-card rounded-2xl overflow-hidden"
                   style={{
                     background: C.card,
                     border: `1px solid ${C.border}`,
                   }}
                 >
                   <div
-                    className="px-5 py-3 flex items-center justify-between"
+                    className="p-section-header px-5 py-3 flex items-center justify-between"
                     style={{ borderBottom: `1px solid ${C.border}` }}
                   >
-                    <span className="text-sm font-semibold" style={{ color }}>
+                    <span className="text-sm font-bold" style={{ color }}>
                       {label}
                     </span>
                     <span className="text-sm font-bold" style={{ color }}>
@@ -485,7 +553,7 @@ const InvoiceDetailPage = () => {
                             (h) => (
                               <th
                                 key={h}
-                                className="px-4 py-2.5 text-left text-xs font-medium print-text-muted"
+                                className="px-4 py-2.5 text-left text-xs font-semibold p-muted"
                                 style={{ color: "#475569" }}
                               >
                                 {h}
@@ -503,7 +571,7 @@ const InvoiceDetailPage = () => {
                             }}
                           >
                             <td
-                              className="px-4 py-2.5 text-xs print-text-muted"
+                              className="px-4 py-2.5 text-xs p-muted"
                               style={{ color: "#64748b" }}
                             >
                               {new Date(tx.date).toLocaleDateString("en-BD", {
@@ -544,12 +612,46 @@ const InvoiceDetailPage = () => {
               ),
           )}
 
-          {/* Footer */}
-          <div className="text-center py-4">
-            <p className="text-xs" style={{ color: "#1e293b" }}>
-              HisabBoi · Generated on{" "}
-              {new Date(invoice.generatedAt).toLocaleString("en-BD")}
-            </p>
+          {/* ── Professional Footer ── */}
+          <div
+            className="p-card rounded-2xl p-4"
+            style={{ background: C.card, border: `1px solid ${C.border}` }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: "#10b981" }}
+                >
+                  <span
+                    className="text-xs font-bold"
+                    style={{ color: "#022c22" }}
+                  >
+                    H
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold p-white text-white">
+                    HisabBoi
+                  </p>
+                  <p
+                    className="text-[10px] p-muted"
+                    style={{ color: "#475569" }}
+                  >
+                    Smart Financial Tracking
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] p-muted" style={{ color: "#475569" }}>
+                  This is a system-generated invoice.
+                </p>
+                <p className="text-[10px] p-muted" style={{ color: "#334155" }}>
+                  Generated:{" "}
+                  {new Date(invoice.generatedAt).toLocaleString("en-BD")}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
