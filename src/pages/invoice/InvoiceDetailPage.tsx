@@ -88,37 +88,35 @@ const InvoiceDetailPage = () => {
       ══════════════════════════════════════════════ */}
       <style>{`
         @media print {
-          /* hide the entire app shell */
-          body > * { display: none !important; }
-
-          /* show only our print root */
-          #invoice-print-root,
-          #invoice-print-root * { display: revert !important; }
-
-          /* page setup */
           @page {
             size: A4;
             margin: 14mm 12mm;
           }
 
+          /* Hide entire page, then reveal only invoice root */
           body {
+            visibility: hidden !important;
             background: white !important;
-            color: #1e293b !important;
-            font-family: 'Segoe UI', Arial, sans-serif;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
 
           #invoice-print-root {
+            visibility: visible !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
             background: white !important;
             padding: 0 !important;
-            max-width: 100% !important;
           }
 
-          /* hide screen-only elements */
+          #invoice-print-root * {
+            visibility: visible !important;
+          }
+
           .no-print { display: none !important; }
 
-          /* card borders become subtle lines */
           .p-card {
             background: white !important;
             border: 1px solid #e2e8f0 !important;
@@ -127,15 +125,12 @@ const InvoiceDetailPage = () => {
             page-break-inside: avoid;
           }
 
-          /* table rows */
           tr { page-break-inside: avoid; }
 
-          /* text overrides */
           .p-white  { color: #0f172a !important; }
           .p-muted  { color: #64748b !important; }
           .p-border { border-color: #e2e8f0 !important; }
 
-          /* section headers */
           .p-section-header {
             background: #f8fafc !important;
             border-bottom: 1px solid #e2e8f0 !important;
