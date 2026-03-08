@@ -29,6 +29,13 @@ export interface IBusinessCategory {
   isGlobal: boolean;
   status: boolean;
 }
+export interface IBusinessTransactionCategory {
+  _id: string;
+  name: string;
+  type: "income" | "expense" | "both";  // ← এটা যোগ করুন
+  isGlobal: boolean;
+  status: boolean;
+}
 export const businessService = {
   getMyBusinesses: async (): Promise<IBusinessMembership[]> => {
     const { data } = await api.get("/businesses/my");
@@ -43,6 +50,11 @@ export const businessService = {
   createCategory: async (name: string) => {
     const { data } = await api.post("/categories", { name });
     return data.data;
+  },
+
+  geTransactiontCategories: async (businessId: string) => {
+    const { data } = await api.get(`/transaction-categories/${businessId}`);
+    return data.data as IBusinessTransactionCategory[];
   },
 
   createBusiness: async (payload: {
