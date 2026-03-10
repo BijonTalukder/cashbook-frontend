@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from "../store/authStore";
 import { useBusinessStore } from "../store/businessStore";
 import BusinessSwitcher from "../components/shared/BusinessSwitcher";
+import FloatingAI from "../pages/Ai/FloatingAI";
 
 const C = {
   bg: "#0a0f1e",
@@ -330,7 +331,7 @@ const AppLayout = () => {
       <main className="flex-1 min-w-0 pb-24 lg:pb-0">
         <Outlet />
       </main>
-
+      <FloatingAI />  
       {/* ── Mobile Bottom Nav ───────────────────── */}
       <nav
         className="lg:hidden fixed bottom-0 inset-x-0 z-50"
