@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/",
+  baseURL:
+    import.meta.env.VITE_API_URL ??
+    "https://backend-1-theta-sepia.vercel.app/api/",
 
   // "https://backend-1-theta-sepia.vercel.app/api/", http://localhost:5000/api/
   withCredentials: true,
