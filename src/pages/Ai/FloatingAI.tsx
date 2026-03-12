@@ -199,7 +199,7 @@ const FloatingAI = () => {
         onClick={() => setOpen(true)}
         className="fixed z-40 w-14 h-14 rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
         style={{
-          bottom: "5.5rem",
+          bottom: "13rem",
           right: "1rem",
           background: "linear-gradient(135deg,#10b981,#0d9488)",
           boxShadow: "0 8px 32px rgba(16,185,129,0.35)",
