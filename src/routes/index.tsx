@@ -18,6 +18,8 @@ import OnboardingRoute from "./OnboardingRoute";
 import InvoicePage from "../pages/invoice/InvoicePage";
 import InvoiceDetailPage from "../pages/invoice/InvoiceDetailPage";
 import MessSummaryPage from "../pages/mass/MessSummaryPage";
+import PrivacyPolicyPage from "../pages/PrivacyPolicy/PrivacyPolicyPage";
+import DataDeletionPage from "../pages/DataDeletionPage/DataDeletionPage";
 
 export const router = createBrowserRouter([
   /* ── Guest routes (login/register) ─────────────────────
@@ -55,6 +57,7 @@ export const router = createBrowserRouter([
           { path: "/meals", element: <MealsPage /> },
           { path: "/business/new", element: <NewBusinessPage /> },
           { path: "/invoices", element: <InvoicePage /> },
+          { path: "/invite/:token", element: <InvitePage /> },
           {
             path: "/mess",
             element: <MessSummaryPage />,
@@ -68,7 +71,8 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "/invite/:token", element: <InvitePage /> },
-
+  { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
+  { path: "/data-deletion", element: <DataDeletionPage /> },
   /* ── Fallback ────────────────────────────────────────── */
   { path: "*", element: <Navigate to="/login" replace /> },
 ]);
