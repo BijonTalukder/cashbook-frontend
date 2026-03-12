@@ -65,12 +65,9 @@ const SUGGESTIONS: Record<string, string[]> = {
 const callAI = async (
   businessId: string,
   messages: Message[],
-): Promise<{ reply: string; transaction?: any }> => {
+): Promise<string> => {
   const { data } = await api.post("/ai/chat", { businessId, messages });
-  return {
-    reply: data.data?.reply ?? "উত্তর পাওয়া যায়নি।",
-    transaction: data.data?.transaction ?? null,
-  };
+  return data.data?.reply ?? "উত্তর পাওয়া যায়নি।";
 };
 
 /* ── Message Bubble ───────────────────────────────── */
@@ -153,20 +150,8 @@ const FloatingAI = () => {
         role: "user",
         content: `${biz.name} business এর এই মাসের একটি সংক্ষিপ্ত financial সারসংক্ষেপ দাও।`,
       };
-      const { reply, transaction } = await callAI(biz._id, [firstMsg]);
-
-      // AI reply bubble
-      const newMessages: Message[] = [{ role: "assistant", content: reply }];
-
-      // যদি transaction create হয়ে থাকে
-      if (transaction) {
-        newMessages.push({
-          role: "assistant",
-          content: `✅ Transaction created: ${transaction.amount}৳ (${transaction.type})`,
-        });
-      }
-
-      setMessages(newMessages);
+      const reply = await callAI(biz._id, [firstMsg]);
+      setMessages([{ role: "assistant", content: reply }]);
     } catch {
       toast.error("AI connect করতে সমস্যা হয়েছে");
       handleReset();
@@ -184,21 +169,8 @@ const FloatingAI = () => {
     setMessages(newMsgs);
     setThinking(true);
     try {
-      const { reply, transaction } = await callAI(selected._id, newMsgs);
-
-      // AI reply bubble
+      const reply = await callAI(selected._id, newMsgs);
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-
-      // Optional: transaction info bubble
-      if (transaction) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: `✅ Transaction created: ${transaction.amount}৳ (${transaction.type})`,
-          },
-        ]);
-      }
     } catch {
       toast.error("উত্তর পাওয়া যায়নি");
       setMessages((prev) => prev.slice(0, -1));
@@ -227,7 +199,7 @@ const FloatingAI = () => {
         onClick={() => setOpen(true)}
         className="fixed z-40 w-14 h-14 rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
         style={{
-          bottom: "6rem",
+          bottom: "5.5rem",
           right: "1rem",
           background: "linear-gradient(135deg,#10b981,#0d9488)",
           boxShadow: "0 8px 32px rgba(16,185,129,0.35)",
@@ -239,7 +211,7 @@ const FloatingAI = () => {
       {/* Modal */}
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center sm:items-center justify-center"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0"
           style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
           onClick={(e) => {
             if (e.target === e.currentTarget) handleClose();
@@ -250,7 +222,10 @@ const FloatingAI = () => {
             style={{
               background: "#0d1424",
               border: "1px solid rgba(255,255,255,0.1)",
-              height: step === "chat" ? "82vh" : "auto",
+              height:
+                step === "chat"
+                  ? "calc(82vh - env(safe-area-inset-bottom))"
+                  : "auto",
               maxHeight: "82vh",
             }}
           >
