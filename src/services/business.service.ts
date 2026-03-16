@@ -68,38 +68,15 @@ export const businessService = {
   completeOnboarding: async (): Promise<void> => {
     await api.post('/businesses/complete-onboarding');
   },
-  getMembers: async (
-    businessId: string,
-  ): Promise<
-    {
-      _id: string;
-      firstName: string;
-      lastName: string;
-      email: string;
-      role: string;
-    }[]
-  > => {
+  getMembers: async (businessId: string) => {
     const { data } = await api.get(`/business-members/${businessId}`);
-    // ✅ response structure: { data: [{ user: {...}, role, status }] }
-    return (
-      data.data as {
-        user: {
-          _id: string;
-          firstName: string;
-          lastName: string;
-          email: string;
-        };
-        role: string;
-        status: string;
-      }[]
-    )
-      .filter((m) => m.status === "active")
-      .map((m) => ({
-        _id: m.user._id,
-        firstName: m.user.firstName,
-        lastName: m.user.lastName,
-        email: m.user.email,
-        role: m.role,
-      }));
-  },
+
+    return data.data.map((m: any) => ({
+      _id: m._id,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      email: m.email,
+      role: m.role,
+    }));
+  }
 };
