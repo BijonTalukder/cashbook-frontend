@@ -54,7 +54,22 @@ const InvoiceDetailPage = () => {
       .finally(() => setLoading(false));
   }, [businessId, invoiceId]);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    // Android WebView
+    if ((window as any).Android?.print) {
+      (window as any).Android.print();
+      return;
+    }
+
+    // iOS WebView (optional future)
+    if ((window as any).webkit?.messageHandlers?.print) {
+      (window as any).webkit.messageHandlers.print.postMessage(null);
+      return;
+    }
+
+    // Normal Browser
+    window.print();
+  };
 
   if (loading) {
     return (
