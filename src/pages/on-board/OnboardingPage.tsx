@@ -248,7 +248,7 @@ const OnboardingPage = () => {
             className="text-white font-bold text-xl"
             style={{ fontFamily: "'DM Serif Display', serif" }}
           >
-            CashBook
+            HisabBoi
           </span>
         </div>
 

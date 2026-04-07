@@ -136,7 +136,7 @@ const SECTIONS: Section[] = [
                 <DataTable
                     headers={["Data", "Why We Collect It"]}
                     rows={[
-                        ["Income & expense records", "Core app functionality — cashbook management"],
+                        ["Income & expense records", "Core app functionality — HisabBoi management"],
                         ["Transaction categories", "To organize and analyze your finances"],
                         ["Business names & types", "To manage multiple accounts (personal, company, mess)"],
                         ["Mess meal records", "To calculate mess member costs and settlements"],
@@ -168,7 +168,7 @@ const SECTIONS: Section[] = [
                     We use the information we collect for the following purposes:
                 </p>
                 <ul className="space-y-1.5 mt-1">
-                    <Li><strong className="text-white">Provide core services</strong> — manage your cashbook, calculate mess summaries, generate invoices</Li>
+                    <Li><strong className="text-white">Provide core services</strong> — manage your HisabBoi, calculate mess summaries, generate invoices</Li>
                     <Li><strong className="text-white">Account management</strong> — create and manage your account and business profiles</Li>
                     <Li><strong className="text-white">Collaboration</strong> — share relevant data with members you invite to your business</Li>
                     <Li><strong className="text-white">AI-powered insights</strong> — analyze financial data to provide personalized suggestions</Li>

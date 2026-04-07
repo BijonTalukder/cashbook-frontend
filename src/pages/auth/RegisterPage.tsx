@@ -127,7 +127,7 @@ const RegisterPage = () => {
             className="text-white font-bold text-xl tracking-tight"
             style={{ fontFamily: "'DM Serif Display', serif" }}
           >
-            CashBook
+            HisabBoi
           </span>
         </div>
 

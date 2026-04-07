@@ -50,7 +50,7 @@ const LoginPage = () => {
         err instanceof Error
           ? err.message
           : ((err as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message ?? "Login failed");
+            ?.data?.message ?? "Login failed");
       toast.error(message);
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ const LoginPage = () => {
               className="text-white font-bold text-xl tracking-tight"
               style={{ fontFamily: "'DM Serif Display', serif" }}
             >
-              CashBook
+              HisabBoi
             </span>
           </div>
 
@@ -141,7 +141,7 @@ const LoginPage = () => {
               className="text-white font-bold text-lg"
               style={{ fontFamily: "'DM Serif Display', serif" }}
             >
-              CashBook
+              HisabBoi
             </span>
           </div>
 
@@ -172,10 +172,9 @@ const LoginPage = () => {
                 placeholder="you@example.com"
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
-                  ${
-                    errors.email
-                      ? "border-red-500/50 focus:ring-red-500/20"
-                      : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+                  ${errors.email
+                    ? "border-red-500/50 focus:ring-red-500/20"
+                    : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
                   }`}
               />
               {errors.email && (
@@ -196,10 +195,9 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-11 text-white placeholder-slate-600 
                     focus:outline-none focus:ring-2 transition-all text-sm
-                    ${
-                      errors.password
-                        ? "border-red-500/50 focus:ring-red-500/20"
-                        : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+                    ${errors.password
+                      ? "border-red-500/50 focus:ring-red-500/20"
+                      : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
                     }`}
                 />
                 <button

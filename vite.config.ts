@@ -24,9 +24,9 @@ export default defineConfig({
       ],
 
       manifest: {
-        name: "CashBook",
-        short_name: "CashBook",
-        description: "Business cashbook, mess accounting & invoice generator",
+        name: "HisabBoi",
+        short_name: "HisabBoi",
+        description: "Business HisabBoi, mess accounting & invoice generator",
         theme_color: "#0a0f1e",
         background_color: "#0a0f1e",
         display: "standalone",

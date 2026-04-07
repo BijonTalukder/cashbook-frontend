@@ -1,6 +1,6 @@
 {
-    "name": "Cashbook App",
-    "short_name": "Cashbook",
+    "name": "HisabBoi App",
+    "short_name": "HisabBoi",
     "description": "Personal expense tracking application",
     "start_url": "/",
     "scope": "/",

@@ -57,7 +57,7 @@ const getPageTitle = (path: string) => {
   const exact = PAGE_TITLES[path];
   if (exact) return exact;
   const partial = Object.entries(PAGE_TITLES).find(([k]) => path.startsWith(k) && k !== "/");
-  return partial ? partial[1] : "CashBook";
+  return partial ? partial[1] : "HisabBoi";
 };
 
 const AppLayout = () => {
@@ -155,7 +155,7 @@ const AppLayout = () => {
             <TrendingUp size={15} className="text-emerald-950" />
           </div>
           <span className="text-white font-bold text-lg" style={{ fontFamily: "'DM Serif Display', serif" }}>
-            CashBook
+            HisabBoi
           </span>
         </div>
 
@@ -252,7 +252,7 @@ const AppLayout = () => {
                 className="text-white font-bold text-base"
                 style={{ fontFamily: "'DM Serif Display', serif" }}
               >
-                CashBook
+                HisabBoi
               </span>
             </div>
           )}
