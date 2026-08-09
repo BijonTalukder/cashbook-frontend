@@ -158,21 +158,21 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
 
   /* ── UI ─────────────────────────────────────────── */
   const C = {
-    bg: "#0d1424",
-    border: "rgba(255,255,255,0.08)",
-    card: "rgba(255,255,255,0.03)",
-    input: "rgba(255,255,255,0.04)",
+    bg: "var(--bg-elevated)",
+    border: "var(--border)",
+    card: "var(--surface-1)",
+    input: "var(--surface-2)",
   };
 
   const inputCls =
     "w-full rounded-xl px-3 py-2 text-sm outline-none " +
-    "bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] " +
-    "text-white placeholder:text-slate-600 focus:border-emerald-500/40";
+    "bg-[var(--surface-2)] border border-[var(--border)] " +
+    "text-[var(--text-primary)] placeholder:text-slate-600 focus:border-emerald-500/40";
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-      style={{ background: "rgba(0,0,0,0.75)" }}
+      style={{ background: "var(--overlay-scrim)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -181,8 +181,9 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
         className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col"
         style={{
           background: C.bg,
-          border: "1px solid rgba(255,255,255,0.1)",
+          border: "1px solid var(--border-strong)",
           maxHeight: "90vh",
+          boxShadow: "var(--shadow-elevated)",
         }}
       >
         {/* Header */}
@@ -191,15 +192,17 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
           style={{ borderBottom: `1px solid ${C.border}` }}
         >
           <div>
-            <h3 className="text-white font-semibold">Shared Monthly Costs</h3>
-            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+            <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
+              Shared Monthly Costs
+            </h3>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               সবার নামে automatically ভাগ করে entry দেবে
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: C.card, color: "#64748b" }}
+            className="w-9 h-9 rounded-lg flex items-center justify-center"
+            style={{ background: C.card, color: "var(--text-muted)" }}
           >
             <X size={14} />
           </button>
@@ -223,16 +226,16 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
             >
               <CheckCircle2 size={32} style={{ color: "#10b981" }} />
             </div>
-            <h4 className="text-white font-semibold text-lg mb-2">
+            <h4 className="font-semibold text-lg mb-2" style={{ color: "var(--text-primary)" }}>
               সফলভাবে হয়েছে!
             </h4>
-            <p className="text-sm mb-1" style={{ color: "#94a3b8" }}>
+            <p className="text-sm mb-1" style={{ color: "var(--text-secondary)" }}>
               <span style={{ color: "#10b981", fontWeight: 600 }}>
                 {created}টি
               </span>{" "}
               entry তৈরি হয়েছে
             </p>
-            <p className="text-xs mb-6" style={{ color: "#475569" }}>
+            <p className="text-xs mb-6" style={{ color: "var(--text-faint)" }}>
               {members.length} জন × {validCosts.length}টি খরচ
             </p>
             <button
@@ -271,11 +274,11 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                       <div
                         key={c.id}
                         className="flex items-center justify-between text-xs"
-                        style={{ color: "#94a3b8" }}
+                        style={{ color: "var(--text-secondary)" }}
                       >
                         <span>
                           {c.icon} {c.label}{" "}
-                          <span style={{ color: "#475569" }}>
+                          <span style={{ color: "var(--text-faint)" }}>
                             ({cat?.name})
                           </span>
                         </span>
@@ -298,10 +301,10 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                     <span style={{ color: "#f59e0b" }}>{fmt(perHead)}</span>
                   </div>
                   <div className="flex justify-between text-xs mt-1">
-                    <span style={{ color: "#64748b" }}>
+                    <span style={{ color: "var(--text-muted)" }}>
                       মোট entries ({members.length} জন × {validCosts.length}টি)
                     </span>
-                    <span style={{ color: "#64748b" }}>
+                    <span style={{ color: "var(--text-muted)" }}>
                       {members.length * validCosts.length}টি entry
                     </span>
                   </div>
@@ -309,7 +312,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
               </div>
 
               {/* Member list preview */}
-              <p className="text-xs font-semibold" style={{ color: "#475569" }}>
+              <p className="text-xs font-semibold" style={{ color: "var(--text-faint)" }}>
                 যাদের নামে entry হবে ({members.length} জন)
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -332,7 +335,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                         {m.firstName[0]}
                       </span>
                     </div>
-                    <span className="text-xs text-white truncate">
+                    <span className="text-xs truncate" style={{ color: "var(--text-primary)" }}>
                       {m.firstName} {m.lastName}
                     </span>
                   </div>
@@ -350,7 +353,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                 style={{
                   background: C.card,
                   border: `1px solid ${C.border}`,
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                 }}
               >
                 Back
@@ -381,7 +384,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
               <div>
                 <p
                   className="text-xs font-semibold mb-2"
-                  style={{ color: "#475569" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   Quick Add
                 </p>
@@ -394,7 +397,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                       style={{
                         background: C.card,
                         border: `1px solid ${C.border}`,
-                        color: "#94a3b8",
+                        color: "var(--text-secondary)",
                       }}
                     >
                       {p.icon} {p.label}
@@ -412,7 +415,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                     border: `1px dashed ${C.border}`,
                   }}
                 >
-                  <p className="text-sm" style={{ color: "#334155" }}>
+                  <p className="text-sm" style={{ color: "var(--text-faint)" }}>
                     উপরে Quick Add থেকে খরচ যোগ করুন
                   </p>
                 </div>
@@ -420,7 +423,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                 <div className="space-y-3">
                   <p
                     className="text-xs font-semibold"
-                    style={{ color: "#475569" }}
+                    style={{ color: "var(--text-faint)" }}
                   >
                     খরচের তালিকা
                   </p>
@@ -444,7 +447,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                           style={{
                             background: C.input,
                             border: `1px solid ${C.border}`,
-                            color: "white",
+                            color: "var(--text-primary)",
                             width: "52px",
                           }}
                         >
@@ -465,7 +468,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                         />
                         <button
                           onClick={() => removeCost(cost.id)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                           style={{
                             background: "rgba(239,68,68,0.08)",
                             color: "#ef4444",
@@ -480,7 +483,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                         <div>
                           <label
                             className="block text-[10px] mb-1"
-                            style={{ color: "#475569" }}
+                            style={{ color: "var(--text-faint)" }}
                           >
                             Category
                           </label>
@@ -493,7 +496,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                             style={{
                               background: C.input,
                               border: `1px solid ${C.border}`,
-                              color: "white",
+                              color: "var(--text-primary)",
                             }}
                           >
                             <option value="">Select...</option>
@@ -508,7 +511,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                         <div>
                           <label
                             className="block text-[10px] mb-1"
-                            style={{ color: "#475569" }}
+                            style={{ color: "var(--text-faint)" }}
                           >
                             মোট পরিমাণ (৳)
                           </label>
@@ -539,7 +542,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                         >
                           <span
                             className="text-xs"
-                            style={{ color: "#475569" }}
+                            style={{ color: "var(--text-faint)" }}
                           >
                             {fmt(cost.amount)} ÷ {members.length} জন =
                           </span>
@@ -563,7 +566,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                 style={{
                   background: "transparent",
                   border: `1px dashed ${C.border}`,
-                  color: "#475569",
+                  color: "var(--text-faint)",
                 }}
               >
                 <Plus size={14} /> Custom খরচ যোগ করুন
@@ -596,15 +599,15 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                     {members.length > 4 && (
                       <div
                         className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                        style={{ background: "#1e293b", borderColor: C.bg }}
+                        style={{ background: "var(--surface-6)", borderColor: C.bg }}
                       >
-                        <span className="text-[9px] text-white">
+                        <span className="text-[9px]" style={{ color: "var(--text-primary)" }}>
                           +{members.length - 4}
                         </span>
                       </div>
                     )}
                   </div>
-                  <span className="text-xs" style={{ color: "#64748b" }}>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>
                     {members.length} জন সদস্যের নামে entry হবে
                   </span>
                 </div>
@@ -620,14 +623,14 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   }}
                 >
                   <div className="flex justify-between text-xs">
-                    <span style={{ color: "#475569" }}>প্রতিজনের মোট খরচ</span>
+                    <span style={{ color: "var(--text-faint)" }}>প্রতিজনের মোট খরচ</span>
                     <span className="font-bold" style={{ color: "#10b981" }}>
                       {fmt(perHead)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs mt-1">
-                    <span style={{ color: "#334155" }}>মোট entries</span>
-                    <span style={{ color: "#334155" }}>
+                    <span style={{ color: "var(--text-faint)" }}>মোট entries</span>
+                    <span style={{ color: "var(--text-faint)" }}>
                       {members.length * validCosts.length}টি
                     </span>
                   </div>
@@ -651,7 +654,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
               {!canApply && costs.length > 0 && (
                 <p
                   className="text-center text-xs mt-2"
-                  style={{ color: "#475569" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   amount এবং category দিন
                 </p>

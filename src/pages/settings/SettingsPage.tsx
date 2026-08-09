@@ -10,25 +10,26 @@ import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
 import { useBusinessStore } from "../../store/businessStore";
 import api from "../../services/api";
+import ThemeToggle from "../../components/shared/ThemeToggle";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
-  bg: "#0a0f1e",
-  sidebar: "#080d19",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
-  input: "rgba(255,255,255,0.04)",
-  hover: "rgba(255,255,255,0.04)",
+  bg: "var(--bg)",
+  sidebar: "var(--bg-sidebar)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
+  input: "var(--surface-2)",
+  hover: "var(--surface-2)",
 };
 
 /* ─── Helpers ─────────────────────────────────────────── */
 const inputCls = (err?: boolean) => ({
   width: "100%",
   background: C.input,
-  border: `1px solid ${err ? "#f87171" : "rgba(255,255,255,0.1)"}`,
+  border: `1px solid ${err ? "#f87171" : "var(--border-strong)"}`,
   borderRadius: "12px",
   padding: "10px 14px",
-  color: "#f1f5f9",
+  color: "var(--text-primary)",
   fontSize: "14px",
   outline: "none",
 } as React.CSSProperties);
@@ -47,8 +48,8 @@ const SectionHead = ({ icon: Icon, title, desc }: {
       <Icon size={16} />
     </div>
     <div>
-      <p className="text-sm font-semibold text-white">{title}</p>
-      {desc && <p className="text-xs" style={{ color: "#475569" }}>{desc}</p>}
+      <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{title}</p>
+      {desc && <p className="text-xs" style={{ color: "var(--text-faint)" }}>{desc}</p>}
     </div>
   </div>
 );
@@ -101,17 +102,17 @@ const ProfileSection = () => {
           </div>
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             {user?.firstName} {user?.lastName}
           </p>
-          <p className="text-xs" style={{ color: "#475569" }}>{user?.email}</p>
+          <p className="text-xs" style={{ color: "var(--text-faint)" }}>{user?.email}</p>
         </div>
       </div>
 
       {/* Form */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
-          <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>
+          <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
             First Name
           </label>
           <input
@@ -120,11 +121,11 @@ const ProfileSection = () => {
             style={inputCls()}
             placeholder="First name"
             onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
-            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.1)"; }}
+            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--border-strong)"; }}
           />
         </div>
         <div>
-          <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>
+          <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
             Last Name
           </label>
           <input
@@ -133,13 +134,13 @@ const ProfileSection = () => {
             style={inputCls()}
             placeholder="Last name"
             onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
-            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(255,255,255,0.1)"; }}
+            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--border-strong)"; }}
           />
         </div>
       </div>
 
       <div className="mb-5">
-        <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>
+        <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
           Email
         </label>
         <input
@@ -147,7 +148,7 @@ const ProfileSection = () => {
           disabled
           style={{ ...inputCls(), opacity: 0.5, cursor: "not-allowed" }}
         />
-        <p className="text-[10px] mt-1" style={{ color: "#334155" }}>
+        <p className="text-[10px] mt-1" style={{ color: "var(--text-faint)" }}>
           Email cannot be changed
         </p>
       </div>
@@ -215,7 +216,7 @@ const PasswordSection = () => {
     name: string;
   }) => (
     <div>
-      <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>{label}</label>
+      <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{label}</label>
       <div className="relative">
         <input
           type={show ? "text" : "password"}
@@ -223,13 +224,13 @@ const PasswordSection = () => {
           onChange={(e) => onChange(e.target.value)}
           style={{ ...inputCls(!!errors[name]), paddingRight: "40px" }}
           onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
-          onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors[name] ? "#f87171" : "rgba(255,255,255,0.1)"; }}
+          onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors[name] ? "#f87171" : "var(--border-strong)"; }}
         />
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2"
-          style={{ color: "#475569" }}
+          className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-lg"
+          style={{ color: "var(--text-faint)", width: "36px", height: "36px" }}
         >
           {show ? <EyeOff size={14} /> : <Eye size={14} />}
         </button>
@@ -259,7 +260,7 @@ const PasswordSection = () => {
           onToggle={() => setShowNew((p) => !p)} name="next"
         />
         <div>
-          <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>
+          <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
             Confirm New Password
           </label>
           <input
@@ -268,7 +269,7 @@ const PasswordSection = () => {
             onChange={(e) => setConfirm(e.target.value)}
             style={inputCls(!!errors.confirm)}
             onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
-            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.confirm ? "#f87171" : "rgba(255,255,255,0.1)"; }}
+            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.confirm ? "#f87171" : "var(--border-strong)"; }}
           />
           {errors.confirm && (
             <p className="text-[11px] mt-1" style={{ color: "#f87171" }}>{errors.confirm}</p>
@@ -280,7 +281,7 @@ const PasswordSection = () => {
         onClick={handleChange}
         disabled={saving}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
-        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0" }}
+        style={{ background: "var(--surface-4)", border: "1px solid var(--border-strong)", color: "var(--text-secondary)" }}
       >
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
         Update Password
@@ -307,7 +308,7 @@ const BusinessSection = () => {
         style={{ background: C.card, border: `1px solid ${C.border}` }}
       >
         <SectionHead icon={Building2} title="Business" desc="Active business settings" />
-        <p className="text-sm" style={{ color: "#475569" }}>No active business selected.</p>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>No active business selected.</p>
       </div>
     );
   }
@@ -334,8 +335,8 @@ const BusinessSection = () => {
           <Icon size={16} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white truncate">{activeBusiness.name}</p>
-          <p className="text-xs" style={{ color: "#475569" }}>
+          <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{activeBusiness.name}</p>
+          <p className="text-xs" style={{ color: "var(--text-faint)" }}>
             {meta.label} · {activeBusiness.currency}
           </p>
         </div>
@@ -356,15 +357,15 @@ const BusinessSection = () => {
           key={to}
           onClick={() => navigate(to)}
           className="w-full flex items-center justify-between px-4 py-3 rounded-xl mb-2 transition-all"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+          style={{ background: "var(--surface-1)", border: "1px solid var(--border-light)" }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = C.hover; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
         >
           <div className="flex items-center gap-2.5">
-            <LIcon size={14} style={{ color: "#64748b" }} />
-            <span className="text-sm" style={{ color: "#cbd5e1" }}>{label}</span>
+            <LIcon size={14} style={{ color: "var(--text-muted)" }} />
+            <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{label}</span>
           </div>
-          <ChevronRight size={14} style={{ color: "#334155" }} />
+          <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
         </button>
       ))}
     </div>
@@ -383,22 +384,26 @@ const PreferencesSection = () => {
     value: boolean;
     onChange: (v: boolean) => void;
   }) => (
-    <div className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+    <button
+      type="button"
+      onClick={() => onChange(!value)}
+      className="w-full flex items-center justify-between py-3 text-left"
+      style={{ borderBottom: "1px solid var(--border-light)" }}
+    >
       <div>
-        <p className="text-sm text-white">{label}</p>
-        <p className="text-xs" style={{ color: "#475569" }}>{desc}</p>
+        <p className="text-sm" style={{ color: "var(--text-primary)" }}>{label}</p>
+        <p className="text-xs" style={{ color: "var(--text-faint)" }}>{desc}</p>
       </div>
-      <button
-        onClick={() => onChange(!value)}
-        className="relative flex-shrink-0 w-10 h-5 rounded-full transition-all"
-        style={{ background: value ? "#10b981" : "rgba(255,255,255,0.1)" }}
+      <span
+        className="relative flex-shrink-0 w-11 h-6 rounded-full transition-all pointer-events-none"
+        style={{ background: value ? "#10b981" : "var(--surface-7)" }}
       >
         <span
-          className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all"
+          className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-all"
           style={{ transform: value ? "translateX(20px)" : "translateX(0)" }}
         />
-      </button>
-    </div>
+      </span>
+    </button>
   );
 
   return (
@@ -407,6 +412,11 @@ const PreferencesSection = () => {
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
       <SectionHead icon={Palette} title="Preferences" desc="App behavior & notifications" />
+
+      {/* Appearance / theme */}
+      <div className="mb-3">
+        <ThemeToggle variant="row" />
+      </div>
 
       <Toggle
         label="Push Notifications"
@@ -417,15 +427,15 @@ const PreferencesSection = () => {
 
       <div className="flex items-center justify-between py-3">
         <div>
-          <p className="text-sm text-white">Currency</p>
-          <p className="text-xs" style={{ color: "#475569" }}>Default display currency</p>
+          <p className="text-sm" style={{ color: "var(--text-primary)" }}>Currency</p>
+          <p className="text-xs" style={{ color: "var(--text-faint)" }}>Default display currency</p>
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
         >
-          <Globe size={12} style={{ color: "#64748b" }} />
-          <span className="text-xs text-white">BDT</span>
+          <Globe size={12} style={{ color: "var(--text-muted)" }} />
+          <span className="text-xs" style={{ color: "var(--text-primary)" }}>BDT</span>
         </div>
       </div>
     </div>
@@ -475,15 +485,15 @@ const DangerZone = () => {
       <button
         onClick={handleLogout}
         className="w-full flex items-center justify-between px-4 py-3 rounded-xl mb-2 transition-all"
-        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+        style={{ background: "var(--surface-1)", border: "1px solid var(--border-light)" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-4)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
       >
         <div className="flex items-center gap-2.5">
           <LogOut size={14} style={{ color: "#f59e0b" }} />
           <span className="text-sm" style={{ color: "#fbbf24" }}>Sign Out</span>
         </div>
-        <ChevronRight size={14} style={{ color: "#334155" }} />
+        <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
       </button>
 
       {/* Delete account */}
@@ -499,7 +509,7 @@ const DangerZone = () => {
             <Trash2 size={14} style={{ color: "#ef4444" }} />
             <span className="text-sm" style={{ color: "#f87171" }}>Delete Account</span>
           </div>
-          <ChevronRight size={14} style={{ color: "#334155" }} />
+          <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
         </button>
       ) : (
         <div
@@ -510,11 +520,14 @@ const DangerZone = () => {
             <p className="text-sm font-semibold" style={{ color: "#f87171" }}>
               Delete Account?
             </p>
-            <button onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}>
-              <X size={14} style={{ color: "#64748b" }} />
+            <button
+              onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
+              className="p-2 -m-2 rounded-lg flex items-center justify-center"
+            >
+              <X size={14} style={{ color: "var(--text-muted)" }} />
             </button>
           </div>
-          <p className="text-xs mb-3" style={{ color: "#64748b" }}>
+          <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
             This will permanently delete your account and all associated data. Type{" "}
             <strong style={{ color: "#ef4444" }}>DELETE</strong> to confirm.
           </p>
@@ -528,7 +541,7 @@ const DangerZone = () => {
             <button
               onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
               className="flex-1 py-2 rounded-xl text-sm"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8" }}
+              style={{ background: "var(--surface-3)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
             >
               Cancel
             </button>
@@ -569,12 +582,12 @@ const SettingsPage = () => {
         {/* ── Header ──────────────────────────────────── */}
         <div className="mb-6">
           <h1
-            className="text-2xl font-bold text-white"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
+            className="text-2xl font-bold"
+            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
           >
             Settings
           </h1>
-          <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
             Manage your account and preferences
           </p>
         </div>
@@ -592,7 +605,7 @@ const SettingsPage = () => {
                   <button
                     key={id}
                     onClick={() => setActiveTab(id)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium flex-shrink-0 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-medium flex-shrink-0 transition-all"
                     style={{
                       background: isActive
                         ? isDanger ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)"
@@ -602,7 +615,7 @@ const SettingsPage = () => {
                         : C.border}`,
                       color: isActive
                         ? isDanger ? "#ef4444" : "#10b981"
-                        : "#64748b",
+                        : "var(--text-muted)",
                     }}
                   >
                     <Icon size={12} />
@@ -631,9 +644,9 @@ const SettingsPage = () => {
                         : "transparent",
                       color: isActive
                         ? isDanger ? "#ef4444" : "#10b981"
-                        : "#64748b",
+                        : "var(--text-muted)",
                       fontWeight: isActive ? 500 : 400,
-                      borderBottom: i < TABS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                      borderBottom: i < TABS.length - 1 ? "1px solid var(--border-light)" : "none",
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive)

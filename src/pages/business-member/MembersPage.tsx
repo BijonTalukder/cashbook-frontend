@@ -27,12 +27,12 @@ import type { IMember } from "../../services/transaction.service";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  cardHover: "rgba(255,255,255,0.05)",
-  border: "rgba(255,255,255,0.08)",
-  input: "rgba(255,255,255,0.04)",
-  inputBorder: "rgba(255,255,255,0.1)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  cardHover: "var(--surface-3)",
+  border: "var(--border)",
+  input: "var(--surface-2)",
+  inputBorder: "var(--border-strong)",
 };
 
 /* ─── Role config ─────────────────────────────────────── */
@@ -146,14 +146,14 @@ const InviteModal = ({
   return (
     <div
       className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+      style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(8px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
       <div
         className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: "#0d1424", border: `1px solid ${C.border}` }}
+        style={{ background: "var(--bg-elevated)", border: `1px solid ${C.border}` }}
       >
         {/* Header */}
         <div
@@ -168,16 +168,19 @@ const InviteModal = ({
               <UserPlus size={15} style={{ color: "#10b981" }} />
             </div>
             <h2
-              className="text-base font-semibold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-base font-semibold"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Invite Member
             </h2>
           </div>
           <button
             onClick={handleClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg"
-            style={{ background: "rgba(255,255,255,0.05)", color: "#64748b" }}
+            className="w-10 h-10 flex items-center justify-center rounded-lg -mr-1.5"
+            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
           >
             <X size={15} />
           </button>
@@ -190,7 +193,7 @@ const InviteModal = ({
               <div>
                 <label
                   className="block text-xs mb-1.5"
-                  style={{ color: "#64748b" }}
+                  style={{ color: "var(--text-muted)" }}
                 >
                   Email address
                 </label>
@@ -198,7 +201,7 @@ const InviteModal = ({
                   <Mail
                     size={14}
                     className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                    style={{ color: "#475569" }}
+                    style={{ color: "var(--text-faint)" }}
                   />
                   <input
                     value={email}
@@ -214,7 +217,7 @@ const InviteModal = ({
                       border: `1px solid ${C.inputBorder}`,
                       borderRadius: "12px",
                       padding: "10px 14px 10px 36px",
-                      color: "#f1f5f9",
+                      color: "var(--text-primary)",
                       fontSize: "14px",
                       outline: "none",
                     }}
@@ -226,7 +229,7 @@ const InviteModal = ({
               <div>
                 <label
                   className="block text-xs mb-1.5"
-                  style={{ color: "#64748b" }}
+                  style={{ color: "var(--text-muted)" }}
                 >
                   Role
                 </label>
@@ -251,24 +254,24 @@ const InviteModal = ({
                           style={{
                             background: isSelected
                               ? rc.bg
-                              : "rgba(255,255,255,0.05)",
+                              : "var(--surface-3)",
                           }}
                         >
                           <RoleIcon
                             size={13}
-                            style={{ color: isSelected ? rc.color : "#475569" }}
+                            style={{ color: isSelected ? rc.color : "var(--text-faint)" }}
                           />
                         </div>
                         <div>
                           <p
                             className="text-xs font-medium"
-                            style={{ color: isSelected ? "#fff" : "#94a3b8" }}
+                            style={{ color: isSelected ? "var(--text-primary)" : "var(--text-secondary)" }}
                           >
                             {rc.label}
                           </p>
                           <p
                             className="text-[10px]"
-                            style={{ color: "#475569" }}
+                            style={{ color: "var(--text-faint)" }}
                           >
                             {r === "admin" ? "Full access" : "View & add"}
                           </p>
@@ -318,19 +321,22 @@ const InviteModal = ({
                 <Check size={24} style={{ color: "#10b981" }} />
               </div>
               <p
-                className="text-lg font-bold text-white mb-1"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-lg font-bold mb-1"
+                style={{
+                  fontFamily: "'DM Serif Display', serif",
+                  color: "var(--text-primary)",
+                }}
               >
                 Invitation Sent!
               </p>
-              <p className="text-xs mb-5" style={{ color: "#475569" }}>
-                <span style={{ color: "#94a3b8" }}>{email}</span> will receive
+              <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
+                <span style={{ color: "var(--text-secondary)" }}>{email}</span> will receive
                 an invite email
               </p>
 
               {inviteLink && (
                 <div className="mb-5">
-                  <p className="text-xs mb-2" style={{ color: "#475569" }}>
+                  <p className="text-xs mb-2" style={{ color: "var(--text-faint)" }}>
                     Or share this link directly
                   </p>
                   <div
@@ -342,7 +348,7 @@ const InviteModal = ({
                   >
                     <p
                       className="flex-1 text-xs truncate text-left"
-                      style={{ color: "#64748b" }}
+                      style={{ color: "var(--text-muted)" }}
                     >
                       {inviteLink}
                     </p>
@@ -370,7 +376,7 @@ const InviteModal = ({
                   style={{
                     background: C.input,
                     border: `1px solid ${C.inputBorder}`,
-                    color: "#94a3b8",
+                    color: "var(--text-secondary)",
                   }}
                 >
                   Invite Another
@@ -480,9 +486,9 @@ const RoleDropdown = ({
           <div
             className="absolute right-0 top-full mt-1 w-36 rounded-xl overflow-hidden z-50"
             style={{
-              background: "#0d1424",
+              background: "var(--bg-elevated)",
               border: `1px solid ${C.border}`,
-              boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+              boxShadow: "var(--shadow-elevated)",
             }}
           >
             {(["admin", "member"] as const).map((r) => {
@@ -496,12 +502,12 @@ const RoleDropdown = ({
                   style={{
                     background:
                       r === currentRole ? `${ro.color}10` : "transparent",
-                    color: r === currentRole ? ro.color : "#94a3b8",
+                    color: r === currentRole ? ro.color : "var(--text-secondary)",
                   }}
                   onMouseEnter={(e) => {
                     if (r !== currentRole)
                       (e.currentTarget as HTMLElement).style.background =
-                        "rgba(255,255,255,0.04)";
+                        "var(--surface-2)";
                   }}
                   onMouseLeave={(e) => {
                     if (r !== currentRole)
@@ -544,10 +550,10 @@ const MemberRow = ({
   return (
     <div
       className="flex items-center gap-3 px-5 py-3.5 transition-all group"
-      style={{ borderBottom: `1px solid rgba(255,255,255,0.04)` }}
+      style={{ borderBottom: `1px solid var(--border-light)` }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.background =
-          "rgba(255,255,255,0.02)";
+          "var(--surface-1)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.background = "transparent";
@@ -563,7 +569,10 @@ const MemberRow = ({
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-white truncate">
+          <p
+            className="text-sm font-medium truncate"
+            style={{ color: "var(--text-primary)" }}
+          >
             {member.firstName} {member.lastName}
           </p>
           {isSelf && (
@@ -575,7 +584,7 @@ const MemberRow = ({
             </span>
           )}
         </div>
-        <p className="text-xs truncate" style={{ color: "#475569" }}>
+        <p className="text-xs truncate" style={{ color: "var(--text-faint)" }}>
           {member.email}
         </p>
       </div>
@@ -594,16 +603,16 @@ const MemberRow = ({
         <button
           onClick={() => onRemove(member)}
           className="w-7 h-7 flex items-center justify-center rounded-lg transition-all opacity-0 group-hover:opacity-100"
-          style={{ color: "#64748b", background: "rgba(255,255,255,0.05)" }}
+          style={{ color: "var(--text-muted)", background: "var(--surface-3)" }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLElement).style.color = "#ef4444";
             (e.currentTarget as HTMLElement).style.background =
               "rgba(239,68,68,0.08)";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.color = "#64748b";
+            (e.currentTarget as HTMLElement).style.color = "var(--text-muted)";
             (e.currentTarget as HTMLElement).style.background =
-              "rgba(255,255,255,0.05)";
+              "var(--surface-3)";
           }}
         >
           <Trash2 size={13} />
@@ -677,13 +686,16 @@ const MembersPage = () => {
         <div className="flex items-start justify-between">
           <div>
             <h1
-              className="text-2xl font-bold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl font-bold"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Members
             </h1>
             {activeBusiness && (
-              <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
                 {activeBusiness.name} · {members.length} member
                 {members.length !== 1 ? "s" : ""}
               </p>
@@ -696,7 +708,7 @@ const MembersPage = () => {
               style={{
                 background: C.card,
                 border: `1px solid ${C.border}`,
-                color: "#64748b",
+                color: "var(--text-muted)",
               }}
             >
               <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
@@ -734,10 +746,13 @@ const MembersPage = () => {
                   <Icon size={16} style={{ color }} />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-white leading-none">
+                  <p
+                    className="text-lg font-bold leading-none"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {value}
                   </p>
-                  <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
                     {label}
                   </p>
                 </div>
@@ -757,16 +772,16 @@ const MembersPage = () => {
             style={{ borderBottom: `1px solid ${C.border}` }}
           >
             <div className="flex items-center gap-2">
-              <Users size={14} style={{ color: "#475569" }} />
+              <Users size={14} style={{ color: "var(--text-faint)" }} />
               <span
                 className="text-xs font-medium"
-                style={{ color: "#475569" }}
+                style={{ color: "var(--text-faint)" }}
               >
                 Team Members
               </span>
             </div>
             {!loading && (
-              <span className="text-xs" style={{ color: "#334155" }}>
+              <span className="text-xs" style={{ color: "var(--text-faint)" }}>
                 {members.length} total
               </span>
             )}
@@ -783,7 +798,7 @@ const MembersPage = () => {
             </div>
           ) : !activeBusiness ? (
             <div className="text-center py-16">
-              <p className="text-sm" style={{ color: "#475569" }}>
+              <p className="text-sm" style={{ color: "var(--text-faint)" }}>
                 Select a business first
               </p>
             </div>
@@ -791,14 +806,17 @@ const MembersPage = () => {
             <div className="text-center py-16">
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ background: "rgba(255,255,255,0.04)" }}
+                style={{ background: "var(--surface-2)" }}
               >
-                <Users size={20} style={{ color: "#334155" }} />
+                <Users size={20} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-sm font-medium text-white mb-1">
+              <p
+                className="text-sm font-medium mb-1"
+                style={{ color: "var(--text-primary)" }}
+              >
                 No members yet
               </p>
-              <p className="text-xs mb-5" style={{ color: "#475569" }}>
+              <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
                 Invite your team to collaborate
               </p>
               {canInvite && (
@@ -838,7 +856,7 @@ const MembersPage = () => {
           >
             <p
               className="text-xs font-medium mb-3"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               Role Permissions
             </p>
@@ -873,7 +891,7 @@ const MembersPage = () => {
                       </span>
                       <span
                         className="text-xs ml-2"
-                        style={{ color: "#475569" }}
+                        style={{ color: "var(--text-faint)" }}
                       >
                         {desc}
                       </span>
@@ -899,15 +917,15 @@ const MembersPage = () => {
         <div
           className="fixed inset-0 z-[300] flex items-center justify-center p-4"
           style={{
-            background: "rgba(0,0,0,0.75)",
+            background: "var(--overlay-scrim)",
             backdropFilter: "blur(8px)",
           }}
         >
           <div
             className="w-full max-w-sm rounded-2xl p-6"
             style={{
-              background: "#0d1424",
-              border: `1px solid rgba(255,255,255,0.1)`,
+              background: "var(--bg-elevated)",
+              border: `1px solid var(--border-strong)`,
             }}
           >
             <div
@@ -916,15 +934,18 @@ const MembersPage = () => {
             >
               <AlertCircle size={20} style={{ color: "#ef4444" }} />
             </div>
-            <p className="text-white text-center font-semibold mb-1">
+            <p
+              className="text-center font-semibold mb-1"
+              style={{ color: "var(--text-primary)" }}
+            >
               Remove {removing.firstName}?
             </p>
             <p
               className="text-xs text-center mb-5"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               They'll lose access to{" "}
-              <span style={{ color: "#94a3b8" }}>{activeBusiness?.name}</span>.
+              <span style={{ color: "var(--text-secondary)" }}>{activeBusiness?.name}</span>.
               Their transactions will remain.
             </p>
             <div className="flex gap-3">
@@ -933,9 +954,9 @@ const MembersPage = () => {
                 disabled={removeLoading}
                 className="flex-1 py-2.5 rounded-xl text-sm transition-all"
                 style={{
-                  background: "rgba(255,255,255,0.05)",
+                  background: "var(--surface-3)",
                   border: `1px solid ${C.border}`,
-                  color: "#94a3b8",
+                  color: "var(--text-secondary)",
                 }}
               >
                 Cancel

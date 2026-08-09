@@ -30,10 +30,10 @@ const fmtDate = (d: string) =>
   });
 
 const C = {
-  bg: "#0a0f1e",
-  modal: "#0d1424",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  modal: "var(--bg-elevated)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
 };
 
 const SETTLE_META = {
@@ -147,7 +147,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
   return (
     <div
       className="fixed inset-0 z-[400] flex items-center sm:items-center justify-center p-0 sm:p-4"
-      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)" }}
+      style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(10px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -156,7 +156,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
         className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden"
         style={{
           background: C.modal,
-          border: "1px solid rgba(255,255,255,0.1)",
+          border: "1px solid var(--border-strong)",
           maxHeight: "92vh",
           overflowY: "auto",
         }}
@@ -166,7 +166,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
           className="flex items-center justify-between px-5 pt-5 pb-4 sticky top-0 z-10"
           style={{
             background: C.modal,
-            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            borderBottom: "1px solid var(--border)",
           }}
         >
           <div className="flex items-center gap-2.5">
@@ -177,16 +177,21 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               <ArrowLeftRight size={15} style={{ color: "#3b82f6" }} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Settlement</p>
-              <p className="text-[10px]" style={{ color: "#475569" }}>
+              <p
+                className="text-sm font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Settlement
+              </p>
+              <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                 {txn.category?.name} · ৳{fmt(txn.amount)}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg"
-            style={{ color: "#475569", background: "rgba(255,255,255,0.05)" }}
+            className="w-10 h-10 flex items-center justify-center rounded-lg -mr-1.5"
+            style={{ color: "var(--text-faint)", background: "var(--surface-3)" }}
           >
             <X size={14} />
           </button>
@@ -215,16 +220,19 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               </div>
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="text-[10px]" style={{ color: "#475569" }}>
+                  <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                     Settled
                   </p>
-                  <p className="text-sm font-bold text-white">
+                  <p
+                    className="text-sm font-bold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     ৳{fmt(txn.settledAmount ?? 0)}
                   </p>
                 </div>
-                <div style={{ color: "#1e293b" }}>·</div>
+                <div style={{ color: "var(--text-faint)" }}>·</div>
                 <div>
-                  <p className="text-[10px]" style={{ color: "#475569" }}>
+                  <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                     Remaining
                   </p>
                   <p
@@ -239,12 +247,12 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
 
             {/* Progress bar */}
             <div className="flex flex-col items-center gap-1">
-              <span className="text-[10px]" style={{ color: "#475569" }}>
+              <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                 {Math.round(((txn.settledAmount ?? 0) / txn.amount) * 100)}%
               </span>
               <div
                 className="w-20 h-1.5 rounded-full overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.06)" }}
+                style={{ background: "var(--surface-4)" }}
               >
                 <div
                   className="h-full rounded-full transition-all"
@@ -274,10 +282,13 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white">
+              <p
+                className="text-xs font-medium"
+                style={{ color: "var(--text-primary)" }}
+              >
                 {txn.member?.firstName} {txn.member?.lastName}
               </p>
-              <p className="text-[10px]" style={{ color: "#475569" }}>
+              <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                 paid ৳{fmt(txn.amount)} · needs to be reimbursed
               </p>
             </div>
@@ -289,7 +300,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               className="rounded-xl p-4 space-y-3"
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
-              <p className="text-xs font-medium" style={{ color: "#64748b" }}>
+              <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                 Record Payment
               </p>
 
@@ -297,14 +308,14 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               <div>
                 <label
                   className="block text-xs mb-1.5"
-                  style={{ color: "#475569" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   Amount (৳)
                 </label>
                 <div className="relative">
                   <span
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold"
-                    style={{ color: "#475569" }}
+                    style={{ color: "var(--text-faint)" }}
                   >
                     ৳
                   </span>
@@ -315,10 +326,11 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                     placeholder={String(remaining)}
                     min="1"
                     max={remaining}
-                    className="w-full rounded-xl pl-8 pr-4 py-2.5 text-sm text-white outline-none transition-all"
+                    className="w-full rounded-xl pl-8 pr-4 py-2.5 text-sm outline-none transition-all"
                     style={{
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.1)",
+                      background: "var(--surface-3)",
+                      border: "1px solid var(--border-strong)",
+                      color: "var(--text-primary)",
                     }}
                     onFocus={(e) => {
                       (e.target as HTMLInputElement).style.borderColor =
@@ -326,7 +338,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                     }}
                     onBlur={(e) => {
                       (e.target as HTMLInputElement).style.borderColor =
-                        "rgba(255,255,255,0.1)";
+                        "var(--border-strong)";
                     }}
                   />
                 </div>
@@ -341,9 +353,9 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                       }
                       className="flex-1 py-1 rounded-lg text-[11px] transition-all"
                       style={{
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                        color: "#64748b",
+                        background: "var(--surface-2)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-muted)",
                       }}
                     >
                       {pct}%
@@ -356,7 +368,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               <div>
                 <label
                   className="block text-xs mb-1.5"
-                  style={{ color: "#475569" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   Note (optional)
                 </label>
@@ -364,17 +376,18 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                   <StickyNote
                     size={13}
                     className="absolute left-3.5 top-3"
-                    style={{ color: "#334155" }}
+                    style={{ color: "var(--text-faint)" }}
                   />
                   <input
                     type="text"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="e.g. bKash, cash..."
-                    className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-700 outline-none"
+                    className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm placeholder-slate-700 outline-none"
                     style={{
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.1)",
+                      background: "var(--surface-3)",
+                      border: "1px solid var(--border-strong)",
+                      color: "var(--text-primary)",
                     }}
                     onFocus={(e) => {
                       (e.target as HTMLInputElement).style.borderColor =
@@ -382,7 +395,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                     }}
                     onBlur={(e) => {
                       (e.target as HTMLInputElement).style.borderColor =
-                        "rgba(255,255,255,0.1)";
+                        "var(--border-strong)";
                     }}
                   />
                 </div>
@@ -418,10 +431,13 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
             >
               <CheckCircle2 size={18} style={{ color: "#10b981" }} />
               <div>
-                <p className="text-sm font-semibold text-white">
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   Fully Settled
                 </p>
-                <p className="text-xs" style={{ color: "#475569" }}>
+                <p className="text-xs" style={{ color: "var(--text-faint)" }}>
                   All ৳{fmt(txn.amount)} has been reimbursed.
                 </p>
               </div>
@@ -432,7 +448,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
           <div>
             <p
               className="text-xs font-medium mb-2"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               Payment History
             </p>
@@ -442,7 +458,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                 <Loader2
                   size={16}
                   className="animate-spin"
-                  style={{ color: "#334155" }}
+                  style={{ color: "var(--text-faint)" }}
                 />
               </div>
             ) : settlements.length === 0 ? (
@@ -450,7 +466,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                 className="rounded-xl p-4 text-center"
                 style={{ background: C.card, border: `1px solid ${C.border}` }}
               >
-                <p className="text-xs" style={{ color: "#334155" }}>
+                <p className="text-xs" style={{ color: "var(--text-faint)" }}>
                   No payments recorded yet
                 </p>
               </div>
@@ -466,9 +482,9 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                     style={{
                       borderBottom:
                         i < settlements.length - 1
-                          ? "1px solid rgba(255,255,255,0.04)"
+                          ? "1px solid var(--border-light)"
                           : "none",
-                      background: "rgba(255,255,255,0.02)",
+                      background: "var(--surface-1)",
                     }}
                   >
                     <div
@@ -478,13 +494,13 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                       <CreditCard size={12} style={{ color: "#10b981" }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-white">
+                      <p className="text-xs" style={{ color: "var(--text-primary)" }}>
                         {s.paidBy?.firstName} → {s.paidTo?.firstName}
                         {s.note && (
-                          <span style={{ color: "#475569" }}> · {s.note}</span>
+                          <span style={{ color: "var(--text-faint)" }}> · {s.note}</span>
                         )}
                       </p>
-                      <p className="text-[10px]" style={{ color: "#334155" }}>
+                      <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                         {fmtDate(s.createdAt)} · {s.type}
                       </p>
                     </div>

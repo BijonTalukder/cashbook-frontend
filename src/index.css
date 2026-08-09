@@ -1,13 +1,86 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
     /* Android WebView থেকে inject হয় — default 0 */
     --android-status-bar-height: 0px;
+
+    color-scheme: light;
+
+    /* ── Light theme (default) ─────────────────────────── */
+    --bg: #f8fafc;
+    --bg-elevated: #ffffff;
+    --bg-sidebar: #ffffff;
+
+    --surface-1: rgba(15, 23, 42, 0.03);
+    --surface-2: rgba(15, 23, 42, 0.04);
+    --surface-3: rgba(15, 23, 42, 0.05);
+    --surface-4: rgba(15, 23, 42, 0.06);
+    --surface-5: rgba(15, 23, 42, 0.07);
+    --surface-6: rgba(15, 23, 42, 0.08);
+    --surface-7: rgba(15, 23, 42, 0.1);
+    --surface-8: rgba(15, 23, 42, 0.12);
+
+    --border: rgba(15, 23, 42, 0.1);
+    --border-light: rgba(15, 23, 42, 0.07);
+    --border-strong: rgba(15, 23, 42, 0.15);
+
+    --header-bg: rgba(255, 255, 255, 0.92);
+    --overlay-scrim: rgba(15, 23, 42, 0.4);
+
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-faint: #94a3b8;
+
+    --nav-active-bg: rgba(16, 185, 129, 0.12);
+
+    --shadow-elevated: 0 10px 40px rgba(15, 23, 42, 0.12);
 }
 
-/* iOS safe area fallback (PWA এর জন্য) */
 @supports (padding-top: env(safe-area-inset-top)) {
     :root {
         --android-status-bar-height: env(safe-area-inset-top, 0px);
     }
+}
+
+/* ── Dark theme ─────────────────────────────────────────
+   Matches the app's original hand-tuned dark palette 1:1. */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg: #0a0f1e;
+    --bg-elevated: #0d1424;
+    --bg-sidebar: #080d19;
+
+    --surface-1: rgba(255, 255, 255, 0.03);
+    --surface-2: rgba(255, 255, 255, 0.04);
+    --surface-3: rgba(255, 255, 255, 0.05);
+    --surface-4: rgba(255, 255, 255, 0.06);
+    --surface-5: rgba(255, 255, 255, 0.07);
+    --surface-6: rgba(255, 255, 255, 0.08);
+    --surface-7: rgba(255, 255, 255, 0.1);
+    --surface-8: rgba(255, 255, 255, 0.12);
+
+    --border: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.05);
+    --border-strong: rgba(255, 255, 255, 0.15);
+
+    --header-bg: rgba(8, 13, 25, 0.96);
+    --overlay-scrim: rgba(0, 0, 0, 0.75);
+
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-faint: #475569;
+
+    --nav-active-bg: rgba(16, 185, 129, 0.1);
+
+    --shadow-elevated: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
 }

@@ -33,21 +33,21 @@ const DataDeletionPage = () => {
     };
 
     return (
-        <div className="min-h-screen" style={{ background: "#0a0f1e" }}>
+        <div className="min-h-screen" style={{ background: "var(--bg)" }}>
 
             {/* Top bar */}
             <div className="sticky top-0 z-10 flex items-center gap-3 px-4 h-14"
-                style={{ background: "rgba(8,13,25,0.95)", borderBottom: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(16px)" }}>
+                style={{ background: "var(--header-bg)", borderBottom: "1px solid var(--border)", backdropFilter: "blur(16px)" }}>
                 <button onClick={() => navigate(-1)}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.05)", color: "#94a3b8" }}>
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}>
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex items-center gap-2">
                     <div className="w-6 h-6 bg-emerald-400 rounded-lg flex items-center justify-center">
                         <TrendingUp size={11} className="text-emerald-950" />
                     </div>
-                    <span className="text-white font-semibold text-sm">Delete Account</span>
+                    <span className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>Delete Account</span>
                 </div>
             </div>
 
@@ -61,14 +61,14 @@ const DataDeletionPage = () => {
                             style={{ background: "linear-gradient(135deg,#10b981,#0d9488)" }}>
                             <CheckCircle size={28} className="text-white" />
                         </div>
-                        <h2 className="text-xl font-bold text-white mb-3">Request Received</h2>
-                        <p className="text-sm mb-2" style={{ color: "#94a3b8" }}>
+                        <h2 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Request Received</h2>
+                        <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
                             We received your deletion request for:
                         </p>
                         <p className="text-sm font-semibold mb-6" style={{ color: "#10b981" }}>{email}</p>
 
                         <div className="rounded-xl p-4 text-left mb-6"
-                            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
                             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#10b981" }}>
                                 What happens next
                             </p>
@@ -83,12 +83,12 @@ const DataDeletionPage = () => {
                                         style={{ background: "rgba(16,185,129,0.15)", color: "#10b981" }}>
                                         {i + 1}
                                     </div>
-                                    <p className="text-sm" style={{ color: "#94a3b8" }}>{step}</p>
+                                    <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{step}</p>
                                 </div>
                             ))}
                         </div>
 
-                        <p className="text-xs" style={{ color: "#475569" }}>
+                        <p className="text-xs" style={{ color: "var(--text-faint)" }}>
                             Questions? Email us at{" "}
                             <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#10b981" }}>{CONTACT_EMAIL}</a>
                         </p>
@@ -103,18 +103,18 @@ const DataDeletionPage = () => {
                                 style={{ background: "rgba(239,68,68,0.12)" }}>
                                 <Trash2 size={22} style={{ color: "#ef4444" }} />
                             </div>
-                            <h1 className="text-xl font-bold text-white mb-2">Request Account Deletion</h1>
-                            <p className="text-sm" style={{ color: "#94a3b8" }}>
+                            <h1 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>Request Account Deletion</h1>
+                            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                                 Submit your email below to request permanent deletion of your HisabBoi account
                                 and all associated data. We will process your request within{" "}
-                                <strong className="text-white">30 days</strong>.
+                                <strong style={{ color: "var(--text-primary)" }}>30 days</strong>.
                             </p>
                         </div>
 
                         {/* ── What gets deleted ── */}
                         <div className="rounded-2xl p-5 mb-6"
-                            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#64748b" }}>
+                            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>
                                 Data that will be permanently deleted
                             </p>
                             {[
@@ -127,7 +127,7 @@ const DataDeletionPage = () => {
                             ].map((item) => (
                                 <div key={item} className="flex items-start gap-2.5 mb-2 last:mb-0">
                                     <div className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style={{ background: "#ef4444" }} />
-                                    <p className="text-sm" style={{ color: "#94a3b8" }}>{item}</p>
+                                    <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{item}</p>
                                 </div>
                             ))}
                         </div>
@@ -137,10 +137,10 @@ const DataDeletionPage = () => {
                             style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
                             <Shield size={18} style={{ color: "#10b981", flexShrink: 0, marginTop: 2 }} />
                             <div>
-                                <p className="text-sm font-semibold text-white mb-1">Faster: Delete from the app</p>
-                                <p className="text-sm" style={{ color: "#94a3b8" }}>
+                                <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Faster: Delete from the app</p>
+                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                                     If you have access to your account, go to{" "}
-                                    <strong className="text-white">Settings → Delete Account</strong> for immediate deletion.
+                                    <strong style={{ color: "var(--text-primary)" }}>Settings → Delete Account</strong> for immediate deletion.
                                 </p>
                             </div>
                         </div>
@@ -148,7 +148,7 @@ const DataDeletionPage = () => {
                         {/* ── Form ── */}
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-white mb-2">
+                                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
                                     Email Address <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
                                 <input
@@ -158,9 +158,9 @@ const DataDeletionPage = () => {
                                     placeholder="your@email.com"
                                     className="w-full rounded-xl px-4 py-3 text-sm outline-none"
                                     style={{
-                                        background: "rgba(255,255,255,0.04)",
-                                        border: error ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                                        color: "white",
+                                        background: "var(--surface-2)",
+                                        border: error ? "1px solid rgba(239,68,68,0.5)" : "1px solid var(--border-strong)",
+                                        color: "var(--text-primary)",
                                     }}
                                 />
                                 {error && (
@@ -168,15 +168,15 @@ const DataDeletionPage = () => {
                                         <AlertTriangle size={11} /> {error}
                                     </p>
                                 )}
-                                <p className="text-xs mt-1.5" style={{ color: "#475569" }}>
+                                <p className="text-xs mt-1.5" style={{ color: "var(--text-faint)" }}>
                                     Use the email address associated with your HisabBoi account.
                                 </p>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-white mb-2">
+                                <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
                                     Reason{" "}
-                                    <span className="text-xs font-normal" style={{ color: "#475569" }}>(optional)</span>
+                                    <span className="text-xs font-normal" style={{ color: "var(--text-faint)" }}>(optional)</span>
                                 </label>
                                 <textarea
                                     value={reason}
@@ -185,9 +185,9 @@ const DataDeletionPage = () => {
                                     rows={3}
                                     className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none"
                                     style={{
-                                        background: "rgba(255,255,255,0.04)",
-                                        border: "1px solid rgba(255,255,255,0.1)",
-                                        color: "white",
+                                        background: "var(--surface-2)",
+                                        border: "1px solid var(--border-strong)",
+                                        color: "var(--text-primary)",
                                     }}
                                 />
                             </div>
@@ -215,10 +215,10 @@ const DataDeletionPage = () => {
                         </form>
 
                         {/* ── Direct email fallback ── */}
-                        <div className="mt-6 pt-6 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div className="mt-6 pt-6 text-center" style={{ borderTop: "1px solid var(--border-light)" }}>
                             <div className="flex items-center justify-center gap-2 mb-1">
-                                <Mail size={13} style={{ color: "#475569" }} />
-                                <p className="text-xs" style={{ color: "#475569" }}>Or email us directly</p>
+                                <Mail size={13} style={{ color: "var(--text-faint)" }} />
+                                <p className="text-xs" style={{ color: "var(--text-faint)" }}>Or email us directly</p>
                             </div>
                             <a href={`mailto:${CONTACT_EMAIL}?subject=Account%20Deletion%20Request`}
                                 className="text-sm" style={{ color: "#10b981" }}>

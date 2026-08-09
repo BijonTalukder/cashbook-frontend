@@ -24,9 +24,9 @@ const TYPE_COLOR: Record<BusinessType, string> = {
 };
 
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
 };
 
 interface BusinessSwitcherProps {
@@ -82,9 +82,9 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
         className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-all active:scale-95"
         style={{
           background: open
-            ? "rgba(255,255,255,0.06)"
-            : "rgba(255,255,255,0.03)",
-          border: `1px solid ${open ? "rgba(255,255,255,0.12)" : C.border}`,
+            ? "var(--surface-4)"
+            : "var(--surface-1)",
+          border: `1px solid ${open ? "var(--border-strong)" : C.border}`,
         }}
       >
         <div
@@ -94,15 +94,15 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
           <Icon size={11} />
         </div>
         <span
-          className="text-sm font-medium max-w-[130px] truncate hidden sm:block"
-          style={{ color: "#e2e8f0" }}
+          className="text-sm font-medium max-w-[110px] sm:max-w-[150px] truncate block"
+          style={{ color: "var(--text-primary)" }}
         >
           {activeBusiness?.name ?? "Select business"}
         </span>
         <ChevronDown
           size={13}
           style={{
-            color: "#64748b",
+            color: "var(--text-muted)",
             transform: open ? "rotate(180deg)" : "rotate(0)",
             transition: "transform 0.2s",
           }}
@@ -114,19 +114,19 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
         <div
           className="absolute left-0 top-full mt-2 w-64 rounded-2xl overflow-hidden z-[100]"
           style={{
-            background: "#0d1424",
-            border: `1px solid rgba(255,255,255,0.1)`,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+            background: "var(--bg-elevated)",
+            border: `1px solid var(--border-strong)`,
+            boxShadow: "var(--shadow-elevated)",
           }}
         >
           {/* Header */}
           <div
             className="px-4 py-3"
-            style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}
+            style={{ borderBottom: `1px solid var(--border-light)` }}
           >
             <p
               className="text-xs uppercase tracking-wider"
-              style={{ color: "#334155" }}
+              style={{ color: "var(--text-faint)" }}
             >
               Switch Business
             </p>
@@ -139,7 +139,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
                 <div
                   className="w-4 h-4 border-2 border-t-emerald-400 rounded-full animate-spin"
                   style={{
-                    borderColor: "rgba(255,255,255,0.1)",
+                    borderColor: "var(--border-strong)",
                     borderTopColor: "#10b981",
                   }}
                 />
@@ -147,7 +147,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
             ) : memberships.length === 0 ? (
               <p
                 className="text-center text-xs py-5"
-                style={{ color: "#475569" }}
+                style={{ color: "var(--text-faint)" }}
               >
                 No businesses found
               </p>
@@ -167,7 +167,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
                     onMouseEnter={(e) => {
                       if (!isActive)
                         (e.currentTarget as HTMLElement).style.background =
-                          "rgba(255,255,255,0.04)";
+                          "var(--surface-2)";
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive)
@@ -185,7 +185,9 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
                       <p
                         className="text-sm truncate"
                         style={{
-                          color: isActive ? "#fff" : "#cbd5e1",
+                          color: isActive
+                            ? "var(--text-primary)"
+                            : "var(--text-secondary)",
                           fontWeight: isActive ? 500 : 400,
                         }}
                       >
@@ -193,7 +195,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
                       </p>
                       <p
                         className="text-[10px] capitalize"
-                        style={{ color: "#475569" }}
+                        style={{ color: "var(--text-faint)" }}
                       >
                         {business.type} · {role}
                       </p>
@@ -208,7 +210,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
           </div>
 
           {/* Footer */}
-          <div style={{ borderTop: `1px solid rgba(255,255,255,0.06)` }}>
+          <div style={{ borderTop: `1px solid var(--border-light)` }}>
             <button
               onClick={() => {
                 setOpen(false);

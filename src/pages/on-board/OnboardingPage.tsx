@@ -229,7 +229,7 @@ const OnboardingPage = () => {
 
   /* ─── Render ───────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#0a0f1e] flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: "var(--bg)" }}>
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -245,8 +245,8 @@ const OnboardingPage = () => {
             <TrendingUp size={18} className="text-emerald-950" />
           </div>
           <span
-            className="text-white font-bold text-xl"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
+            className="font-bold text-xl"
+            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
           >
             HisabBoi
           </span>
@@ -267,25 +267,23 @@ const OnboardingPage = () => {
                         ? "bg-emerald-500 text-emerald-950"
                         : active
                           ? "bg-emerald-500/20 border border-emerald-500/60 text-emerald-400"
-                          : "bg-white/5 border border-white/10 text-slate-600"
+                          : ""
                       }`}
+                    style={!done && !active ? { background: "var(--surface-3)", border: "1px solid var(--border-strong)", color: "var(--text-faint)" } : undefined}
                   >
                     {done ? <Check size={13} /> : idx}
                   </div>
                   <span
-                    className={`text-sm transition-colors ${active
-                      ? "text-white"
-                      : done
-                        ? "text-emerald-400"
-                        : "text-slate-600"
-                      }`}
+                    className={`text-sm transition-colors ${done && !active ? "text-emerald-400" : ""}`}
+                    style={active ? { color: "var(--text-primary)" } : !done ? { color: "var(--text-faint)" } : undefined}
                   >
                     {label}
                   </span>
                 </div>
                 {i < STEP_LABELS.length - 1 && (
                   <div
-                    className={`w-8 h-px mx-1 ${done ? "bg-emerald-500/50" : "bg-white/10"}`}
+                    className={`w-8 h-px mx-1 ${done ? "bg-emerald-500/50" : ""}`}
+                    style={!done ? { background: "var(--surface-7)" } : undefined}
                   />
                 )}
               </div>
@@ -297,21 +295,21 @@ const OnboardingPage = () => {
         {step === 1 && (
           <form onSubmit={handleSubmit(onStep1Submit)}>
             <div
-              className="rounded-2xl border border-white/10 p-7"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              className="rounded-2xl p-7"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border-strong)" }}
             >
               <h2
-                className="text-2xl font-bold text-white mb-1"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-2xl font-bold mb-1"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
                 Set up your business
               </h2>
-              <p className="text-slate-500 text-sm mb-7">
+              <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
                 Every account starts with one business. You can add more later.
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm text-slate-400 mb-2">
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
                   Business name
                 </label>
                 <input
@@ -331,11 +329,11 @@ const OnboardingPage = () => {
                         ? "Our Home"
                         : "Acme Ltd."
                   }
-                  className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600
+                  className={`w-full bg-[var(--surface-3)] border rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-faint)]
                     focus:outline-none focus:ring-2 transition-all text-sm
                     ${errors.name
                       ? "border-red-500/50 focus:ring-red-500/20"
-                      : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+                      : "border-[var(--border-strong)] focus:ring-emerald-500/20 focus:border-emerald-500/40"
                     }`}
                 />
                 {errors.name && (
@@ -346,7 +344,7 @@ const OnboardingPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-3">
+                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
                   Business type
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -362,10 +360,10 @@ const OnboardingPage = () => {
                           style={{
                             background: isSelected
                               ? bg
-                              : "rgba(255,255,255,0.03)",
+                              : "var(--surface-1)",
                             borderColor: isSelected
                               ? border
-                              : "rgba(255,255,255,0.08)",
+                              : "var(--border)",
                           }}
                         >
                           {isSelected && (
@@ -379,16 +377,16 @@ const OnboardingPage = () => {
                             style={{
                               background: isSelected
                                 ? `${accent}22`
-                                : "rgba(255,255,255,0.06)",
-                              color: isSelected ? accent : "#64748b",
+                                : "var(--surface-4)",
+                              color: isSelected ? accent : "var(--text-muted)",
                             }}
                           >
                             <Icon size={15} />
                           </div>
-                          <div className="text-white text-sm font-medium mb-0.5">
+                          <div className="text-sm font-medium mb-0.5" style={{ color: "var(--text-primary)" }}>
                             {label}
                           </div>
-                          <div className="text-slate-500 text-xs leading-relaxed">
+                          <div className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                             {sub}
                           </div>
                         </button>
@@ -417,16 +415,16 @@ const OnboardingPage = () => {
         {step === 2 && (
           <div>
             <div
-              className="rounded-2xl border border-white/10 p-7"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              className="rounded-2xl p-7"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border-strong)" }}
             >
               <h2
-                className="text-2xl font-bold text-white mb-1"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-2xl font-bold mb-1"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
                 Choose a category
               </h2>
-              <p className="text-slate-500 text-sm mb-7">
+              <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
                 Pick one that fits your business, or create your own. You can
                 skip.
               </p>
@@ -442,7 +440,7 @@ const OnboardingPage = () => {
                 <>
                   {allCats.length > 0 && (
                     <div className="mb-6">
-                      <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider">
+                      <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                         Available
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -458,11 +456,11 @@ const OnboardingPage = () => {
                               style={{
                                 background: isSelected
                                   ? "rgba(16,185,129,0.12)"
-                                  : "rgba(255,255,255,0.04)",
+                                  : "var(--surface-2)",
                                 borderColor: isSelected
                                   ? "rgba(16,185,129,0.45)"
-                                  : "rgba(255,255,255,0.08)",
-                                color: isSelected ? "#10b981" : "#94a3b8",
+                                  : "var(--border)",
+                                color: isSelected ? "#10b981" : "var(--text-secondary)",
                               }}
                             >
                               {isSelected ? (
@@ -472,7 +470,7 @@ const OnboardingPage = () => {
                               )}
                               {cat.name}
                               {isCustom && (
-                                <span className="text-[10px] text-slate-600 ml-0.5">
+                                <span className="text-[10px] ml-0.5" style={{ color: "var(--text-faint)" }}>
                                   (custom)
                                 </span>
                               )}
@@ -485,7 +483,7 @@ const OnboardingPage = () => {
 
                   {!customCat ? (
                     <div>
-                      <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider">
+                      <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                         Or create your own
                       </p>
                       <div className="flex gap-2">
@@ -499,8 +497,8 @@ const OnboardingPage = () => {
                             }
                           }}
                           placeholder="e.g. Retail, NGO, Freelance..."
-                          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white
-                            placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20
+                          className="flex-1 bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
+                            placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20
                             focus:border-emerald-500/40 transition-all text-sm"
                         />
                         <button
@@ -520,7 +518,7 @@ const OnboardingPage = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
                       <Check size={13} className="text-emerald-400" />
                       <span>
                         Custom category{" "}
@@ -546,8 +544,8 @@ const OnboardingPage = () => {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-white/10
-                  text-slate-400 hover:text-white hover:border-white/20 transition-all text-sm"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-[var(--border-strong)]
+                  text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all text-sm"
               >
                 <ArrowLeft size={15} />
                 Back
@@ -578,23 +576,23 @@ const OnboardingPage = () => {
         {/* ── STEP 3 ───────────────────────────────── */}
         {step === 3 && (
           <div
-            className="rounded-2xl border border-white/10 p-10 text-center"
-            style={{ background: "rgba(255,255,255,0.03)" }}
+            className="rounded-2xl p-10 text-center"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border-strong)" }}
           >
             <div className="w-16 h-16 bg-emerald-500/15 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-5">
               <Check size={28} className="text-emerald-400" />
             </div>
             <h2
-              className="text-2xl font-bold text-white mb-2"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl font-bold mb-2"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               You're all set!
             </h2>
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               Taking you to your dashboard...
             </p>
             <div className="mt-6 flex justify-center">
-              <div className="w-32 h-1 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-32 h-1 rounded-full overflow-hidden" style={{ background: "var(--surface-7)" }}>
                 <div className="h-full bg-emerald-500 rounded-full animate-[progress_1.6s_linear_forwards]" />
               </div>
             </div>

@@ -51,11 +51,11 @@ import mealService from "../../services/meal.service";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  cardHover: "rgba(255,255,255,0.05)",
-  border: "rgba(255,255,255,0.08)",
-  borderLight: "rgba(255,255,255,0.05)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  cardHover: "var(--surface-3)",
+  border: "var(--border)",
+  borderLight: "var(--border-light)",
 };
 
 /* ─── Meta maps ───────────────────────────────────────── */
@@ -163,8 +163,8 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
             <UtensilsCrossed size={16} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">খাবার ট্র্যাকার</p>
-            <p className="text-[11px]" style={{ color: "#475569" }}>
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>খাবার ট্র্যাকার</p>
+            <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
               {monthName} মাস
             </p>
           </div>
@@ -188,7 +188,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
       {loading ? (
         <div className="flex items-center gap-2 py-1">
           <Loader2 size={14} className="animate-spin" style={{ color: "#8b5cf6" }} />
-          <span className="text-xs" style={{ color: "#475569" }}>লোড হচ্ছে...</span>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>লোড হচ্ছে...</span>
         </div>
       ) : (
         <div className="flex items-end gap-6">
@@ -200,27 +200,27 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
             >
               {fmtBn(data?.total ?? 0)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "#475569" }}>
+            <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>
               মোট খাবার
             </p>
           </div>
 
           {/* Days */}
           <div className="mb-0.5">
-            <p className="text-xl font-bold leading-none text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}>
+            <p className="text-xl font-bold leading-none"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
               {fmtBn(data?.days ?? 0)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "#475569" }}>দিন</p>
+            <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>দিন</p>
           </div>
 
           {/* Avg */}
           <div className="mb-0.5">
-            <p className="text-xl font-bold leading-none text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}>
+            <p className="text-xl font-bold leading-none"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
               {fmtBn(avg)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "#475569" }}>গড়/দিন</p>
+            <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>গড়/দিন</p>
           </div>
 
           {/* CTA */}
@@ -300,10 +300,10 @@ const BusinessCard = ({
           </div>
         </div>
       </div>
-      <p className="text-white font-semibold text-[15px] mb-0.5 truncate">
+      <p className="font-semibold text-[15px] mb-0.5 truncate" style={{ color: "var(--text-primary)" }}>
         {business.name}
       </p>
-      <p className="text-sm mb-4" style={{ color: "#64748b" }}>
+      <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
         {type.label}
       </p>
       <div className="flex items-center justify-between">
@@ -316,13 +316,13 @@ const BusinessCard = ({
               <UtensilsCrossed size={10} /> Meals
             </div>
           )}
-          <span className="text-[11px]" style={{ color: "#334155" }}>
+          <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
             {business.currency}
           </span>
         </div>
         <ChevronRight
           size={13}
-          style={{ color: "#334155" }}
+          style={{ color: "var(--text-faint)" }}
           className="group-hover:translate-x-0.5 transition-transform"
         />
       </div>
@@ -337,12 +337,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     <div
       className="rounded-xl px-4 py-3"
       style={{
-        background: "#0d1424",
-        border: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+        background: "var(--bg-elevated)",
+        border: "1px solid var(--border-strong)",
+        boxShadow: "var(--shadow-elevated)",
       }}
     >
-      <p className="text-xs font-medium mb-2" style={{ color: "#64748b" }}>
+      <p className="text-xs font-medium mb-2" style={{ color: "var(--text-muted)" }}>
         {label}
       </p>
       {payload.map((p: any) => (
@@ -472,20 +472,20 @@ const DashboardPage = () => {
         {/* ── Header ──────────────────────────────────── */}
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm mb-0.5" style={{ color: "#475569" }}>
+            <p className="text-sm mb-0.5" style={{ color: "var(--text-faint)" }}>
               {greeting}
             </p>
             <h1
-              className="text-2xl lg:text-3xl font-bold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl lg:text-3xl font-bold"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               {user?.firstName} {user?.lastName}
             </h1>
           </div>
           <button
             onClick={() => { fetchBusinesses(true); fetchBusinessData(); }}
-            className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
-            style={{ background: C.card, border: `1px solid ${C.border}`, color: "#64748b" }}
+            className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
+            style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
           >
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
           </button>
@@ -529,7 +529,7 @@ const DashboardPage = () => {
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs" style={{ color: "#475569" }}>{label}</span>
+                <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: `${color}15`, color }}
@@ -540,17 +540,17 @@ const DashboardPage = () => {
               {dataLoading && (label === "Income" || label === "Expense") ? (
                 <div
                   className="h-6 w-16 rounded animate-pulse"
-                  style={{ background: "rgba(255,255,255,0.06)" }}
+                  style={{ background: "var(--surface-4)" }}
                 />
               ) : (
                 <p
-                  className="text-xl font-bold text-white leading-none truncate"
-                  style={{ fontFamily: "'DM Serif Display', serif" }}
+                  className="text-xl font-bold leading-none truncate"
+                  style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
                 >
                   {value}
                 </p>
               )}
-              <p className="text-[11px] mt-1" style={{ color: "#334155" }}>{sub}</p>
+              <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>{sub}</p>
             </div>
           ))}
         </div>
@@ -569,20 +569,20 @@ const DashboardPage = () => {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2
-                  className="text-base font-bold text-white"
-                  style={{ fontFamily: "'DM Serif Display', serif" }}
+                  className="text-base font-bold"
+                  style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
                 >
                   {new Date().getFullYear()} Overview
                 </h2>
-                <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
                   {activeBusiness.name} · monthly income vs expense
                 </p>
               </div>
               <div
                 className="flex items-center gap-1 p-1 rounded-xl"
                 style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--border-light)",
                 }}
               >
                 {(["area", "bar"] as const).map((mode) => (
@@ -592,7 +592,7 @@ const DashboardPage = () => {
                     className="px-3 py-1 rounded-lg text-xs font-medium capitalize transition-all"
                     style={{
                       background: chartMode === mode ? "rgba(16,185,129,0.15)" : "transparent",
-                      color: chartMode === mode ? "#10b981" : "#475569",
+                      color: chartMode === mode ? "#10b981" : "var(--text-faint)",
                     }}
                   >
                     {mode}
@@ -603,17 +603,17 @@ const DashboardPage = () => {
 
             {dataLoading ? (
               <div className="h-52 flex items-center justify-center">
-                <RefreshCw size={18} className="animate-spin" style={{ color: "#334155" }} />
+                <RefreshCw size={18} className="animate-spin" style={{ color: "var(--text-faint)" }} />
               </div>
             ) : chartData.every((d) => d.income === 0 && d.expense === 0) ? (
               <div className="h-52 flex flex-col items-center justify-center gap-2">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.04)" }}
+                  style={{ background: "var(--surface-2)" }}
                 >
-                  <TrendingUp size={18} style={{ color: "#334155" }} />
+                  <TrendingUp size={18} style={{ color: "var(--text-faint)" }} />
                 </div>
-                <p className="text-xs" style={{ color: "#334155" }}>No transaction data yet</p>
+                <p className="text-xs" style={{ color: "var(--text-faint)" }}>No transaction data yet</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={210}>
@@ -629,9 +629,9 @@ const DashboardPage = () => {
                         <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fill: "#334155", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#334155", fontSize: 10 }} axisLine={false} tickLine={false}
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "var(--text-faint)", fontSize: 10 }} axisLine={false} tickLine={false}
                       tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={2} fill="url(#incomeGrad)" dot={false} activeDot={{ r: 4, fill: "#10b981" }} />
@@ -639,9 +639,9 @@ const DashboardPage = () => {
                   </AreaChart>
                 ) : (
                   <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }} barGap={4}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fill: "#334155", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#334155", fontSize: 10 }} axisLine={false} tickLine={false}
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "var(--text-faint)", fontSize: 10 }} axisLine={false} tickLine={false}
                       tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
@@ -658,7 +658,7 @@ const DashboardPage = () => {
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-                  <span className="text-xs" style={{ color: "#475569" }}>{label}</span>
+                  <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
                 </div>
               ))}
             </div>
@@ -678,8 +678,8 @@ const DashboardPage = () => {
                 style={{ borderBottom: `1px solid ${C.border}` }}
               >
                 <div className="flex items-center gap-2">
-                  <Clock size={13} style={{ color: "#475569" }} />
-                  <span className="text-xs font-medium" style={{ color: "#475569" }}>
+                  <Clock size={13} style={{ color: "var(--text-faint)" }} />
+                  <span className="text-xs font-medium" style={{ color: "var(--text-faint)" }}>
                     Recent Transactions
                   </span>
                 </div>
@@ -696,18 +696,18 @@ const DashboardPage = () => {
                 <div className="p-4 space-y-2">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="h-12 rounded-xl animate-pulse"
-                      style={{ background: "rgba(255,255,255,0.03)" }} />
+                      style={{ background: "var(--surface-1)" }} />
                   ))}
                 </div>
               ) : recentTxns.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-2">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
+                    style={{ background: "var(--surface-2)" }}
                   >
-                    <ArrowLeftRight size={16} style={{ color: "#334155" }} />
+                    <ArrowLeftRight size={16} style={{ color: "var(--text-faint)" }} />
                   </div>
-                  <p className="text-xs" style={{ color: "#334155" }}>No transactions yet</p>
+                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>No transactions yet</p>
                 </div>
               ) : (
                 recentTxns.map((txn) => {
@@ -717,8 +717,8 @@ const DashboardPage = () => {
                     <div
                       key={txn._id}
                       className="flex items-center gap-3 px-5 py-3 transition-all"
-                      style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"; }}
+                      style={{ borderBottom: "1px solid var(--border-light)" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                     >
                       <div
@@ -728,13 +728,13 @@ const DashboardPage = () => {
                         <Icon size={14} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-white truncate">
+                        <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
                           {txn.category?.name ?? "Uncategorized"}
                           {txn.category?.icon && (
                             <span className="ml-1">{txn.category.icon}</span>
                           )}
                         </p>
-                        <p className="text-[11px]" style={{ color: "#475569" }}>
+                        <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
                           {fmtDate(txn.date)} · {txn.member?.firstName}
                         </p>
                       </div>
@@ -777,13 +777,13 @@ const DashboardPage = () => {
                 </p>
                 <div className="flex gap-4">
                   <div>
-                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>In</p>
+                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>In</p>
                     <p className="text-xs font-semibold" style={{ color: "#10b981" }}>
                       ৳{fmt(monthSummary.income)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>Out</p>
+                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Out</p>
                     <p className="text-xs font-semibold" style={{ color: "#ef4444" }}>
                       ৳{fmt(monthSummary.expense)}
                     </p>
@@ -798,7 +798,7 @@ const DashboardPage = () => {
                 className="rounded-2xl p-4"
                 style={{ background: C.card, border: `1px solid ${C.border}` }}
               >
-                <p className="text-xs mb-3" style={{ color: "#475569" }}>
+                <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>
                   Quick actions
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -816,7 +816,7 @@ const DashboardPage = () => {
                       onClick={() => navigate(to)}
                       className="flex flex-col items-center gap-1.5 p-3 rounded-xl active:scale-95 transition-all group"
                       style={{ border: `1px solid ${C.borderLight}` }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                     >
                       <div
@@ -825,7 +825,7 @@ const DashboardPage = () => {
                       >
                         <Icon size={15} />
                       </div>
-                      <span className="text-[11px] text-center leading-tight" style={{ color: "#64748b" }}>
+                      <span className="text-[11px] text-center leading-tight" style={{ color: "var(--text-muted)" }}>
                         {label}
                       </span>
                     </button>
@@ -840,8 +840,8 @@ const DashboardPage = () => {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2
-              className="text-base font-bold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-base font-bold"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               My Businesses
             </h2>
@@ -867,9 +867,9 @@ const DashboardPage = () => {
               className="rounded-2xl p-10 text-center"
               style={{ background: C.card, border: `1px dashed ${C.border}` }}
             >
-              <Building2 size={20} className="mx-auto mb-3" style={{ color: "#334155" }} />
-              <p className="text-white text-sm font-medium mb-1">No businesses yet</p>
-              <p className="text-xs mb-5" style={{ color: "#475569" }}>Set one up to get started</p>
+              <Building2 size={20} className="mx-auto mb-3" style={{ color: "var(--text-faint)" }} />
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>No businesses yet</p>
+              <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>Set one up to get started</p>
               <button
                 onClick={() => navigate("/onboarding")}
                 className="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold active:scale-95 transition-all"
@@ -884,7 +884,7 @@ const DashboardPage = () => {
                 <div>
                   <p
                     className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
-                    style={{ color: "#334155" }}
+                    style={{ color: "var(--text-faint)" }}
                   >
                     <Crown size={10} style={{ color: "#d97706" }} /> Owned by me
                   </p>
@@ -904,7 +904,7 @@ const DashboardPage = () => {
                 <div>
                   <p
                     className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
-                    style={{ color: "#334155" }}
+                    style={{ color: "var(--text-faint)" }}
                   >
                     <Users size={10} style={{ color: "#60a5fa" }} /> Joined via invite
                   </p>

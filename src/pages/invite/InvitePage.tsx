@@ -137,7 +137,7 @@ const InvitePage = () => {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: "#0a0f1e" }}
+      style={{ background: "var(--bg)" }}
     >
       {/* Background glow */}
       <div
@@ -155,8 +155,11 @@ const InvitePage = () => {
             <TrendingUp size={18} className="text-emerald-950" />
           </div>
           <span
-            className="text-white font-bold text-xl"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
+            className="font-bold text-xl"
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              color: "var(--text-primary)",
+            }}
           >
             HisabBoi
           </span>
@@ -170,7 +173,7 @@ const InvitePage = () => {
               className="animate-spin mx-auto mb-4"
               style={{ color: "#10b981" }}
             />
-            <p className="text-sm" style={{ color: "#475569" }}>
+            <p className="text-sm" style={{ color: "var(--text-faint)" }}>
               Loading invitation...
             </p>
           </div>
@@ -185,14 +188,17 @@ const InvitePage = () => {
               bg="rgba(239,68,68,0.1)"
             />
             <h2
-              className="text-xl font-bold text-white text-center mb-2"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-xl font-bold text-center mb-2"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Invitation Not Found
             </h2>
             <p
               className="text-xs text-center mb-6"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               This invitation link is invalid or doesn't exist.
             </p>
@@ -200,9 +206,9 @@ const InvitePage = () => {
               to="/login"
               className="block w-full py-3 rounded-xl text-sm font-semibold text-center transition-all"
               style={{
-                background: "rgba(255,255,255,0.05)",
-                color: "#94a3b8",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: "var(--surface-3)",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border)",
               }}
             >
               Back to Login
@@ -219,14 +225,17 @@ const InvitePage = () => {
               bg="rgba(245,158,11,0.1)"
             />
             <h2
-              className="text-xl font-bold text-white text-center mb-2"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-xl font-bold text-center mb-2"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Invitation Expired
             </h2>
             <p
               className="text-xs text-center mb-6"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               This invitation link has expired. Ask your team admin to send a
               new one.
@@ -243,14 +252,17 @@ const InvitePage = () => {
               bg="rgba(16,185,129,0.1)"
             />
             <h2
-              className="text-xl font-bold text-white text-center mb-2"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-xl font-bold text-center mb-2"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Already Responded
             </h2>
             <p
               className="text-xs text-center mb-6"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               This invitation has already been accepted or declined.
             </p>
@@ -273,16 +285,19 @@ const InvitePage = () => {
               bg={roleMeta?.bg ?? ""}
             />
             <h2
-              className="text-xl font-bold text-white text-center mb-1"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-xl font-bold text-center mb-1"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               You're Invited!
             </h2>
             <p
               className="text-sm text-center mb-1"
-              style={{ color: "#94a3b8" }}
+              style={{ color: "var(--text-secondary)" }}
             >
-              <strong style={{ color: "#fff" }}>
+              <strong style={{ color: "var(--text-primary)" }}>
                 {inviter?.firstName} {inviter?.lastName}
               </strong>{" "}
               invited you to
@@ -296,13 +311,13 @@ const InvitePage = () => {
             <div
               className="rounded-xl p-4 mb-6 text-center"
               style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
               }}
             >
-              <p className="text-xs" style={{ color: "#64748b" }}>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                 You need to{" "}
-                <strong style={{ color: "#94a3b8" }}>
+                <strong style={{ color: "var(--text-secondary)" }}>
                   log in or create an account
                 </strong>{" "}
                 to accept this invitation. Make sure to use the email this
@@ -314,9 +329,9 @@ const InvitePage = () => {
                 to={`/login?redirect=/invite/${token}`}
                 className="flex-1 py-3 rounded-xl text-sm font-semibold text-center transition-all"
                 style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#fff",
+                  background: "var(--surface-4)",
+                  border: "1px solid var(--border-strong)",
+                  color: "var(--text-primary)",
                 }}
               >
                 Log In
@@ -346,23 +361,26 @@ const InvitePage = () => {
               >
                 <Building2 size={28} style={{ color: "#10b981" }} />
               </div>
-              <p className="text-xs mb-1" style={{ color: "#475569" }}>
-                <strong style={{ color: "#94a3b8" }}>
+              <p className="text-xs mb-1" style={{ color: "var(--text-faint)" }}>
+                <strong style={{ color: "var(--text-secondary)" }}>
                   {inviter?.firstName} {inviter?.lastName}
                 </strong>{" "}
                 invited you to join
               </p>
               <h2
-                className="text-2xl font-bold text-white mb-1"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-2xl font-bold mb-1"
+                style={{
+                  fontFamily: "'DM Serif Display', serif",
+                  color: "var(--text-primary)",
+                }}
               >
                 {business?.name}
               </h2>
               <span
                 className="inline-block text-xs px-2.5 py-1 rounded-lg capitalize"
                 style={{
-                  background: "rgba(255,255,255,0.05)",
-                  color: "#64748b",
+                  background: "var(--surface-3)",
+                  color: "var(--text-muted)",
                 }}
               >
                 {business?.type}
@@ -391,7 +409,7 @@ const InvitePage = () => {
                   >
                     Role: {roleMeta.label}
                   </p>
-                  <p className="text-xs" style={{ color: "#64748b" }}>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                     {roleMeta.desc}
                   </p>
                 </div>
@@ -402,8 +420,8 @@ const InvitePage = () => {
             <div
               className="rounded-xl p-3 mb-6 flex items-center gap-2"
               style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
               }}
             >
               <div
@@ -417,9 +435,9 @@ const InvitePage = () => {
                   {user?.lastName?.[0]}
                 </span>
               </div>
-              <p className="text-xs flex-1" style={{ color: "#64748b" }}>
+              <p className="text-xs flex-1" style={{ color: "var(--text-muted)" }}>
                 Accepting as{" "}
-                <span style={{ color: "#94a3b8" }}>{user?.email}</span>
+                <span style={{ color: "var(--text-secondary)" }}>{user?.email}</span>
               </p>
             </div>
 
@@ -469,24 +487,27 @@ const InvitePage = () => {
               bg="rgba(16,185,129,0.1)"
             />
             <h2
-              className="text-xl font-bold text-white text-center mb-2"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-xl font-bold text-center mb-2"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Welcome Aboard!
             </h2>
             <p
               className="text-xs text-center mb-2"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               You've joined{" "}
               <strong style={{ color: "#10b981" }}>{business?.name}</strong>
             </p>
-            <p className="text-xs text-center" style={{ color: "#334155" }}>
+            <p className="text-xs text-center" style={{ color: "var(--text-faint)" }}>
               Redirecting to dashboard...
             </p>
             <div
               className="mt-5 h-1 w-full rounded-full overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.05)" }}
+              style={{ background: "var(--surface-3)" }}
             >
               <div className="h-full bg-emerald-500 rounded-full animate-[progress_2s_linear_forwards]" />
             </div>
@@ -498,25 +519,28 @@ const InvitePage = () => {
           <Card>
             <StatusIcon icon={X} color="#ef4444" bg="rgba(239,68,68,0.1)" />
             <h2
-              className="text-xl font-bold text-white text-center mb-2"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-xl font-bold text-center mb-2"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Invitation Declined
             </h2>
             <p
               className="text-xs text-center mb-6"
-              style={{ color: "#475569" }}
+              style={{ color: "var(--text-faint)" }}
             >
               You've declined the invitation to join{" "}
-              <strong style={{ color: "#94a3b8" }}>{business?.name}</strong>.
+              <strong style={{ color: "var(--text-secondary)" }}>{business?.name}</strong>.
             </p>
             <Link
               to="/dashboard"
               className="block w-full py-3 rounded-xl text-sm font-semibold text-center"
               style={{
-                background: "rgba(255,255,255,0.05)",
-                color: "#94a3b8",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: "var(--surface-3)",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border)",
               }}
             >
               Go to Dashboard
@@ -537,8 +561,8 @@ const Card = ({ children }: { children: React.ReactNode }) => (
   <div
     className="rounded-2xl p-6"
     style={{
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.08)",
+      background: "var(--surface-1)",
+      border: "1px solid var(--border)",
     }}
   >
     {children}

@@ -15,6 +15,7 @@ import {
 } from "../../services/transaction.service";
 import { businessService } from "../../services/business.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useThemeStore } from "../../store/themeStore";
 
 /* ─── Schema ──────────────────────────────────────────── */
 const schema = z
@@ -64,21 +65,21 @@ const MASS_TABS: TypeTab[] = [
 
 /* ─── Styles ──────────────────────────────────────────── */
 const C = {
-  overlay: "rgba(0,0,0,0.75)", card: "#0d1424",
-  border: "rgba(255,255,255,0.08)", input: "rgba(255,255,255,0.04)",
-  inputBorder: "rgba(255,255,255,0.1)",
+  overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
+  border: "var(--border)", input: "var(--surface-2)",
+  inputBorder: "var(--border-strong)",
 };
 const inputCss = (err?: boolean): React.CSSProperties => ({
   width: "100%", background: C.input,
   border: `1px solid ${err ? "#f87171" : C.inputBorder}`,
   borderRadius: "12px", padding: "10px 14px",
-  color: "#f1f5f9", fontSize: "14px", outline: "none",
+  color: "var(--text-primary)", fontSize: "14px", outline: "none",
 });
 
 /* ─── Field ───────────────────────────────────────────── */
 const Field = ({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) => (
   <div>
-    <label className="block text-xs mb-1.5" style={{ color: "#64748b" }}>{label}</label>
+    <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{label}</label>
     {children}
     {error && <p className="mt-1 text-xs" style={{ color: "#f87171" }}>{error}</p>}
   </div>
@@ -99,6 +100,7 @@ const TxnModal = ({
   editing, defaultType = "expense", isMass = false,
 }: Props) => {
   const { activeBusiness } = useBusinessStore();
+  const { theme } = useThemeStore();
 
   const [categories, setCategories] = useState<ITxnCategory[]>([]);
   const [members, setMembers] = useState<IMemberOption[]>([]);
@@ -251,11 +253,11 @@ const TxnModal = ({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 sticky top-0 z-10"
           style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-semibold text-white"
-            style={{ fontFamily: "'DM Serif Display', serif" }}>{modalTitle}</h2>
+          <h2 className="text-base font-semibold"
+            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>{modalTitle}</h2>
           <button onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg"
-            style={{ background: "rgba(255,255,255,0.05)", color: "#64748b" }}>
+            className="w-9 h-9 flex items-center justify-center rounded-lg"
+            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
             <X size={15} />
           </button>
         </div>
@@ -270,7 +272,7 @@ const TxnModal = ({
                 <button key={value} type="button"
                   onClick={() => { setValue("type", value); setValue("category", ""); setValue("toMember", ""); setAddingCat(false); setNewCatName(""); }}
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all"
-                  style={{ background: active ? `${color}15` : C.input, border: `1px solid ${active ? `${color}40` : C.inputBorder}`, color: active ? color : "#64748b" }}>
+                  style={{ background: active ? `${color}15` : C.input, border: `1px solid ${active ? `${color}40` : C.inputBorder}`, color: active ? color : "var(--text-muted)" }}>
                   <Icon size={14} />{label}
                 </button>
               );
@@ -309,7 +311,7 @@ const TxnModal = ({
               ) : members.length === 0 ? (
                 <div className="rounded-xl p-3 text-center"
                   style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.15)" }}>
-                  <p className="text-xs" style={{ color: "#64748b" }}>No other members</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>No other members</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -324,9 +326,9 @@ const TxnModal = ({
                           <span className="text-[11px] font-bold text-white">{m.firstName[0]}{m.lastName[0]}</span>
                         </div>
                         <div className="flex-1 text-left min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: sel ? "#fff" : "#cbd5e1" }}>
+                          <p className="text-sm font-medium truncate" style={{ color: sel ? "var(--text-primary)" : "var(--text-secondary)" }}>
                             {m.firstName} {m.lastName}</p>
-                          <p className="text-[11px] truncate capitalize" style={{ color: "#475569" }}>
+                          <p className="text-[11px] truncate capitalize" style={{ color: "var(--text-faint)" }}>
                             {m.role} · {m.email}</p>
                         </div>
                         {sel && (
@@ -360,7 +362,7 @@ const TxnModal = ({
                       <button key={cat._id} type="button"
                         onClick={() => setValue("category", cat._id)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
-                        style={{ background: sel ? `${typeColor}15` : C.input, border: `1px solid ${sel ? `${typeColor}45` : C.inputBorder}`, color: sel ? typeColor : "#94a3b8", flexShrink: 0 }}>
+                        style={{ background: sel ? `${typeColor}15` : C.input, border: `1px solid ${sel ? `${typeColor}45` : C.inputBorder}`, color: sel ? typeColor : "var(--text-secondary)", flexShrink: 0 }}>
                         {cat.icon && <span>{cat.icon}</span>}
                         {cat.name}
                       </button>
@@ -369,7 +371,7 @@ const TxnModal = ({
                   {!addingCat && (
                     <button type="button" onClick={() => setAddingCat(true)}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
-                      style={{ background: "transparent", border: `1px dashed ${C.inputBorder}`, color: "#475569", flexShrink: 0 }}>
+                      style={{ background: "transparent", border: `1px dashed ${C.inputBorder}`, color: "var(--text-faint)", flexShrink: 0 }}>
                       <Plus size={11} /> New
                     </button>
                   )}
@@ -384,16 +386,16 @@ const TxnModal = ({
                       }}
                       placeholder="Category name..."
                       className="flex-1 rounded-xl px-3 py-2 text-xs outline-none"
-                      style={{ background: C.input, border: `1px solid ${typeColor}55`, color: "#f1f5f9" }} />
+                      style={{ background: C.input, border: `1px solid ${typeColor}55`, color: "var(--text-primary)" }} />
                     <button type="button" onClick={handleCreateCat}
                       disabled={!newCatName.trim() || savingCat}
-                      className="w-8 h-8 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-40 transition-all"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 disabled:opacity-40 transition-all"
                       style={{ background: `${typeColor}20`, color: typeColor, border: `1px solid ${typeColor}40` }}>
                       {savingCat ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
                     </button>
                     <button type="button" onClick={() => { setAddingCat(false); setNewCatName(""); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-xl flex-shrink-0"
-                      style={{ background: C.input, color: "#475569", border: `1px solid ${C.inputBorder}` }}>
+                      className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0"
+                      style={{ background: C.input, color: "var(--text-faint)", border: `1px solid ${C.inputBorder}` }}>
                       <X size={13} />
                     </button>
                   </div>
@@ -405,7 +407,7 @@ const TxnModal = ({
           {/* Date */}
           <Field label="Date" error={errors.date?.message}>
             <input {...register("date")} type="date"
-              style={{ ...inputCss(!!errors.date), colorScheme: "dark" }} />
+              style={{ ...inputCss(!!errors.date), colorScheme: theme }} />
           </Field>
 
           {/* Note */}

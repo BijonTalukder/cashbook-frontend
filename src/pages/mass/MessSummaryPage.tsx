@@ -20,9 +20,9 @@ import SharedCostsModal from "./SharedCostsModal";
 
 /* ── Tokens ─────────────────────────────────────── */
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
 };
 
 const MONTHS = [
@@ -83,7 +83,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
   const [open, setOpen] = useState(false);
   const isCredit = m.balance > 0;
   const isEven = Math.abs(m.balance) < 0.01;
-  const color = isEven ? "#64748b" : isCredit ? "#10b981" : "#ef4444";
+  const color = isEven ? "var(--text-muted)" : isCredit ? "#10b981" : "#ef4444";
   const Icon = isEven ? Minus : isCredit ? TrendingUp : TrendingDown;
 
   return (
@@ -96,7 +96,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLElement).style.background =
-            "rgba(255,255,255,0.02)";
+            "var(--surface-1)";
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLElement).style.background = "transparent";
@@ -109,8 +109,13 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
           {m.name.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white truncate">{m.name}</p>
-          <p className="text-[11px]" style={{ color: "#475569" }}>
+          <p
+            className="text-sm font-semibold truncate"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {m.name}
+          </p>
+          <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
             Paid: {currency}
             {fmt0(m.totalPaid)} · Share: {currency}
             {fmt0(m.share)}
@@ -130,7 +135,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
               {fmt0(Math.abs(m.balance))}
             </p>
           </div>
-          <p className="text-[10px]" style={{ color: "#334155" }}>
+          <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
             {isEven ? "settled" : isCredit ? "to receive" : "to pay"}
           </p>
         </div>
@@ -143,7 +148,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
         >
           <p
             className="text-[10px] uppercase tracking-wider mt-3 mb-2"
-            style={{ color: "#334155" }}
+            style={{ color: "var(--text-faint)" }}
           >
             Expense breakdown
           </p>
@@ -155,12 +160,14 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
                 style={{ background: "rgba(239,68,68,0.05)" }}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span style={{ color: "#475569" }}>{e.date.slice(5)}</span>
-                  <span className="truncate" style={{ color: "#94a3b8" }}>
+                  <span style={{ color: "var(--text-faint)" }}>
+                    {e.date.slice(5)}
+                  </span>
+                  <span className="truncate" style={{ color: "var(--text-secondary)" }}>
                     {e.category}
                   </span>
                   {e.note && (
-                    <span className="truncate" style={{ color: "#475569" }}>
+                    <span className="truncate" style={{ color: "var(--text-faint)" }}>
                       · {e.note}
                     </span>
                   )}
@@ -183,7 +190,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
           className="px-4 pb-3 pt-2"
           style={{ borderTop: `1px solid ${C.border}` }}
         >
-          <p className="text-xs" style={{ color: "#334155" }}>
+          <p className="text-xs" style={{ color: "var(--text-faint)" }}>
             No expenses recorded
           </p>
         </div>
@@ -245,7 +252,7 @@ const MessSummaryPage = () => {
         className="min-h-screen flex items-center justify-center"
         style={{ background: C.bg }}
       >
-        <p className="text-sm" style={{ color: "#475569" }}>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>
           Mess type business select করুন
         </p>
       </div>
@@ -259,12 +266,12 @@ const MessSummaryPage = () => {
         <div className="flex items-start justify-between">
           <div>
             <h1
-              className="text-2xl font-bold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl font-bold"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               Mess Summary
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               {activeBusiness.name}
             </p>
           </div>
@@ -274,7 +281,7 @@ const MessSummaryPage = () => {
             style={{
               background: C.card,
               border: `1px solid ${C.border}`,
-              color: "#64748b",
+              color: "var(--text-muted)",
             }}
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
@@ -300,7 +307,7 @@ const MessSummaryPage = () => {
             <p className="text-sm font-semibold" style={{ color: "#8b5cf6" }}>
               Shared Monthly Costs
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               বাসা ভাড়া, বিল সবার নামে ভাগ করে entry দিন
             </p>
           </div>
@@ -319,18 +326,18 @@ const MessSummaryPage = () => {
         >
           <button
             onClick={prevMonth}
-            className="w-8 h-8 flex items-center justify-center rounded-xl"
-            style={{ color: "#64748b" }}
+            className="w-10 h-10 flex items-center justify-center rounded-xl"
+            style={{ color: "var(--text-muted)" }}
           >
             <ChevronLeft size={16} />
           </button>
-          <p className="text-base font-semibold text-white">
+          <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
             {MONTHS[month]} {year}
           </p>
           <button
             onClick={nextMonth}
-            className="w-8 h-8 flex items-center justify-center rounded-xl"
-            style={{ color: "#64748b" }}
+            className="w-10 h-10 flex items-center justify-center rounded-xl"
+            style={{ color: "var(--text-muted)" }}
           >
             <ChevronRight size={16} />
           </button>
@@ -377,7 +384,7 @@ const MessSummaryPage = () => {
                     border: `1px solid ${C.border}`,
                   }}
                 >
-                  <p className="text-[11px] mb-2" style={{ color: "#475569" }}>
+                  <p className="text-[11px] mb-2" style={{ color: "var(--text-faint)" }}>
                     {label}
                   </p>
                   <p
@@ -386,7 +393,7 @@ const MessSummaryPage = () => {
                   >
                     {value}
                   </p>
-                  <p className="text-[10px] mt-1" style={{ color: "#334155" }}>
+                  <p className="text-[10px] mt-1" style={{ color: "var(--text-faint)" }}>
                     {sub}
                   </p>
                 </div>
@@ -406,10 +413,10 @@ const MessSummaryPage = () => {
               >
                 How it's calculated
               </p>
-              <div className="space-y-1.5 text-xs" style={{ color: "#64748b" }}>
+              <div className="space-y-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
                 <div className="flex justify-between">
                   <span>Total expenses this month</span>
-                  <span className="font-semibold text-white">
+                  <span className="font-semibold" style={{ color: "var(--text-primary)" }}>
                     {currency}
                     {fmt(data.totalExpense)}
                   </span>
@@ -423,9 +430,9 @@ const MessSummaryPage = () => {
                 </div>
                 <div
                   className="mt-2 pt-2"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                  style={{ borderTop: "1px solid var(--border-light)" }}
                 >
-                  <span style={{ color: "#475569" }}>
+                  <span style={{ color: "var(--text-faint)" }}>
                     Each member's balance = what they paid − their share
                   </span>
                 </div>
@@ -435,7 +442,7 @@ const MessSummaryPage = () => {
             <div>
               <p
                 className="text-xs uppercase tracking-wider mb-3 flex items-center gap-2"
-                style={{ color: "#475569" }}
+                style={{ color: "var(--text-faint)" }}
               >
                 <Users size={12} /> Member Breakdown
               </p>
@@ -450,7 +457,7 @@ const MessSummaryPage = () => {
               <div>
                 <p
                   className="text-xs uppercase tracking-wider mb-3 flex items-center gap-2"
-                  style={{ color: "#475569" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   <AlertCircle size={12} /> To Settle Up
                 </p>
@@ -474,9 +481,12 @@ const MessSummaryPage = () => {
                         {s.from.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white font-medium">
+                        <p
+                          className="text-sm font-medium"
+                          style={{ color: "var(--text-primary)" }}
+                        >
                           <span style={{ color: "#fca5a5" }}>{s.from}</span>
-                          <span className="mx-2" style={{ color: "#334155" }}>
+                          <span className="mx-2" style={{ color: "var(--text-faint)" }}>
                             pays
                           </span>
                           <span style={{ color: "#86efac" }}>{s.to}</span>
@@ -514,7 +524,7 @@ const MessSummaryPage = () => {
                   >
                     All settled!
                   </p>
-                  <p className="text-xs" style={{ color: "#475569" }}>
+                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>
                     Everyone has paid their fair share this month.
                   </p>
                 </div>
@@ -531,10 +541,15 @@ const MessSummaryPage = () => {
             <Users
               size={22}
               className="mx-auto mb-3"
-              style={{ color: "#334155" }}
+              style={{ color: "var(--text-faint)" }}
             />
-            <p className="text-white text-sm font-medium mb-1">No data yet</p>
-            <p className="text-xs mb-4" style={{ color: "#475569" }}>
+            <p
+              className="text-sm font-medium mb-1"
+              style={{ color: "var(--text-primary)" }}
+            >
+              No data yet
+            </p>
+            <p className="text-xs mb-4" style={{ color: "var(--text-faint)" }}>
               Add expense transactions to see the mess summary
             </p>
             <button

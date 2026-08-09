@@ -19,9 +19,9 @@ import SettleModal from "../../components/shared/SettleModal";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
 };
 
 /* ─── Helpers ─────────────────────────────────────────── */
@@ -40,7 +40,7 @@ const TYPE_META = {
 };
 
 const SETTLE_META = {
-  not_applicable: { color: "#475569", icon: null, label: "" },
+  not_applicable: { color: "var(--text-faint)", icon: null, label: "" },
   pending: { color: "#f59e0b", icon: Clock, label: "Pending" },
   partial: { color: "#3b82f6", icon: AlertCircle, label: "Partial" },
   settled: { color: "#10b981", icon: CheckCircle2, label: "Settled" },
@@ -65,8 +65,8 @@ const TxnRow = ({
   return (
     <div
       className="flex items-center gap-3 px-4 py-3.5 transition-all group"
-      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"; }}
+      style={{ borderBottom: "1px solid var(--border-light)" }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
     >
       {/* Type icon */}
@@ -80,7 +80,7 @@ const TxnRow = ({
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm text-white font-medium truncate">
+          <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
             {txn.category?.name ?? "Uncategorized"}
             {txn.category?.icon && <span className="ml-1">{txn.category.icon}</span>}
           </p>
@@ -100,19 +100,19 @@ const TxnRow = ({
           )}
         </div>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs" style={{ color: "#475569" }}>{fmtDate(txn.date)}</span>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>{fmtDate(txn.date)}</span>
           {txn.note && (
             <>
-              <span style={{ color: "#1e293b" }}>·</span>
-              <span className="text-xs truncate max-w-[140px]" style={{ color: "#475569" }}>
+              <span style={{ color: "var(--text-faint)" }}>·</span>
+              <span className="text-xs truncate max-w-[140px]" style={{ color: "var(--text-faint)" }}>
                 {txn.note}
               </span>
             </>
           )}
           {txn.toMember && (
             <>
-              <span style={{ color: "#1e293b" }}>·</span>
-              <span className="text-[10px]" style={{ color: "#64748b" }}>
+              <span style={{ color: "var(--text-faint)" }}>·</span>
+              <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
                 → {txn.toMember.firstName}
               </span>
             </>
@@ -130,7 +130,7 @@ const TxnRow = ({
             {txn.member?.firstName?.[0]}{txn.member?.lastName?.[0]}
           </span>
         </div>
-        <span className="text-xs" style={{ color: "#475569" }}>
+        <span className="text-xs" style={{ color: "var(--text-faint)" }}>
           {txn.member?.firstName}
         </span>
       </div>
@@ -141,7 +141,7 @@ const TxnRow = ({
           {meta.sign}৳{fmt(txn.amount)}
         </p>
         {txn.settlementStatus === "partial" && (
-          <p className="text-[10px]" style={{ color: "#475569" }}>
+          <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
             ৳{fmt(txn.settledAmount)} paid
           </p>
         )}
@@ -151,8 +151,8 @@ const TxnRow = ({
       <div className="relative flex-shrink-0">
         <button
           onClick={() => setMenuOpen((p) => !p)}
-          className="w-7 h-7 flex items-center justify-center rounded-lg transition-all opacity-0 group-hover:opacity-100"
-          style={{ color: "#64748b", background: "rgba(255,255,255,0.05)" }}
+          className="w-10 h-10 flex items-center justify-center rounded-lg transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+          style={{ color: "var(--text-muted)", background: "var(--surface-3)" }}
         >
           <MoreVertical size={14} />
         </button>
@@ -164,9 +164,9 @@ const TxnRow = ({
             <div
               className="absolute right-0 top-full mt-1 w-40 rounded-xl overflow-hidden z-50"
               style={{
-                background: "#0d1424",
-                border: "1px solid rgba(255,255,255,0.1)",
-                boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border-strong)",
+                boxShadow: "var(--shadow-elevated)",
               }}
             >
               {canSettle && (
@@ -184,8 +184,8 @@ const TxnRow = ({
                 <button
                   onClick={() => { onSettle(txn); setMenuOpen(false); }}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-all"
-                  style={{ color: "#64748b" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
+                  style={{ color: "var(--text-muted)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-2)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   <CheckCircle2 size={13} /> View Settlement
@@ -194,8 +194,8 @@ const TxnRow = ({
               <button
                 onClick={() => { onEdit(txn); setMenuOpen(false); }}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-all"
-                style={{ color: "#94a3b8" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }}
+                style={{ color: "var(--text-secondary)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-3)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
                 <Pencil size={13} /> Edit
@@ -304,13 +304,13 @@ const TransactionsPage = () => {
         <div className="flex items-start justify-between">
           <div>
             <h1
-              className="text-2xl font-bold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl font-bold"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               Transactions
             </h1>
             {activeBusiness && (
-              <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
                 {activeBusiness.name} · {total} {isMass ? "এন্ট্রি" : "entries"}
                 {isMass && <span style={{ color: "#8b5cf6" }}> · Mess</span>}
               </p>
@@ -319,8 +319,8 @@ const TransactionsPage = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => fetchTxns(page)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl"
-              style={{ background: C.card, border: `1px solid ${C.border}`, color: "#64748b" }}
+              className="w-10 h-10 flex items-center justify-center rounded-xl"
+              style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
             >
               <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             </button>
@@ -363,7 +363,7 @@ const TransactionsPage = () => {
             ].map(({ label, value, color, icon: Icon }) => (
               <div key={label} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs" style={{ color: "#475569" }}>{label}</span>
+                  <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
                   <div
                     className="w-6 h-6 rounded-md flex items-center justify-center"
                     style={{ background: `${color}15`, color }}
@@ -400,7 +400,7 @@ const TransactionsPage = () => {
                 style={{
                   background: isActive ? `${color}15` : C.card,
                   border: `1px solid ${isActive ? `${color}35` : C.border}`,
-                  color: isActive ? color : "#64748b",
+                  color: isActive ? color : "var(--text-muted)",
                 }}
               >
                 {label}
@@ -420,7 +420,7 @@ const TransactionsPage = () => {
             </div>
           ) : !activeBusiness ? (
             <div className="text-center py-16">
-              <p className="text-sm" style={{ color: "#475569" }}>
+              <p className="text-sm" style={{ color: "var(--text-faint)" }}>
                 Select a business to view transactions
               </p>
             </div>
@@ -428,12 +428,12 @@ const TransactionsPage = () => {
             <div className="text-center py-16">
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ background: "rgba(255,255,255,0.04)" }}
+                style={{ background: "var(--surface-2)" }}
               >
-                <ArrowLeftRight size={20} style={{ color: "#334155" }} />
+                <ArrowLeftRight size={20} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-sm font-medium text-white mb-1">No transactions yet</p>
-              <p className="text-xs mb-5" style={{ color: "#475569" }}>
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>No transactions yet</p>
+              <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
                 Add your first income or expense
               </p>
               <div className="flex items-center justify-center gap-2">
@@ -470,24 +470,24 @@ const TransactionsPage = () => {
               {totalPages > 1 && (
                 <div
                   className="flex items-center justify-between px-4 py-3"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+                  style={{ borderTop: "1px solid var(--border-light)" }}
                 >
                   <button
                     onClick={() => { const p = page - 1; setPage(p); fetchTxns(p); }}
                     disabled={page <= 1}
-                    className="px-4 py-1.5 rounded-xl text-xs disabled:opacity-40"
-                    style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, color: "#94a3b8" }}
+                    className="px-4 py-2 rounded-xl text-xs disabled:opacity-40"
+                    style={{ background: "var(--surface-2)", border: `1px solid ${C.border}`, color: "var(--text-secondary)" }}
                   >
                     Previous
                   </button>
-                  <span className="text-xs" style={{ color: "#475569" }}>
+                  <span className="text-xs" style={{ color: "var(--text-faint)" }}>
                     {page} / {totalPages}
                   </span>
                   <button
                     onClick={() => { const p = page + 1; setPage(p); fetchTxns(p); }}
                     disabled={page >= totalPages}
-                    className="px-4 py-1.5 rounded-xl text-xs disabled:opacity-40"
-                    style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, color: "#94a3b8" }}
+                    className="px-4 py-2 rounded-xl text-xs disabled:opacity-40"
+                    style={{ background: "var(--surface-2)", border: `1px solid ${C.border}`, color: "var(--text-secondary)" }}
                   >
                     Next
                   </button>
@@ -540,11 +540,11 @@ const TransactionsPage = () => {
       {deleting && (
         <div
           className="fixed inset-0 z-[300] flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+          style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(8px)" }}
         >
           <div
             className="w-full max-w-sm rounded-2xl p-6"
-            style={{ background: "#0d1424", border: "1px solid rgba(255,255,255,0.1)" }}
+            style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)" }}
           >
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center mx-auto mb-4"
@@ -552,15 +552,15 @@ const TransactionsPage = () => {
             >
               <Trash2 size={18} style={{ color: "#ef4444" }} />
             </div>
-            <p className="text-white text-center font-semibold mb-1">Delete transaction?</p>
-            <p className="text-xs text-center mb-5" style={{ color: "#475569" }}>
+            <p className="text-center font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Delete transaction?</p>
+            <p className="text-xs text-center mb-5" style={{ color: "var(--text-faint)" }}>
               ৳{fmt(deleting.amount)} · {deleting.category?.name}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleting(null)}
                 className="flex-1 py-2.5 rounded-xl text-sm"
-                style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, color: "#94a3b8" }}
+                style={{ background: "var(--surface-3)", border: `1px solid ${C.border}`, color: "var(--text-secondary)" }}
               >
                 Cancel
               </button>

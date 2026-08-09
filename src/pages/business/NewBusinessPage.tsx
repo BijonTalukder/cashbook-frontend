@@ -151,7 +151,7 @@ const NewBusinessPage = () => {
     : globalCats;
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: "var(--bg)" }}>
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -168,8 +168,8 @@ const NewBusinessPage = () => {
               <TrendingUp size={18} className="text-emerald-950" />
             </div>
             <span
-              className="text-white font-bold text-xl"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="font-bold text-xl"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               HisabBoi
             </span>
@@ -177,11 +177,11 @@ const NewBusinessPage = () => {
           {step !== 3 && (
             <button
               onClick={() => navigate("/dashboard")}
-              className="w-8 h-8 flex items-center justify-center rounded-xl transition-all"
+              className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
               style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#475569",
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                color: "var(--text-faint)",
               }}
             >
               <X size={14} />
@@ -204,20 +204,24 @@ const NewBusinessPage = () => {
                         ? "bg-emerald-500 text-emerald-950"
                         : active
                           ? "bg-emerald-500/20 border border-emerald-500/60 text-emerald-400"
-                          : "bg-white/5 border border-white/10 text-slate-600"
+                          : ""
                       }`}
+                    style={!done && !active ? { background: "var(--surface-3)", border: "1px solid var(--border-strong)", color: "var(--text-faint)" } : undefined}
                   >
                     {done ? <Check size={13} /> : idx}
                   </div>
                   <span
-                    className={`text-sm transition-colors ${active ? "text-white" : done ? "text-emerald-400" : "text-slate-600"
-                      }`}
+                    className={`text-sm transition-colors ${done && !active ? "text-emerald-400" : ""}`}
+                    style={active ? { color: "var(--text-primary)" } : !done ? { color: "var(--text-faint)" } : undefined}
                   >
                     {label}
                   </span>
                 </div>
                 {i < STEP_LABELS.length - 1 && (
-                  <div className={`w-8 h-px mx-1 ${done ? "bg-emerald-500/50" : "bg-white/10"}`} />
+                  <div
+                    className={`w-8 h-px mx-1 ${done ? "bg-emerald-500/50" : ""}`}
+                    style={!done ? { background: "var(--surface-7)" } : undefined}
+                  />
                 )}
               </div>
             );
@@ -228,21 +232,21 @@ const NewBusinessPage = () => {
         {step === 1 && (
           <form onSubmit={handleSubmit(onStep1Submit)}>
             <div
-              className="rounded-2xl border border-white/10 p-7"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              className="rounded-2xl p-7"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border-strong)" }}
             >
               <h2
-                className="text-2xl font-bold text-white mb-1"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-2xl font-bold mb-1"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
                 New Business
               </h2>
-              <p className="text-slate-500 text-sm mb-7">
+              <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
                 Add another business to your account.
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm text-slate-400 mb-2">Business name</label>
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Business name</label>
                 <input
                   {...register("name")}
                   placeholder={
@@ -250,11 +254,11 @@ const NewBusinessPage = () => {
                       : selectedType === "mass" ? "Our Mess"
                         : "Acme Ltd."
                   }
-                  className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600
+                  className={`w-full bg-[var(--surface-3)] border rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-faint)]
                     focus:outline-none focus:ring-2 transition-all text-sm
                     ${errors.name
                       ? "border-red-500/50 focus:ring-red-500/20"
-                      : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"
+                      : "border-[var(--border-strong)] focus:ring-emerald-500/20 focus:border-emerald-500/40"
                     }`}
                 />
                 {errors.name && (
@@ -263,7 +267,7 @@ const NewBusinessPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-3">Business type</label>
+                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>Business type</label>
                 <div className="grid grid-cols-3 gap-3">
                   {BUSINESS_TYPES.map(({ value, label, sub, icon: Icon, accent, bg, border }) => {
                     const isSelected = selectedType === value;
@@ -274,8 +278,8 @@ const NewBusinessPage = () => {
                         onClick={() => setValue("type", value)}
                         className="relative rounded-xl p-4 text-left transition-all duration-200 border"
                         style={{
-                          background: isSelected ? bg : "rgba(255,255,255,0.03)",
-                          borderColor: isSelected ? border : "rgba(255,255,255,0.08)",
+                          background: isSelected ? bg : "var(--surface-1)",
+                          borderColor: isSelected ? border : "var(--border)",
                         }}
                       >
                         {isSelected && (
@@ -287,14 +291,14 @@ const NewBusinessPage = () => {
                         <div
                           className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
                           style={{
-                            background: isSelected ? `${accent}22` : "rgba(255,255,255,0.06)",
-                            color: isSelected ? accent : "#64748b",
+                            background: isSelected ? `${accent}22` : "var(--surface-4)",
+                            color: isSelected ? accent : "var(--text-muted)",
                           }}
                         >
                           <Icon size={15} />
                         </div>
-                        <div className="text-white text-sm font-medium mb-0.5">{label}</div>
-                        <div className="text-slate-500 text-xs leading-relaxed">{sub}</div>
+                        <div className="text-sm font-medium mb-0.5" style={{ color: "var(--text-primary)" }}>{label}</div>
+                        <div className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{sub}</div>
                       </button>
                     );
                   })}
@@ -317,16 +321,16 @@ const NewBusinessPage = () => {
         {step === 2 && (
           <div>
             <div
-              className="rounded-2xl border border-white/10 p-7"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              className="rounded-2xl p-7"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border-strong)" }}
             >
               <h2
-                className="text-2xl font-bold text-white mb-1"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-2xl font-bold mb-1"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
                 Choose a category
               </h2>
-              <p className="text-slate-500 text-sm mb-7">
+              <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
                 Pick one that fits, or create your own. You can skip.
               </p>
 
@@ -338,7 +342,7 @@ const NewBusinessPage = () => {
                 <>
                   {allCats.length > 0 && (
                     <div className="mb-6">
-                      <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider">Available</p>
+                      <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Available</p>
                       <div className="flex flex-wrap gap-2">
                         {allCats.map((cat) => {
                           const isSelected = selectedCatId === cat._id;
@@ -350,15 +354,15 @@ const NewBusinessPage = () => {
                               onClick={() => handleSelectCat(cat._id)}
                               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all border"
                               style={{
-                                background: isSelected ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.04)",
-                                borderColor: isSelected ? "rgba(16,185,129,0.45)" : "rgba(255,255,255,0.08)",
-                                color: isSelected ? "#10b981" : "#94a3b8",
+                                background: isSelected ? "rgba(16,185,129,0.12)" : "var(--surface-2)",
+                                borderColor: isSelected ? "rgba(16,185,129,0.45)" : "var(--border)",
+                                color: isSelected ? "#10b981" : "var(--text-secondary)",
                               }}
                             >
                               {isSelected ? <Check size={13} /> : <Tag size={13} />}
                               {cat.name}
                               {isCustom && (
-                                <span className="text-[10px] text-slate-600 ml-0.5">(custom)</span>
+                                <span className="text-[10px] ml-0.5" style={{ color: "var(--text-faint)" }}>(custom)</span>
                               )}
                             </button>
                           );
@@ -369,7 +373,7 @@ const NewBusinessPage = () => {
 
                   {!customCat ? (
                     <div>
-                      <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider">
+                      <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                         Or create your own
                       </p>
                       <div className="flex gap-2">
@@ -380,8 +384,8 @@ const NewBusinessPage = () => {
                             if (e.key === "Enter") { e.preventDefault(); handleAddCustomCat(); }
                           }}
                           placeholder="e.g. Retail, NGO, Freelance..."
-                          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white
-                            placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20
+                          className="flex-1 bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
+                            placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20
                             focus:border-emerald-500/40 transition-all text-sm"
                         />
                         <button
@@ -397,7 +401,7 @@ const NewBusinessPage = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
                       <Check size={13} className="text-emerald-400" />
                       <span>
                         Custom category{" "}
@@ -421,8 +425,8 @@ const NewBusinessPage = () => {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-white/10
-                  text-slate-400 hover:text-white hover:border-white/20 transition-all text-sm"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-[var(--border-strong)]
+                  text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all text-sm"
               >
                 <ArrowLeft size={15} /> Back
               </button>
@@ -449,24 +453,24 @@ const NewBusinessPage = () => {
         {/* ── STEP 3 ── */}
         {step === 3 && (
           <div
-            className="rounded-2xl border border-white/10 p-10 text-center"
-            style={{ background: "rgba(255,255,255,0.03)" }}
+            className="rounded-2xl p-10 text-center"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border-strong)" }}
           >
             <div className="w-16 h-16 bg-emerald-500/15 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-5">
               <Check size={28} className="text-emerald-400" />
             </div>
             <h2
-              className="text-2xl font-bold text-white mb-2"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl font-bold mb-2"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               Business Created!
             </h2>
-            <p className="text-slate-400 text-sm mb-1">
-              <span className="text-white font-medium">{createdBiz?.name}</span> is ready.
+            <p className="text-sm mb-1" style={{ color: "var(--text-secondary)" }}>
+              <span className="font-medium" style={{ color: "var(--text-primary)" }}>{createdBiz?.name}</span> is ready.
             </p>
-            <p className="text-slate-500 text-sm">Going to dashboard...</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Going to dashboard...</p>
             <div className="mt-6 flex justify-center">
-              <div className="w-32 h-1 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-32 h-1 rounded-full overflow-hidden" style={{ background: "var(--surface-7)" }}>
                 <div className="h-full bg-emerald-500 rounded-full animate-[progress_1.6s_linear_forwards]" />
               </div>
             </div>

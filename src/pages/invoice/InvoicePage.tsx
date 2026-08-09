@@ -26,9 +26,9 @@ import {
 } from "../../services/Invoice.service";
 
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
 };
 const fmt = (n: number) =>
   "৳" + n.toLocaleString("en-BD", { maximumFractionDigits: 0 });
@@ -82,7 +82,7 @@ const CategorySelect = ({
   }, []);
 
   const selCls =
-    "w-full rounded-xl px-4 py-2.5 text-sm outline-none bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-white";
+    "w-full rounded-xl px-4 py-2.5 text-sm outline-none bg-[var(--surface-2)] border border-[var(--border-strong)] text-[var(--text-primary)]";
 
   return (
     <div ref={ref} className="relative">
@@ -91,17 +91,21 @@ const CategorySelect = ({
         onClick={() => setOpen((v) => !v)}
         className={selCls + " flex items-center justify-between"}
       >
-        <span style={{ color: selected ? "white" : "#475569" }}>
+        <span
+          style={{
+            color: selected ? "var(--text-primary)" : "var(--text-faint)",
+          }}
+        >
           {selected ? selected.name : "Select meal category..."}
         </span>
-        <ChevronDown size={14} style={{ color: "#475569", flexShrink: 0 }} />
+        <ChevronDown size={14} style={{ color: "var(--text-faint)", flexShrink: 0 }} />
       </button>
       {open && (
         <div
           className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden shadow-2xl"
           style={{
-            background: "#1e293b",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: "var(--surface-6)",
+            border: "1px solid var(--border-strong)",
             maxHeight: 200,
             overflowY: "auto",
           }}
@@ -116,13 +120,13 @@ const CategorySelect = ({
               }}
               className="w-full text-left px-4 py-2.5 text-sm transition-colors"
               style={{
-                color: c._id === value ? "#10b981" : "#cbd5e1",
+                color: c._id === value ? "#10b981" : "var(--text-secondary)",
                 background:
                   c._id === value ? "rgba(16,185,129,0.1)" : "transparent",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.background =
-                  "rgba(255,255,255,0.05)";
+                  "var(--surface-3)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.background =
@@ -133,7 +137,7 @@ const CategorySelect = ({
             </button>
           ))}
           {categories.length === 0 && (
-            <p className="px-4 py-3 text-sm" style={{ color: "#475569" }}>
+            <p className="px-4 py-3 text-sm" style={{ color: "var(--text-faint)" }}>
               No expense categories found
             </p>
           )}
@@ -202,12 +206,12 @@ const GenerateModal = ({
   };
 
   const selCls =
-    "w-full rounded-xl px-4 py-2.5 text-sm outline-none appearance-none bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-white";
+    "w-full rounded-xl px-4 py-2.5 text-sm outline-none appearance-none bg-[var(--surface-2)] border border-[var(--border-strong)] text-[var(--text-primary)]";
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.7)" }}
+      style={{ background: "var(--overlay-scrim)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -215,21 +219,26 @@ const GenerateModal = ({
       <div
         className="w-full max-w-sm rounded-2xl p-6"
         style={{
-          background: "#0d1424",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--bg-elevated)",
+          border: "1px solid var(--border-strong)",
         }}
       >
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="text-white font-semibold">Generate Invoice</h3>
-            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+            <h3
+              className="font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Generate Invoice
+            </h3>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               {isMess ? "Mess accounting invoice" : "Income & expense summary"}
             </p>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: C.card, color: "#64748b" }}
+            style={{ background: C.card, color: "var(--text-muted)" }}
           >
             <X size={14} />
           </button>
@@ -240,7 +249,7 @@ const GenerateModal = ({
           <div>
             <label
               className="block text-xs mb-1.5"
-              style={{ color: "#64748b" }}
+              style={{ color: "var(--text-muted)" }}
             >
               Month
             </label>
@@ -248,7 +257,7 @@ const GenerateModal = ({
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
               className={selCls}
-              style={{ background: "#1e293b" }}
+              style={{ background: "var(--surface-6)" }}
             >
               {MONTHS.map((m, i) => (
                 <option key={m} value={i + 1}>
@@ -260,7 +269,7 @@ const GenerateModal = ({
           <div>
             <label
               className="block text-xs mb-1.5"
-              style={{ color: "#64748b" }}
+              style={{ color: "var(--text-muted)" }}
             >
               Year
             </label>
@@ -268,7 +277,7 @@ const GenerateModal = ({
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
               className={selCls}
-              style={{ background: "#1e293b" }}
+              style={{ background: "var(--surface-6)" }}
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -284,7 +293,7 @@ const GenerateModal = ({
           <div className="mb-4">
             <label
               className="block text-xs mb-1.5"
-              style={{ color: "#64748b" }}
+              style={{ color: "var(--text-muted)" }}
             >
               Meal Category <span className="text-red-400">*</span>
             </label>
@@ -295,7 +304,7 @@ const GenerateModal = ({
                   className="animate-spin"
                   style={{ color: "#10b981" }}
                 />
-                <span className="text-xs" style={{ color: "#475569" }}>
+                <span className="text-xs" style={{ color: "var(--text-faint)" }}>
                   Loading...
                 </span>
               </div>
@@ -306,7 +315,7 @@ const GenerateModal = ({
                 categories={cats}
               />
             )}
-            <p className="text-xs mt-1.5" style={{ color: "#475569" }}>
+            <p className="text-xs mt-1.5" style={{ color: "var(--text-faint)" }}>
               এই category র সব expense ÷ total meals = meal rate।
             </p>
           </div>
@@ -410,12 +419,15 @@ const InvoicePage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1
-            className="text-xl font-bold text-white"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
+            className="text-xl font-bold"
+            style={{
+              fontFamily: "'DM Serif Display', serif",
+              color: "var(--text-primary)",
+            }}
           >
             Invoices
           </h1>
-          <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
             Transactions & generated invoices
           </p>
         </div>
@@ -457,7 +469,7 @@ const InvoicePage = () => {
           >
             <div className="flex items-center gap-2 mb-2">
               <Icon size={13} style={{ color: c }} />
-              <span className="text-xs" style={{ color: "#475569" }}>
+              <span className="text-xs" style={{ color: "var(--text-faint)" }}>
                 {label}
               </span>
             </div>
@@ -478,7 +490,7 @@ const InvoicePage = () => {
           className="flex items-center gap-2 p-4 border-b flex-wrap"
           style={{ borderColor: C.border }}
         >
-          <Filter size={13} style={{ color: "#475569" }} />
+          <Filter size={13} style={{ color: "var(--text-faint)" }} />
           {(["all", "income", "expense", "transfer"] as FilterType[]).map(
             (f) => {
               const lbl = {
@@ -502,7 +514,7 @@ const InvoicePage = () => {
                   style={{
                     background: active ? `${col}18` : "transparent",
                     border: `1px solid ${active ? `${col}40` : "transparent"}`,
-                    color: active ? col : "#475569",
+                    color: active ? col : "var(--text-faint)",
                   }}
                 >
                   {lbl}
@@ -510,7 +522,7 @@ const InvoicePage = () => {
               );
             },
           )}
-          <span className="ml-auto text-xs" style={{ color: "#334155" }}>
+          <span className="ml-auto text-xs" style={{ color: "var(--text-faint)" }}>
             {filtered.length} entries
           </span>
         </div>
@@ -525,7 +537,7 @@ const InvoicePage = () => {
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-sm" style={{ color: "#334155" }}>
+            <p className="text-sm" style={{ color: "var(--text-faint)" }}>
               No transactions found
             </p>
           </div>
@@ -539,7 +551,7 @@ const InvoicePage = () => {
                       <th
                         key={h}
                         className="px-4 py-3 text-left text-xs font-medium"
-                        style={{ color: "#475569" }}
+                        style={{ color: "var(--text-faint)" }}
                       >
                         {h}
                       </th>
@@ -551,12 +563,12 @@ const InvoicePage = () => {
                 {filtered.map((tx) => (
                   <tr
                     key={tx._id}
-                    className="transition-colors hover:bg-white/[0.02]"
-                    style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                    className="transition-colors hover:bg-[var(--surface-1)]"
+                    style={{ borderBottom: "1px solid var(--border-light)" }}
                   >
                     <td
                       className="px-4 py-3 text-xs"
-                      style={{ color: "#64748b" }}
+                      style={{ color: "var(--text-muted)" }}
                     >
                       {new Date(tx.date).toLocaleDateString("en-BD", {
                         day: "2-digit",
@@ -576,19 +588,19 @@ const InvoicePage = () => {
                     </td>
                     <td
                       className="px-4 py-3 text-xs"
-                      style={{ color: "#94a3b8" }}
+                      style={{ color: "var(--text-secondary)" }}
                     >
                       {tx.category?.name ?? "—"}
                     </td>
                     <td
                       className="px-4 py-3 text-xs max-w-[140px] truncate"
-                      style={{ color: "#64748b" }}
+                      style={{ color: "var(--text-muted)" }}
                     >
                       {tx.note ?? "—"}
                     </td>
                     <td
                       className="px-4 py-3 text-xs"
-                      style={{ color: "#64748b" }}
+                      style={{ color: "var(--text-muted)" }}
                     >
                       {tx.member
                         ? `${tx.member.firstName} ${tx.member.lastName}`
@@ -612,7 +624,10 @@ const InvoicePage = () => {
       {/* Generated invoices */}
       {invoices.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-white mb-3">
+          <h2
+            className="text-sm font-semibold mb-3"
+            style={{ color: "var(--text-primary)" }}
+          >
             Generated Invoices
           </h2>
           <div className="space-y-2">
@@ -629,10 +644,13 @@ const InvoicePage = () => {
                   <FileText size={16} style={{ color: "#10b981" }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white">
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {monthName(inv.month)} {inv.year}
                   </p>
-                  <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
                     Income {fmt(inv.totalIncome)} · Expense{" "}
                     {fmt(inv.totalExpense)} ·{" "}
                     <span

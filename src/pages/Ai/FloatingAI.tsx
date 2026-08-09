@@ -11,6 +11,8 @@ import {
   User,
   Bot,
   RotateCcw,
+  AlertTriangle,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -24,7 +26,17 @@ type Step = "select" | "chat";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  timestamp?: number;
+  error?: boolean;
 }
+
+const formatTime = (ts?: number) =>
+  ts
+    ? new Date(ts).toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
 /* ── Constants ────────────────────────────────────── */
 const TYPE_ICON: Record<string, React.ElementType> = {
@@ -61,6 +73,13 @@ const SUGGESTIONS: Record<string, string[]> = {
   ],
 };
 
+const CAPABILITIES = [
+  "খরচ বিশ্লেষণ",
+  "বাকির হিসাব",
+  "সঞ্চয়ের পরামর্শ",
+  "লেনদেন যোগ",
+];
+
 /* ── API call ─────────────────────────────────────── */
 const callAI = async (
   businessId: string,
@@ -71,29 +90,91 @@ const callAI = async (
 };
 
 /* ── Message Bubble ───────────────────────────────── */
-const Bubble = ({ msg }: { msg: Message }) => {
+const RichText = ({ text }: { text: string }): React.ReactNode => {
+  const lines = text.split("\n").filter((l) => l.trim().length > 0);
+  return (
+    <div className="space-y-1">
+      {lines.map((line, i) => {
+        const isBullet = /^[-*•]\s?/.test(line.trim());
+        const body = isBullet
+          ? line.trim().replace(/^[-*•]\s?/, "")
+          : line.trim();
+        const inlineMarkup = body
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
+        return (
+          <div
+            key={i}
+            style={{ color: "var(--text-primary)" }}
+            className="leading-relaxed"
+          >
+            {isBullet && (
+              <span className="mr-1.5" style={{ color: "#10b981" }}>
+                •
+              </span>
+            )}
+            <span dangerouslySetInnerHTML={{ __html: inlineMarkup }} />
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const Bubble = ({ msg, onRetry }: { msg: Message; onRetry?: () => void }) => {
   const isUser = msg.role === "user";
+  const isError = !!msg.error;
   return (
     <div className={`flex gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
       {!isUser && (
         <div
           className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-          style={{ background: "linear-gradient(135deg,#10b981,#0d9488)" }}
+          style={{
+            background: isError
+              ? "rgba(239,68,68,0.15)"
+              : "linear-gradient(135deg,#10b981,#0d9488)",
+          }}
         >
-          <Bot size={13} className="text-white" />
+          {isError ? (
+            <AlertTriangle size={13} style={{ color: "#ef4444" }} />
+          ) : (
+            <Bot size={13} className="text-white" />
+          )}
         </div>
       )}
-      <div
-        className="max-w-[80%] text-sm leading-relaxed"
-        style={{
-          background: isUser ? "#10b981" : "rgba(255,255,255,0.06)",
-          color: isUser ? "#022c22" : "#e2e8f0",
-          borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-          padding: "10px 14px",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {msg.content}
+      <div className={`max-w-[80%] flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+        <div
+          className="text-sm leading-relaxed"
+          style={{
+            background: isUser
+              ? "#10b981"
+              : isError
+                ? "rgba(239,68,68,0.08)"
+                : "var(--surface-4)",
+            border: isError ? "1px solid rgba(239,68,68,0.25)" : "none",
+            color: isUser ? "#022c22" : isError ? "#ef4444" : "var(--text-primary)",
+            borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+            padding: "10px 14px",
+          }}
+        >
+          {isUser ? msg.content : <RichText text={msg.content} />}
+        </div>
+        <div className="flex items-center gap-2 mt-1 px-1">
+          {msg.timestamp && (
+            <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
+              {formatTime(msg.timestamp)}
+            </span>
+          )}
+          {isError && onRetry && (
+            <button
+              onClick={onRetry}
+              className="flex items-center gap-1 text-[10px] font-medium"
+              style={{ color: "#10b981" }}
+            >
+              <RotateCcw size={10} /> আবার চেষ্টা করুন
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -114,6 +195,7 @@ const FloatingAI = () => {
   const [greeting, setGreeting] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const lastPayloadRef = useRef<Message[] | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -151,7 +233,7 @@ const FloatingAI = () => {
         content: `${biz.name} business এর এই মাসের একটি সংক্ষিপ্ত financial সারসংক্ষেপ দাও।`,
       };
       const reply = await callAI(biz._id, [firstMsg]);
-      setMessages([{ role: "assistant", content: reply }]);
+      setMessages([{ role: "assistant", content: reply, timestamp: Date.now() }]);
     } catch {
       toast.error("AI connect করতে সমস্যা হয়েছে");
       handleReset();
@@ -165,15 +247,60 @@ const FloatingAI = () => {
     const text = (overrideText ?? input).trim();
     if (!text || thinking || !selected) return;
     setInput("");
-    const newMsgs: Message[] = [...messages, { role: "user", content: text }];
+    const newMsgs: Message[] = [
+      ...messages,
+      { role: "user", content: text, timestamp: Date.now() },
+    ];
     setMessages(newMsgs);
+    lastPayloadRef.current = newMsgs;
     setThinking(true);
     try {
       const reply = await callAI(selected._id, newMsgs);
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: reply, timestamp: Date.now() },
+      ]);
+      lastPayloadRef.current = null;
     } catch {
-      toast.error("উত্তর পাওয়া যায়নি");
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "দুঃখিত, উত্তর আনতে সমস্যা হয়েছে। ইন্টারনেট চেক করে আবার চেষ্টা করুন।",
+          error: true,
+          timestamp: Date.now(),
+        },
+      ]);
+    } finally {
+      setThinking(false);
+    }
+  };
+
+  /* Retry the last failed exchange without re-adding a duplicate user bubble */
+  const handleRetry = async () => {
+    if (!lastPayloadRef.current || !selected || thinking) return;
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      return last?.error ? prev.slice(0, -1) : prev;
+    });
+    setThinking(true);
+    try {
+      const reply = await callAI(selected._id, lastPayloadRef.current);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: reply, timestamp: Date.now() },
+      ]);
+      lastPayloadRef.current = null;
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "দুঃখিত, উত্তর আনতে সমস্যা হয়েছে। ইন্টারনেট চেক করে আবার চেষ্টা করুন।",
+          error: true,
+          timestamp: Date.now(),
+        },
+      ]);
     } finally {
       setThinking(false);
     }
@@ -184,6 +311,7 @@ const FloatingAI = () => {
     setSelected(null);
     setMessages([]);
     setInput("");
+    lastPayloadRef.current = null;
   };
   const handleClose = () => {
     setOpen(false);
@@ -212,7 +340,7 @@ const FloatingAI = () => {
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0"
-          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+          style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(4px)" }}
           onClick={(e) => {
             if (e.target === e.currentTarget) handleClose();
           }}
@@ -220,8 +348,9 @@ const FloatingAI = () => {
           <div
             className="w-full sm:max-w-md flex flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden"
             style={{
-              background: "#0d1424",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border-strong)",
+              boxShadow: "var(--shadow-elevated)",
               height:
                 step === "chat"
                   ? "calc(82vh - env(safe-area-inset-bottom))"
@@ -232,7 +361,7 @@ const FloatingAI = () => {
             {/* Header */}
             <div
               className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ borderBottom: "1px solid var(--border)" }}
             >
               <div className="flex items-center gap-3">
                 <div
@@ -244,13 +373,13 @@ const FloatingAI = () => {
                   <Sparkles size={14} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-sm">
+                  <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
                     HisabBoi AI
                   </p>
                   {selected && (
                     <p
                       className="text-[11px] truncate"
-                      style={{ color: "#475569", maxWidth: 160 }}
+                      style={{ color: "var(--text-faint)", maxWidth: 160 }}
                     >
                       {selected.name}
                     </p>
@@ -263,8 +392,8 @@ const FloatingAI = () => {
                     onClick={handleReset}
                     className="w-8 h-8 rounded-lg flex items-center justify-center"
                     style={{
-                      background: "rgba(255,255,255,0.04)",
-                      color: "#64748b",
+                      background: "var(--surface-2)",
+                      color: "var(--text-muted)",
                     }}
                   >
                     <RotateCcw size={13} />
@@ -274,8 +403,8 @@ const FloatingAI = () => {
                   onClick={handleClose}
                   className="w-8 h-8 rounded-lg flex items-center justify-center"
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    color: "#64748b",
+                    background: "var(--surface-2)",
+                    color: "var(--text-muted)",
                   }}
                 >
                   <X size={14} />
@@ -287,12 +416,26 @@ const FloatingAI = () => {
             {step === "select" && (
               <div className="flex flex-col overflow-hidden">
                 <div className="px-5 pt-4 pb-3">
-                  <p className="text-white font-semibold mb-1">
+                  <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
                     কোন business নিয়ে জানতে চাও?
                   </p>
-                  <p className="text-xs" style={{ color: "#475569" }}>
+                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>
                     Select করলে AI সেই business এর হিসাব বিশ্লেষণ করবে
                   </p>
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {CAPABILITIES.map((c) => (
+                      <span
+                        key={c}
+                        className="text-[10px] px-2 py-1 rounded-lg"
+                        style={{
+                          background: "rgba(16,185,129,0.08)",
+                          color: "#10b981",
+                        }}
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-2">
                   {loadingBiz ? (
@@ -302,14 +445,14 @@ const FloatingAI = () => {
                         className="animate-spin"
                         style={{ color: "#10b981" }}
                       />
-                      <p className="text-xs" style={{ color: "#475569" }}>
+                      <p className="text-xs" style={{ color: "var(--text-faint)" }}>
                         লোড হচ্ছে...
                       </p>
                     </div>
                   ) : businesses.length === 0 ? (
                     <p
                       className="text-center py-12 text-sm"
-                      style={{ color: "#475569" }}
+                      style={{ color: "var(--text-faint)" }}
                     >
                       কোনো business পাওয়া যায়নি
                     </p>
@@ -323,16 +466,16 @@ const FloatingAI = () => {
                           onClick={() => handleSelectBusiness(biz)}
                           className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition-all"
                           style={{
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.07)",
+                            background: "var(--surface-1)",
+                            border: "1px solid var(--border-light)",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.background =
-                              "rgba(255,255,255,0.06)")
+                              "var(--surface-4)")
                           }
                           onMouseLeave={(e) =>
                             (e.currentTarget.style.background =
-                              "rgba(255,255,255,0.03)")
+                              "var(--surface-1)")
                           }
                         >
                           <div
@@ -342,19 +485,19 @@ const FloatingAI = () => {
                             <Icon size={18} style={{ color }} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-white font-medium text-sm truncate">
+                            <p className="font-medium text-sm truncate" style={{ color: "var(--text-primary)" }}>
                               {biz.name}
                             </p>
                             <p
                               className="text-xs mt-0.5"
-                              style={{ color: "#475569" }}
+                              style={{ color: "var(--text-faint)" }}
                             >
                               {TYPE_LABEL[biz.type] ?? biz.type} account
                             </p>
                           </div>
                           <ChevronRight
                             size={15}
-                            style={{ color: "#334155", flexShrink: 0 }}
+                            style={{ color: "var(--text-faint)", flexShrink: 0 }}
                           />
                         </button>
                       );
@@ -382,7 +525,7 @@ const FloatingAI = () => {
                       <div
                         className="flex items-center gap-2 px-4 py-3 rounded-2xl"
                         style={{
-                          background: "rgba(255,255,255,0.06)",
+                          background: "var(--surface-4)",
                           borderRadius: "18px 18px 18px 4px",
                         }}
                       >
@@ -391,7 +534,7 @@ const FloatingAI = () => {
                           className="animate-spin"
                           style={{ color: "#10b981" }}
                         />
-                        <span className="text-xs" style={{ color: "#64748b" }}>
+                        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
                           বিশ্লেষণ করছি...
                         </span>
                       </div>
@@ -399,7 +542,13 @@ const FloatingAI = () => {
                   )}
 
                   {messages.map((msg, i) => (
-                    <Bubble key={i} msg={msg} />
+                    <Bubble
+                      key={i}
+                      msg={msg}
+                      onRetry={
+                        msg.error && i === messages.length - 1 ? handleRetry : undefined
+                      }
+                    />
                   ))}
 
                   {/* Typing dots */}
@@ -416,7 +565,7 @@ const FloatingAI = () => {
                       <div
                         className="flex items-center gap-1.5 px-4 py-3 rounded-2xl"
                         style={{
-                          background: "rgba(255,255,255,0.06)",
+                          background: "var(--surface-4)",
                           borderRadius: "18px 18px 18px 4px",
                         }}
                       >
@@ -458,9 +607,10 @@ const FloatingAI = () => {
 
                 {/* Input */}
                 <div
-                  className="px-4 py-3 flex gap-2 flex-shrink-0"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                  className="flex-shrink-0"
+                  style={{ borderTop: "1px solid var(--border)" }}
                 >
+                <div className="px-4 pt-3 flex gap-2">
                   <input
                     ref={inputRef}
                     value={input}
@@ -475,9 +625,9 @@ const FloatingAI = () => {
                     disabled={greeting}
                     className="flex-1 rounded-xl px-4 py-2.5 text-sm outline-none disabled:opacity-50"
                     style={{
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      color: "white",
+                      background: "var(--surface-3)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text-primary)",
                     }}
                   />
                   <button
@@ -496,6 +646,14 @@ const FloatingAI = () => {
                       <Send size={15} style={{ color: "#022c22" }} />
                     )}
                   </button>
+                </div>
+                  <p
+                    className="text-[10px] text-center px-4 pb-2.5 pt-1.5 flex items-center justify-center gap-1"
+                    style={{ color: "var(--text-faint)" }}
+                  >
+                    <ShieldAlert size={10} className="flex-shrink-0" />
+                    AI ভুল করতে পারে — গুরুত্বপূর্ণ হিসাব যাচাই করে নিন
+                  </p>
                 </div>
               </>
             )}

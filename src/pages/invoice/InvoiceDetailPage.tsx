@@ -18,9 +18,9 @@ import {
 } from "../../services/Invoice.service";
 
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
 };
 const fmt = (n: number) =>
   "৳" + n.toLocaleString("en-BD", { maximumFractionDigits: 0 });
@@ -165,7 +165,7 @@ const InvoiceDetailPage = () => {
             style={{
               background: C.card,
               border: `1px solid ${C.border}`,
-              color: "#64748b",
+              color: "var(--text-muted)",
             }}
           >
             <ArrowLeft size={14} /> Back
@@ -211,14 +211,17 @@ const InvoiceDetailPage = () => {
                 </div>
                 <div>
                   <p
-                    className="p-white text-lg font-bold text-white"
-                    style={{ fontFamily: "'DM Serif Display', serif" }}
+                    className="p-white text-lg font-bold"
+                    style={{
+                      fontFamily: "'DM Serif Display', serif",
+                      color: "var(--text-primary)",
+                    }}
                   >
                     {invoice.businessName}
                   </p>
                   <p
                     className="p-muted text-xs capitalize"
-                    style={{ color: "#475569" }}
+                    style={{ color: "var(--text-faint)" }}
                   >
                     {invoice.businessType === "mass"
                       ? "Mess"
@@ -230,19 +233,22 @@ const InvoiceDetailPage = () => {
               <div className="text-right">
                 <p
                   className="p-muted text-xs mb-1"
-                  style={{ color: "#475569" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   Invoice Period
                 </p>
                 <p
-                  className="p-white text-2xl font-bold text-white"
-                  style={{ fontFamily: "'DM Serif Display', serif" }}
+                  className="p-white text-2xl font-bold"
+                  style={{
+                    fontFamily: "'DM Serif Display', serif",
+                    color: "var(--text-primary)",
+                  }}
                 >
                   {monthName(invoice.month)} {invoice.year}
                 </p>
                 <p
                   className="p-muted text-xs mt-1"
-                  style={{ color: "#64748b" }}
+                  style={{ color: "var(--text-muted)" }}
                 >
                   Generated{" "}
                   {new Date(invoice.generatedAt).toLocaleDateString("en-BD", {
@@ -291,7 +297,7 @@ const InvoiceDetailPage = () => {
                       </div>
                       <span
                         className="p-muted text-xs"
-                        style={{ color: "#64748b" }}
+                        style={{ color: "var(--text-muted)" }}
                       >
                         {label}
                       </span>
@@ -321,13 +327,16 @@ const InvoiceDetailPage = () => {
               >
                 <div className="flex items-center gap-2">
                   <Utensils size={14} style={{ color: "#8b5cf6" }} />
-                  <span className="p-white text-sm font-bold text-white">
+                  <span
+                    className="p-white text-sm font-bold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     Mess Member Summary
                   </span>
                 </div>
                 <div
                   className="flex items-center gap-4 text-xs"
-                  style={{ color: "#64748b" }}
+                  style={{ color: "var(--text-muted)" }}
                 >
                   <span>
                     Meal Category:{" "}
@@ -337,7 +346,7 @@ const InvoiceDetailPage = () => {
                   </span>
                   <span>
                     Total Meals:{" "}
-                    <strong style={{ color: "#94a3b8" }}>
+                    <strong style={{ color: "var(--text-secondary)" }}>
                       {invoice.totalMeals}
                     </strong>
                   </span>
@@ -367,7 +376,7 @@ const InvoiceDetailPage = () => {
                         <th
                           key={h}
                           className="px-4 py-3 text-xs font-semibold text-left p-muted"
-                          style={{ color: "#475569" }}
+                          style={{ color: "var(--text-faint)" }}
                         >
                           {h}
                         </th>
@@ -379,7 +388,7 @@ const InvoiceDetailPage = () => {
                       <tr
                         key={m.userId}
                         style={{
-                          borderBottom: "1px solid rgba(255,255,255,0.04)",
+                          borderBottom: "1px solid var(--border-light)",
                         }}
                       >
                         <td className="px-4 py-3">
@@ -395,7 +404,10 @@ const InvoiceDetailPage = () => {
                                 {m.name[0]}
                               </span>
                             </div>
-                            <span className="p-white text-sm font-medium text-white">
+                            <span
+                              className="p-white text-sm font-medium"
+                              style={{ color: "var(--text-primary)" }}
+                            >
                               {m.name}
                             </span>
                           </div>
@@ -408,7 +420,7 @@ const InvoiceDetailPage = () => {
                         </td>
                         <td
                           className="px-4 py-3 text-sm"
-                          style={{ color: "#94a3b8" }}
+                          style={{ color: "var(--text-secondary)" }}
                         >
                           {m.totalMeals}
                         </td>
@@ -450,7 +462,10 @@ const InvoiceDetailPage = () => {
                   </tbody>
                   <tfoot style={{ borderTop: `2px solid ${C.border}` }}>
                     <tr>
-                      <td className="px-4 py-3 text-xs font-bold p-white text-white">
+                      <td
+                        className="px-4 py-3 text-xs font-bold p-white"
+                        style={{ color: "var(--text-primary)" }}
+                      >
                         Total
                       </td>
                       <td
@@ -466,7 +481,7 @@ const InvoiceDetailPage = () => {
                       </td>
                       <td
                         className="px-4 py-3 text-sm font-bold"
-                        style={{ color: "#94a3b8" }}
+                        style={{ color: "var(--text-secondary)" }}
                       >
                         {invoice.totalMeals}
                       </td>
@@ -564,7 +579,7 @@ const InvoiceDetailPage = () => {
                               <th
                                 key={h}
                                 className="px-4 py-2.5 text-left text-xs font-semibold p-muted"
-                                style={{ color: "#475569" }}
+                                style={{ color: "var(--text-faint)" }}
                               >
                                 {h}
                               </th>
@@ -577,12 +592,12 @@ const InvoiceDetailPage = () => {
                           <tr
                             key={tx._id}
                             style={{
-                              borderBottom: "1px solid rgba(255,255,255,0.04)",
+                              borderBottom: "1px solid var(--border-light)",
                             }}
                           >
                             <td
                               className="px-4 py-2.5 text-xs p-muted"
-                              style={{ color: "#64748b" }}
+                              style={{ color: "var(--text-muted)" }}
                             >
                               {new Date(tx.date).toLocaleDateString("en-BD", {
                                 day: "2-digit",
@@ -591,19 +606,19 @@ const InvoiceDetailPage = () => {
                             </td>
                             <td
                               className="px-4 py-2.5 text-xs"
-                              style={{ color: "#94a3b8" }}
+                              style={{ color: "var(--text-secondary)" }}
                             >
                               {tx.categoryName}
                             </td>
                             <td
                               className="px-4 py-2.5 text-xs max-w-[160px] truncate"
-                              style={{ color: "#64748b" }}
+                              style={{ color: "var(--text-muted)" }}
                             >
                               {tx.note ?? "—"}
                             </td>
                             <td
                               className="px-4 py-2.5 text-xs"
-                              style={{ color: "#64748b" }}
+                              style={{ color: "var(--text-muted)" }}
                             >
                               {tx.memberName}
                             </td>
@@ -641,22 +656,25 @@ const InvoiceDetailPage = () => {
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold p-white text-white">
+                  <p
+                    className="text-xs font-semibold p-white"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     HisabBoi
                   </p>
                   <p
                     className="text-[10px] p-muted"
-                    style={{ color: "#475569" }}
+                    style={{ color: "var(--text-faint)" }}
                   >
                     Smart Financial Tracking
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[10px] p-muted" style={{ color: "#475569" }}>
+                <p className="text-[10px] p-muted" style={{ color: "var(--text-faint)" }}>
                   This is a system-generated invoice.
                 </p>
-                <p className="text-[10px] p-muted" style={{ color: "#334155" }}>
+                <p className="text-[10px] p-muted" style={{ color: "var(--text-faint)" }}>
                   Generated:{" "}
                   {new Date(invoice.generatedAt).toLocaleString("en-BD")}
                 </p>

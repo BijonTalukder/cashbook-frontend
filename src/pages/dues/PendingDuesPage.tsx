@@ -27,9 +27,9 @@ const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short" });
 
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
 };
 
 /* ─── Avatar ──────────────────────────────────────────── */
@@ -101,7 +101,7 @@ const DueCard = ({
                 isMeFrom ? "135deg,#ef4444,#dc2626" : "135deg,#3b82f6,#2563eb"
               }
             />
-            <ArrowRight size={12} style={{ color: "#334155" }} />
+            <ArrowRight size={12} style={{ color: "var(--text-faint)" }} />
             <Avatar
               name={due.to.firstName}
               color={
@@ -112,12 +112,19 @@ const DueCard = ({
 
           {/* Names */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-white font-medium truncate">
-              <span style={{ color: isMeFrom ? "#f87171" : "#94a3b8" }}>
+            <p
+              className="text-sm font-medium truncate"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <span
+                style={{ color: isMeFrom ? "#f87171" : "var(--text-secondary)" }}
+              >
                 {isMeFrom ? "You" : due.from.firstName}
               </span>{" "}
               →{" "}
-              <span style={{ color: isMeTo ? "#10b981" : "#94a3b8" }}>
+              <span
+                style={{ color: isMeTo ? "#10b981" : "var(--text-secondary)" }}
+              >
                 {isMeTo ? "You" : due.to.firstName}
               </span>
             </p>
@@ -132,7 +139,10 @@ const DueCard = ({
               >
                 {directionLabel}
               </span>
-              <span className="text-[10px]" style={{ color: "#334155" }}>
+              <span
+                className="text-[10px]"
+                style={{ color: "var(--text-faint)" }}
+              >
                 {due.transactions.length} txn
                 {due.transactions.length > 1 ? "s" : ""}
               </span>
@@ -167,11 +177,11 @@ const DueCard = ({
             )}
             <button
               onClick={() => setExpanded((p) => !p)}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs transition-all"
+              className="flex items-center gap-1 px-3 py-2.5 rounded-xl text-xs transition-all"
               style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                color: "#64748b",
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                color: "var(--text-muted)",
               }}
             >
               {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -183,7 +193,7 @@ const DueCard = ({
 
       {/* ── Expanded transaction list ────────────────── */}
       {expanded && (
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div style={{ borderTop: "1px solid var(--border-light)" }}>
           {due.transactions.map((t: IDueTransaction, i: number) => (
             <div
               key={t._id}
@@ -191,15 +201,18 @@ const DueCard = ({
               style={{
                 borderBottom:
                   i < due.transactions.length - 1
-                    ? "1px solid rgba(255,255,255,0.03)"
+                    ? "1px solid var(--border-light)"
                     : "none",
               }}
             >
               <div>
-                <p className="text-xs" style={{ color: "#64748b" }}>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                   {t.note ?? "No note"}
                 </p>
-                <p className="text-[10px]" style={{ color: "#334155" }}>
+                <p
+                  className="text-[10px]"
+                  style={{ color: "var(--text-faint)" }}
+                >
                   {fmtDate(t.date)}
                 </p>
               </div>
@@ -253,7 +266,10 @@ const QuickSettleModal = ({
   return (
     <div
       className="fixed inset-0 z-[400] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)" }}
+      style={{
+        background: "var(--overlay-scrim)",
+        backdropFilter: "blur(10px)",
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -261,8 +277,8 @@ const QuickSettleModal = ({
       <div
         className="w-full max-w-sm rounded-2xl p-6"
         style={{
-          background: "#0d1424",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--bg-elevated)",
+          border: "1px solid var(--border-strong)",
         }}
       >
         <div
@@ -273,20 +289,32 @@ const QuickSettleModal = ({
         </div>
 
         <h3
-          className="text-lg font-bold text-white text-center mb-1"
-          style={{ fontFamily: "'DM Serif Display', serif" }}
+          className="text-lg font-bold text-center mb-1"
+          style={{
+            fontFamily: "'DM Serif Display', serif",
+            color: "var(--text-primary)",
+          }}
         >
           Settle ৳{fmt(due.amount)}
         </h3>
-        <p className="text-xs text-center mb-5" style={{ color: "#475569" }}>
-          Pay <strong style={{ color: "#fff" }}>{due.to.firstName}</strong> to
-          clear {due.transactions.length} pending transaction
+        <p
+          className="text-xs text-center mb-5"
+          style={{ color: "var(--text-faint)" }}
+        >
+          Pay{" "}
+          <strong style={{ color: "var(--text-primary)" }}>
+            {due.to.firstName}
+          </strong>{" "}
+          to clear {due.transactions.length} pending transaction
           {due.transactions.length > 1 ? "s" : ""}
         </p>
 
         {/* Note */}
         <div className="mb-4">
-          <label className="block text-xs mb-1.5" style={{ color: "#475569" }}>
+          <label
+            className="block text-xs mb-1.5"
+            style={{ color: "var(--text-faint)" }}
+          >
             Payment note (optional)
           </label>
           <input
@@ -294,10 +322,11 @@ const QuickSettleModal = ({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="e.g. bKash, cash, bank transfer..."
-            className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none"
+            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--surface-3)",
+              border: "1px solid var(--border-strong)",
+              color: "var(--text-primary)",
             }}
           />
         </div>
@@ -307,9 +336,9 @@ const QuickSettleModal = ({
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl text-sm"
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "#94a3b8",
+              background: "var(--surface-3)",
+              border: "1px solid var(--border)",
+              color: "var(--text-secondary)",
             }}
           >
             Cancel
@@ -374,24 +403,30 @@ const PendingDuesPage = () => {
         <div className="flex items-start justify-between">
           <div>
             <h1
-              className="text-2xl font-bold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl font-bold"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Pending Dues
             </h1>
             {activeBusiness && (
-              <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: "var(--text-faint)" }}
+              >
                 {activeBusiness.name} · {dues.length} pending
               </p>
             )}
           </div>
           <button
             onClick={() => fetchDues()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
+            className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
             style={{
               background: C.card,
               border: `1px solid ${C.border}`,
-              color: "#64748b",
+              color: "var(--text-muted)",
             }}
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
@@ -471,12 +506,17 @@ const PendingDuesPage = () => {
           >
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
-              style={{ background: "rgba(255,255,255,0.04)" }}
+              style={{ background: "var(--surface-2)" }}
             >
-              <CheckCircle2 size={20} style={{ color: "#334155" }} />
+              <CheckCircle2 size={20} style={{ color: "var(--text-faint)" }} />
             </div>
-            <p className="text-white text-sm font-medium mb-1">All clear!</p>
-            <p className="text-xs" style={{ color: "#475569" }}>
+            <p
+              className="text-sm font-medium mb-1"
+              style={{ color: "var(--text-primary)" }}
+            >
+              All clear!
+            </p>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>
               No pending dues in {activeBusiness?.name}
             </p>
           </div>
@@ -487,7 +527,7 @@ const PendingDuesPage = () => {
               <div>
                 <p
                   className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
-                  style={{ color: "#334155" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   <Clock size={10} style={{ color: "#ef4444" }} /> You need to
                   pay
@@ -510,7 +550,7 @@ const PendingDuesPage = () => {
               <div>
                 <p
                   className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
-                  style={{ color: "#334155" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   <AlertCircle size={10} style={{ color: "#10b981" }} /> You'll
                   receive
@@ -533,7 +573,7 @@ const PendingDuesPage = () => {
               <div>
                 <p
                   className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
-                  style={{ color: "#334155" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   <Users size={10} /> Within team
                 </p>

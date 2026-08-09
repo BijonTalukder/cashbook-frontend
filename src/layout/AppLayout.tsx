@@ -10,13 +10,14 @@ import { useAuthStore } from "../store/authStore";
 import { useBusinessStore } from "../store/businessStore";
 import BusinessSwitcher from "../components/shared/BusinessSwitcher";
 import FloatingAI from "../pages/Ai/FloatingAI";
+import ThemeToggle from "../components/shared/ThemeToggle";
 
 const C = {
-  bg: "#0a0f1e",
-  sidebar: "#080d19",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.07)",
-  navActive: "rgba(16,185,129,0.1)",
+  bg: "var(--bg)",
+  sidebar: "var(--bg-sidebar)",
+  card: "var(--surface-1)",
+  border: "var(--border-light)",
+  navActive: "var(--nav-active-bg)",
 };
 
 const navItems = [
@@ -154,7 +155,7 @@ const AppLayout = () => {
           <div className="w-8 h-8 bg-emerald-400 rounded-lg flex items-center justify-center">
             <TrendingUp size={15} className="text-emerald-950" />
           </div>
-          <span className="text-white font-bold text-lg" style={{ fontFamily: "'DM Serif Display', serif" }}>
+          <span className="font-bold text-lg" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
             HisabBoi
           </span>
         </div>
@@ -175,11 +176,11 @@ const AppLayout = () => {
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all"
                 style={{
                   background: active ? C.navActive : "transparent",
-                  color: active ? "#10b981" : "#64748b",
+                  color: active ? "#10b981" : "var(--text-muted)",
                   fontWeight: active ? 500 : 400,
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
+                  if (!active) (e.currentTarget as HTMLElement).style.background = "var(--surface-2)";
                 }}
                 onMouseLeave={(e) => {
                   if (!active) (e.currentTarget as HTMLElement).style.background = active ? C.navActive : "transparent";
@@ -192,8 +193,13 @@ const AppLayout = () => {
           })}
         </nav>
 
+        {/* Theme toggle */}
+        <div className="px-3 mt-3">
+          <ThemeToggle variant="row" />
+        </div>
+
         {/* User */}
-        <div className="p-3 mt-4" style={{ borderTop: `1px solid ${C.border}` }}>
+        <div className="p-3 mt-2" style={{ borderTop: `1px solid ${C.border}` }}>
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl group">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -204,17 +210,17 @@ const AppLayout = () => {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-white font-medium truncate leading-tight">
+              <p className="text-sm font-medium truncate leading-tight" style={{ color: "var(--text-primary)" }}>
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs truncate" style={{ color: "#475569" }}>{user?.email}</p>
+              <p className="text-xs truncate" style={{ color: "var(--text-faint)" }}>{user?.email}</p>
             </div>
             <button
               onClick={handleLogout}
               className="p-1 transition-colors"
-              style={{ color: "#334155" }}
+              style={{ color: "var(--text-faint)" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#ef4444"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#334155"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-faint)"; }}
             >
               <LogOut size={14} />
             </button>
@@ -226,7 +232,7 @@ const AppLayout = () => {
       <header
         className="lg:hidden sticky top-0 z-50"
         style={{
-          background: "rgba(8,13,25,0.96)",
+          background: "var(--header-bg)",
           borderBottom: `1px solid ${C.border}`,
           backdropFilter: "blur(20px)",
         }}
@@ -238,7 +244,7 @@ const AppLayout = () => {
             <button
               onClick={() => navigate(-1)}
               className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 transition-all active:scale-90"
-              style={{ background: "rgba(255,255,255,0.05)", color: "#94a3b8" }}
+              style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
             >
               <ChevronLeft size={20} />
             </button>
@@ -248,8 +254,8 @@ const AppLayout = () => {
                 <TrendingUp size={13} className="text-emerald-950" />
               </div>
               <span
-                className="text-white font-bold text-base"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="font-bold text-base"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
                 HisabBoi
               </span>
@@ -260,8 +266,8 @@ const AppLayout = () => {
           <div className="flex-1 flex justify-center">
             {showBack ? (
               <p
-                className="text-sm font-semibold text-white truncate px-2"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-sm font-semibold truncate px-2"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
                 {pageTitle}
               </p>
@@ -270,8 +276,9 @@ const AppLayout = () => {
             )}
           </div>
 
-          {/* Right: avatar with dropdown */}
+          {/* Right: theme toggle + avatar with dropdown */}
           <div className="flex items-center gap-1.5 flex-shrink-0 relative">
+            <ThemeToggle />
             <button
               onClick={() => setShowUserMenu((v) => !v)}
               className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -292,14 +299,14 @@ const AppLayout = () => {
                 />
                 <div
                   className="absolute right-0 top-10 z-50 w-52 rounded-2xl py-1 overflow-hidden"
-                  style={{ background: "#0d1424", border: "1px solid rgba(255,255,255,0.1)" }}
+                  style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)", boxShadow: "var(--shadow-elevated)" }}
                 >
                   {/* User info */}
-                  <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                    <p className="text-sm font-medium text-white truncate">
+                  <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--surface-4)" }}>
+                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
                       {user?.firstName} {user?.lastName}
                     </p>
-                    <p className="text-xs truncate mt-0.5" style={{ color: "#475569" }}>
+                    <p className="text-xs truncate mt-0.5" style={{ color: "var(--text-faint)" }}>
                       {user?.email}
                     </p>
                   </div>
@@ -313,8 +320,10 @@ const AppLayout = () => {
                     <button
                       key={label}
                       onClick={action}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors hover:bg-white/[0.04]"
-                      style={{ color: danger ? "#ef4444" : "#94a3b8" }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors"
+                      style={{ color: danger ? "#ef4444" : "var(--text-secondary)" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-3)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                     >
                       <Icon size={14} />
                       {label}
@@ -336,7 +345,7 @@ const AppLayout = () => {
       <nav
         className="lg:hidden fixed bottom-0 inset-x-0 z-50"
         style={{
-          background: "rgba(8,13,25,0.97)",
+          background: "var(--header-bg)",
           borderTop: `1px solid ${C.border}`,
           backdropFilter: "blur(20px)",
         }}
@@ -350,11 +359,11 @@ const AppLayout = () => {
             return (
               <NavLink key={to} to={to} className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl">
                 <div className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
-                  style={{ background: active ? "rgba(16,185,129,0.1)" : "transparent" }}>
-                  <Icon size={20} style={{ color: active ? "#10b981" : "#475569" }} />
+                  style={{ background: active ? "var(--nav-active-bg)" : "transparent" }}>
+                  <Icon size={20} style={{ color: active ? "#10b981" : "var(--text-faint)" }} />
                 </div>
                 <span className="text-[10px]"
-                  style={{ color: active ? "#10b981" : "#475569", fontWeight: active ? 500 : 400 }}>
+                  style={{ color: active ? "#10b981" : "var(--text-faint)", fontWeight: active ? 500 : 400 }}>
                   {label}
                 </span>
               </NavLink>
@@ -368,10 +377,10 @@ const AppLayout = () => {
               className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl"
             >
               <div className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
-                style={{ background: showMore ? "rgba(16,185,129,0.1)" : "transparent" }}>
-                <MoreHorizontal size={20} style={{ color: showMore ? "#10b981" : "#475569" }} />
+                style={{ background: showMore ? "var(--nav-active-bg)" : "transparent" }}>
+                <MoreHorizontal size={20} style={{ color: showMore ? "#10b981" : "var(--text-faint)" }} />
               </div>
-              <span className="text-[10px]" style={{ color: showMore ? "#10b981" : "#475569" }}>
+              <span className="text-[10px]" style={{ color: showMore ? "#10b981" : "var(--text-faint)" }}>
                 More
               </span>
             </button>
@@ -382,18 +391,18 @@ const AppLayout = () => {
       {/* ── More Drawer ──────────────────────────── */}
       {showMore && (
         <>
-          <div className="lg:hidden fixed inset-0 z-[55]" style={{ background: "rgba(0,0,0,0.5)" }}
+          <div className="lg:hidden fixed inset-0 z-[55]" style={{ background: "var(--overlay-scrim)" }}
             onClick={() => setShowMore(false)} />
           <div
             className="lg:hidden fixed bottom-0 inset-x-0 z-[60] rounded-t-2xl"
-            style={{ background: "#0d1424", border: "1px solid rgba(255,255,255,0.1)" }}
+            style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)" }}
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
+              <div className="w-10 h-1 rounded-full" style={{ background: "var(--surface-8)" }} />
             </div>
             <div className="px-4 pb-2">
-              <p className="text-xs font-semibold mb-3 mt-2" style={{ color: "#475569" }}>MORE</p>
+              <p className="text-xs font-semibold mb-3 mt-2" style={{ color: "var(--text-faint)" }}>MORE</p>
               <div className="grid grid-cols-4 gap-2 mb-4">
                 {bottomMore.map(({ to, icon: Icon, label }) => {
                   const active = isActive(to);
@@ -401,19 +410,19 @@ const AppLayout = () => {
                     <NavLink key={to} to={to}
                       onClick={() => setShowMore(false)}
                       className="flex flex-col items-center gap-1.5 py-3 rounded-xl"
-                      style={{ background: active ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)" }}>
-                      <Icon size={20} style={{ color: active ? "#10b981" : "#94a3b8" }} />
+                      style={{ background: active ? "rgba(16,185,129,0.08)" : "var(--surface-1)" }}>
+                      <Icon size={20} style={{ color: active ? "#10b981" : "var(--text-secondary)" }} />
                       <span className="text-[10px] text-center leading-tight"
-                        style={{ color: active ? "#10b981" : "#64748b" }}>{label}</span>
+                        style={{ color: active ? "#10b981" : "var(--text-muted)" }}>{label}</span>
                     </NavLink>
                   );
                 })}
                 {/* Settings always in More */}
                 <NavLink to="/settings" onClick={() => setShowMore(false)}
                   className="flex flex-col items-center gap-1.5 py-3 rounded-xl"
-                  style={{ background: isActive("/settings") ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)" }}>
-                  <Settings size={20} style={{ color: isActive("/settings") ? "#10b981" : "#94a3b8" }} />
-                  <span className="text-[10px]" style={{ color: isActive("/settings") ? "#10b981" : "#64748b" }}>Settings</span>
+                  style={{ background: isActive("/settings") ? "rgba(16,185,129,0.08)" : "var(--surface-1)" }}>
+                  <Settings size={20} style={{ color: isActive("/settings") ? "#10b981" : "var(--text-secondary)" }} />
+                  <span className="text-[10px]" style={{ color: isActive("/settings") ? "#10b981" : "var(--text-muted)" }}>Settings</span>
                 </NavLink>
               </div>
 

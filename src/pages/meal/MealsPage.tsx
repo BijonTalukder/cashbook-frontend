@@ -23,9 +23,9 @@ import { businessService } from "../../services/business.service";
 
 /* ── Design tokens ─────────────────────────────── */
 const C = {
-  bg: "#0a0f1e",
-  card: "rgba(255,255,255,0.03)",
-  border: "rgba(255,255,255,0.08)",
+  bg: "var(--bg)",
+  card: "var(--surface-1)",
+  border: "var(--border)",
   purple: "#8b5cf6",
 };
 
@@ -152,14 +152,14 @@ const MealModal = ({
   return (
     <div
       className="fixed inset-0 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
+      style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(8px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: "#0f1629", border: `1px solid ${C.border}` }}
+        style={{ background: "var(--bg-elevated)", border: `1px solid ${C.border}` }}
       >
         {/* Header */}
         <div
@@ -174,13 +174,18 @@ const MealModal = ({
               <UtensilsCrossed size={15} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">{dateStr}</p>
-              <p className="text-[11px]" style={{ color: "#475569" }}>
+              <p
+                className="text-sm font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {dateStr}
+              </p>
+              <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
                 {isToday ? "আজকের খাবার" : isPast ? "আগের দিন" : "ভবিষ্যৎ"}
               </p>
             </div>
           </div>
-          <button onClick={onClose} style={{ color: "#475569" }}>
+          <button onClick={onClose} style={{ color: "var(--text-faint)" }}>
             <X size={16} />
           </button>
         </div>
@@ -189,7 +194,7 @@ const MealModal = ({
           {/* Admin: member selector */}
           {isAdmin && members.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs mb-2" style={{ color: "#64748b" }}>
+              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>
                 Member select করুন
               </p>
               <div className="flex flex-wrap gap-2">
@@ -206,7 +211,7 @@ const MealModal = ({
                       style={{
                         background: sel ? "rgba(139,92,246,0.15)" : C.card,
                         border: `1px solid ${sel ? "rgba(139,92,246,0.4)" : C.border}`,
-                        color: sel ? C.purple : "#94a3b8",
+                        color: sel ? C.purple : "var(--text-secondary)",
                       }}
                     >
                       {m.firstName} {m.lastName}
@@ -241,12 +246,12 @@ const MealModal = ({
                     key={dm.mealId}
                     className="flex items-center justify-between text-xs"
                   >
-                    <span style={{ color: "#94a3b8" }}>
+                    <span style={{ color: "var(--text-secondary)" }}>
                       {dm.member.firstName} {dm.member.lastName}
                     </span>
                     <span
                       className="font-semibold"
-                      style={{ color: "#e2e8f0" }}
+                      style={{ color: "var(--text-primary)" }}
                     >
                       {fmt(dm.count)} টি
                     </span>
@@ -260,7 +265,7 @@ const MealModal = ({
           {canEdit ? (
             <>
               <div className="mb-4">
-                <p className="text-xs mb-3" style={{ color: "#64748b" }}>
+                <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
                   কতটি খাবার?
                 </p>
                 <div className="flex items-center justify-center gap-5">
@@ -270,22 +275,23 @@ const MealModal = ({
                     style={{
                       background: C.card,
                       border: `1px solid ${C.border}`,
-                      color: "#94a3b8",
+                      color: "var(--text-secondary)",
                     }}
                   >
                     <Minus size={16} />
                   </button>
                   <div className="text-center">
                     <p
-                      className="text-4xl font-bold text-white"
+                      className="text-4xl font-bold"
                       style={{
                         fontFamily: "'DM Serif Display', serif",
                         lineHeight: 1,
+                        color: "var(--text-primary)",
                       }}
                     >
                       {count}
                     </p>
-                    <p className="text-xs mt-1" style={{ color: "#475569" }}>
+                    <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
                       টি খাবার
                     </p>
                   </div>
@@ -313,7 +319,7 @@ const MealModal = ({
                   style={{
                     background: C.card,
                     border: `1px solid ${C.border}`,
-                    color: "#e2e8f0",
+                    color: "var(--text-primary)",
                   }}
                 />
               </div>
@@ -350,7 +356,7 @@ const MealModal = ({
             </>
           ) : (
             <div className="text-center py-4">
-              <p className="text-sm" style={{ color: "#475569" }}>
+              <p className="text-sm" style={{ color: "var(--text-faint)" }}>
                 {isPast
                   ? "এই দিনের খাবার শুধু Admin এডিট করতে পারবেন।"
                   : "এই দিনের খাবার এখনো যোগ করা যাবে না।"}
@@ -389,22 +395,23 @@ const DayCell = ({
       style={{
         background: isSelected
           ? "rgba(139,92,246,0.15)"
-          : today
-            ? "rgba(139,92,246,0.08)"
-            : hasMeal
-              ? "rgba(16,185,129,0.05)"
+          : hasMeal
+            ? "rgba(16,185,129,0.08)"
+            : today
+              ? "rgba(139,92,246,0.08)"
               : C.card,
         border: `1px solid ${
           isSelected
             ? "rgba(139,92,246,0.5)"
-            : today
-              ? "rgba(139,92,246,0.3)"
-              : hasMeal
-                ? "rgba(16,185,129,0.2)"
+            : hasMeal
+              ? "rgba(16,185,129,0.35)"
+              : today
+                ? "rgba(139,92,246,0.3)"
                 : isCurrentMonth
                   ? C.border
                   : "transparent"
         }`,
+        boxShadow: today ? "0 0 0 1.5px rgba(139,92,246,0.6)" : "none",
         opacity: isCurrentMonth ? 1 : 0.2,
         cursor: isCurrentMonth ? "pointer" : "default",
       }}
@@ -413,7 +420,11 @@ const DayCell = ({
       <span
         className="text-xs font-semibold leading-none mb-0.5"
         style={{
-          color: today ? C.purple : isCurrentMonth ? "#cbd5e1" : "#334155",
+          color: today
+            ? C.purple
+            : isCurrentMonth
+              ? "var(--text-secondary)"
+              : "var(--text-faint)",
           fontWeight: today ? 700 : 500,
         }}
       >
@@ -422,10 +433,7 @@ const DayCell = ({
 
       {/* Meal count badge */}
       {hasMeal ? (
-        <span
-          className="text-[10px] font-bold leading-none"
-          style={{ color: today ? C.purple : "#10b981" }}
-        >
+        <span className="text-[10px] font-bold leading-none" style={{ color: "#10b981" }}>
           {fmt(day!.total)}
         </span>
       ) : today ? (
@@ -434,11 +442,11 @@ const DayCell = ({
         </span>
       ) : null}
 
-      {/* Today dot */}
+      {/* Today dot — always marks "today" regardless of meal status */}
       {today && (
         <div
           className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full"
-          style={{ background: C.purple }}
+          style={{ background: hasMeal ? "#10b981" : C.purple }}
         />
       )}
     </button>
@@ -557,7 +565,7 @@ const MealsPage = () => {
         className="min-h-screen flex items-center justify-center"
         style={{ background: C.bg }}
       >
-        <p className="text-sm" style={{ color: "#475569" }}>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>
           কোনো business সিলেক্ট করুন
         </p>
       </div>
@@ -571,12 +579,15 @@ const MealsPage = () => {
         <div className="flex items-start justify-between mb-5">
           <div>
             <h1
-              className="text-2xl font-bold text-white"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
+              className="text-2xl font-bold"
+              style={{
+                fontFamily: "'DM Serif Display', serif",
+                color: "var(--text-primary)",
+              }}
             >
               খাবার ট্র্যাকার
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               {activeBusiness.name} ·{" "}
               {isAdmin && (
                 <span style={{ color: "#8b5cf6" }}>
@@ -640,7 +651,7 @@ const MealsPage = () => {
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px]" style={{ color: "#475569" }}>
+                <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
                   {label}
                 </span>
                 <div
@@ -651,12 +662,15 @@ const MealsPage = () => {
                 </div>
               </div>
               <p
-                className="text-xl font-bold text-white leading-none"
-                style={{ fontFamily: "'DM Serif Display', serif" }}
+                className="text-xl font-bold leading-none"
+                style={{
+                  fontFamily: "'DM Serif Display', serif",
+                  color: "var(--text-primary)",
+                }}
               >
                 {loading ? "—" : value}
               </p>
-              <p className="text-[10px] mt-0.5" style={{ color: "#334155" }}>
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--text-faint)" }}>
                 {sub}
               </p>
             </div>
@@ -675,14 +689,17 @@ const MealsPage = () => {
           >
             <button
               onClick={prevMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-xl transition-all"
-              style={{ color: "#64748b" }}
+              className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
+              style={{ color: "var(--text-muted)" }}
             >
               <ChevronLeft size={16} />
             </button>
 
             <div className="text-center">
-              <p className="text-base font-semibold text-white">
+              <p
+                className="text-base font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 {MONTHS[month]} {year}
               </p>
               {!isCurrentMonth && (
@@ -698,8 +715,8 @@ const MealsPage = () => {
 
             <button
               onClick={nextMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-xl transition-all"
-              style={{ color: "#64748b" }}
+              className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
+              style={{ color: "var(--text-muted)" }}
             >
               <ChevronRight size={16} />
             </button>
@@ -711,7 +728,7 @@ const MealsPage = () => {
               <div
                 key={d}
                 className="text-center text-[10px] pb-1 font-medium"
-                style={{ color: "#334155" }}
+                style={{ color: "var(--text-faint)" }}
               >
                 {d}
               </div>
@@ -761,13 +778,13 @@ const MealsPage = () => {
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ background: color }}
                 />
-                <span className="text-[10px]" style={{ color: "#475569" }}>
+                <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
                   {label}
                 </span>
               </div>
             ))}
             <div className="flex-1" />
-            <span className="text-[10px]" style={{ color: "#334155" }}>
+            <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
               ক্লিক করুন দেখতে বা এডিট করতে
             </span>
           </div>
@@ -796,7 +813,7 @@ const MealsPage = () => {
                     /* already handled by modal */
                   }}
                   className="text-[11px]"
-                  style={{ color: "#475569" }}
+                  style={{ color: "var(--text-faint)" }}
                 >
                   <Edit2 size={12} className="inline mr-1" />
                   এডিট
@@ -808,7 +825,7 @@ const MealsPage = () => {
                 <div
                   key={dm.mealId}
                   className="flex items-center justify-between rounded-xl px-3 py-2"
-                  style={{ background: "rgba(255,255,255,0.03)" }}
+                  style={{ background: "var(--surface-1)" }}
                 >
                   <div className="flex items-center gap-2">
                     <div
@@ -819,7 +836,10 @@ const MealsPage = () => {
                     >
                       {dm.member.firstName[0]}
                     </div>
-                    <span className="text-sm text-white">
+                    <span
+                      className="text-sm"
+                      style={{ color: "var(--text-primary)" }}
+                    >
                       {dm.member.firstName} {dm.member.lastName}
                     </span>
                   </div>
@@ -827,7 +847,7 @@ const MealsPage = () => {
                     {dm.note && (
                       <span
                         className="text-[10px]"
-                        style={{ color: "#475569" }}
+                        style={{ color: "var(--text-faint)" }}
                       >
                         {dm.note}
                       </span>
@@ -850,16 +870,20 @@ const MealsPage = () => {
           <div
             className="mt-4 rounded-2xl p-4 flex items-start gap-3"
             style={{
-              background: "rgba(255,255,255,0.02)",
+              background: "var(--surface-1)",
               border: `1px solid ${C.border}`,
             }}
           >
             <Users
               size={15}
-              style={{ color: "#475569", flexShrink: 0, marginTop: 1 }}
+              style={{ color: "var(--text-faint)", flexShrink: 0, marginTop: 1 }}
             />
-            <p className="text-xs leading-relaxed" style={{ color: "#475569" }}>
-              আপনি শুধু <strong style={{ color: "#94a3b8" }}>আজকের</strong>{" "}
+            <p
+              className="text-xs leading-relaxed"
+              style={{ color: "var(--text-faint)" }}
+            >
+              আপনি শুধু{" "}
+              <strong style={{ color: "var(--text-secondary)" }}>আজকের</strong>{" "}
               খাবার যোগ বা এডিট করতে পারবেন। আগের বা পরের দিনের এন্ট্রি শুধু
               Admin করতে পারবেন।
             </p>

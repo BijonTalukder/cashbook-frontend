@@ -77,8 +77,13 @@ const MealDashboardWidget = ({ businessId }: Props) => {
             <UtensilsCrossed size={16} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">খাবার ট্র্যাকার</p>
-            <p className="text-xs" style={{ color: "#475569" }}>
+            <p
+              className="text-sm font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              খাবার ট্র্যাকার
+            </p>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>
               {month} মাস
             </p>
           </div>
@@ -97,7 +102,7 @@ const MealDashboardWidget = ({ businessId }: Props) => {
             className="animate-spin"
             style={{ color: "#8b5cf6" }}
           />
-          <span className="text-xs" style={{ color: "#475569" }}>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>
             লোড হচ্ছে...
           </span>
         </div>
@@ -113,15 +118,18 @@ const MealDashboardWidget = ({ businessId }: Props) => {
             >
               {fmt(data?.total ?? 0)}
             </p>
-            <p className="text-xs mt-1" style={{ color: "#475569" }}>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
               মোট খাবার
             </p>
           </div>
           <div className="mb-1">
-            <p className="text-lg font-bold leading-none text-white">
+            <p
+              className="text-lg font-bold leading-none"
+              style={{ color: "var(--text-primary)" }}
+            >
               {fmt(data?.days ?? 0)}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               দিন
             </p>
           </div>
