@@ -4,6 +4,7 @@ import {
   Building2,
   Home,
   User,
+  Store,
   Crown,
   ShieldCheck,
   Users,
@@ -48,6 +49,7 @@ import {
   type ITransaction,
 } from "../../services/transaction.service";
 import mealService from "../../services/meal.service";
+import BusinessDashboardContent from "./BusinessDashboardContent";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -83,6 +85,13 @@ const TYPE_META: Record<
     bg: "rgba(139,92,246,0.08)",
     border: "rgba(139,92,246,0.2)",
     label: "Mess",
+  },
+  business: {
+    icon: Store,
+    accent: "#f59e0b",
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.2)",
+    label: "Business",
   },
 };
 
@@ -164,14 +173,14 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
           </div>
           <div>
             <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>খাবার ট্র্যাকার</p>
-            <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>
               {monthName} মাস
             </p>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           <span
-            className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+            className="text-xs px-2 py-0.5 rounded-full font-medium"
             style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}
           >
             Mess
@@ -200,7 +209,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
             >
               {fmtBn(data?.total ?? 0)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
               মোট খাবার
             </p>
           </div>
@@ -211,7 +220,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
               {fmtBn(data?.days ?? 0)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>দিন</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>দিন</p>
           </div>
 
           {/* Avg */}
@@ -220,13 +229,13 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
               {fmtBn(avg)}
             </p>
-            <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>গড়/দিন</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>গড়/দিন</p>
           </div>
 
           {/* CTA */}
           <div className="flex-1 flex justify-end mb-0.5">
             <div
-              className="text-[10px] px-2.5 py-1.5 rounded-xl font-medium transition-all group-hover:scale-105"
+              className="text-xs px-2.5 py-1.5 rounded-xl font-medium transition-all group-hover:scale-105"
               style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa" }}
             >
               বিস্তারিত →
@@ -281,14 +290,14 @@ const BusinessCard = ({
         <div className="flex items-center gap-1.5">
           {isActive && (
             <span
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide"
+              className="text-xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide"
               style={{ background: `${type.accent}18`, color: type.accent }}
             >
               Active
             </span>
           )}
           <div
-            className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium"
+            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
             style={{
               background: `${roleInfo.color}12`,
               border: `1px solid ${roleInfo.color}28`,
@@ -310,13 +319,13 @@ const BusinessCard = ({
         <div className="flex items-center gap-3">
           {business.mealEnabled && (
             <div
-              className="flex items-center gap-1 text-[11px]"
+              className="flex items-center gap-1 text-xs"
               style={{ color: "#8b5cf6" }}
             >
               <UtensilsCrossed size={10} /> Meals
             </div>
           )}
-          <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>
             {business.currency}
           </span>
         </div>
@@ -384,7 +393,7 @@ const DashboardPage = () => {
   const [dataLoading, setDataLoading] = useState(false);
   const [chartMode, setChartMode] = useState<"area" | "bar">("area");
 
-  const isMass = activeBusiness?.type === "mass";
+  const isMass = activeBusiness?.type === "mass" || activeBusiness?.mealEnabled;
 
   /* ── Fetch businesses ───────────────────────────────── */
   const fetchBusinesses = async (silent = false) => {
@@ -407,7 +416,7 @@ const DashboardPage = () => {
 
   /* ── Fetch active business data ─────────────────────── */
   const fetchBusinessData = useCallback(async () => {
-    if (!activeBusiness) return;
+    if (!activeBusiness || activeBusiness.type === "business") return;
     setDataLoading(true);
     try {
       const year = new Date().getFullYear();
@@ -491,6 +500,10 @@ const DashboardPage = () => {
           </button>
         </div>
 
+        {activeBusiness?.type === "business" ? (
+          <BusinessDashboardContent business={activeBusiness} />
+        ) : (
+          <>
         {/* ── Summary stat cards ───────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
@@ -550,7 +563,7 @@ const DashboardPage = () => {
                   {value}
                 </p>
               )}
-              <p className="text-[11px] mt-1" style={{ color: "var(--text-faint)" }}>{sub}</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{sub}</p>
             </div>
           ))}
         </div>
@@ -631,7 +644,7 @@ const DashboardPage = () => {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
                     <XAxis dataKey="month" tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "var(--text-faint)", fontSize: 10 }} axisLine={false} tickLine={false}
+                    <YAxis tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false}
                       tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={2} fill="url(#incomeGrad)" dot={false} activeDot={{ r: 4, fill: "#10b981" }} />
@@ -641,7 +654,7 @@ const DashboardPage = () => {
                   <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }} barGap={4}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
                     <XAxis dataKey="month" tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "var(--text-faint)", fontSize: 10 }} axisLine={false} tickLine={false}
+                    <YAxis tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false}
                       tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
@@ -685,7 +698,7 @@ const DashboardPage = () => {
                 </div>
                 <button
                   onClick={() => navigate("/transactions")}
-                  className="text-[11px] flex items-center gap-1 transition-all"
+                  className="text-xs flex items-center gap-1 transition-all"
                   style={{ color: "#10b981" }}
                 >
                   View all <ArrowRight size={11} />
@@ -734,7 +747,7 @@ const DashboardPage = () => {
                             <span className="ml-1">{txn.category.icon}</span>
                           )}
                         </p>
-                        <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
+                        <p className="text-xs" style={{ color: "var(--text-faint)" }}>
                           {fmtDate(txn.date)} · {txn.member?.firstName}
                         </p>
                       </div>
@@ -777,13 +790,13 @@ const DashboardPage = () => {
                 </p>
                 <div className="flex gap-4">
                   <div>
-                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>In</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>In</p>
                     <p className="text-xs font-semibold" style={{ color: "#10b981" }}>
                       ৳{fmt(monthSummary.income)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Out</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>Out</p>
                     <p className="text-xs font-semibold" style={{ color: "#ef4444" }}>
                       ৳{fmt(monthSummary.expense)}
                     </p>
@@ -825,7 +838,7 @@ const DashboardPage = () => {
                       >
                         <Icon size={15} />
                       </div>
-                      <span className="text-[11px] text-center leading-tight" style={{ color: "var(--text-muted)" }}>
+                      <span className="text-xs text-center leading-snug" style={{ color: "var(--text-muted)" }}>
                         {label}
                       </span>
                     </button>
@@ -835,6 +848,8 @@ const DashboardPage = () => {
             )}
           </div>
         </div>
+          </>
+        )}
 
         {/* ── Business List ─────────────────────────────── */}
         <div>
@@ -883,7 +898,7 @@ const DashboardPage = () => {
               {owned.length > 0 && (
                 <div>
                   <p
-                    className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
+                    className="flex items-center gap-1.5 text-xs uppercase tracking-wider mb-3"
                     style={{ color: "var(--text-faint)" }}
                   >
                     <Crown size={10} style={{ color: "#d97706" }} /> Owned by me
@@ -903,7 +918,7 @@ const DashboardPage = () => {
               {joined.length > 0 && (
                 <div>
                   <p
-                    className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
+                    className="flex items-center gap-1.5 text-xs uppercase tracking-wider mb-3"
                     style={{ color: "var(--text-faint)" }}
                   >
                     <Users size={10} style={{ color: "#60a5fa" }} /> Joined via invite

@@ -20,6 +20,24 @@ import InvoiceDetailPage from "../pages/invoice/InvoiceDetailPage";
 import MessSummaryPage from "../pages/mass/MessSummaryPage";
 import PrivacyPolicyPage from "../pages/PrivacyPolicy/PrivacyPolicyPage";
 import DataDeletionPage from "../pages/DataDeletionPage/DataDeletionPage";
+import CustomersPage from "../pages/customer/CustomersPage";
+import CustomerDetailPage from "../pages/customer/CustomerDetailPage";
+import SuppliersPage from "../pages/supplier/SuppliersPage";
+import SupplierDetailPage from "../pages/supplier/SupplierDetailPage";
+import ProductsPage from "../pages/product/ProductsPage";
+import SalesPage from "../pages/sale/SalesPage";
+import NewSalePage from "../pages/sale/NewSalePage";
+import SaleDetailPage from "../pages/sale/SaleDetailPage";
+import SaleInvoicePage from "../pages/sale/SaleInvoicePage";
+import PurchasesPage from "../pages/purchase/PurchasesPage";
+import NewPurchasePage from "../pages/purchase/NewPurchasePage";
+import PurchaseDetailPage from "../pages/purchase/PurchaseDetailPage";
+import ExpensesPage from "../pages/expense/ExpensesPage";
+import BakiPage from "../pages/baki/BakiPage";
+import LedgerPage from "../pages/ledger/LedgerPage";
+import ProfitLossPage from "../pages/reports/ProfitLossPage";
+import ReportsPage from "../pages/reports/ReportsPage";
+import BusinessSettingsPage from "../pages/settings/BusinessSettingsPage";
 
 export const router = createBrowserRouter([
   /* ── Guest routes (login/register) ─────────────────────
@@ -57,6 +75,24 @@ export const router = createBrowserRouter([
           { path: "/meals", element: <MealsPage /> },
           { path: "/business/new", element: <NewBusinessPage /> },
           { path: "/invoices", element: <InvoicePage /> },
+          { path: "/customers", element: <CustomersPage /> },
+          { path: "/customers/:id", element: <CustomerDetailPage /> },
+          { path: "/suppliers", element: <SuppliersPage /> },
+          { path: "/suppliers/:id", element: <SupplierDetailPage /> },
+          { path: "/products", element: <ProductsPage /> },
+          { path: "/sales", element: <SalesPage /> },
+          { path: "/sales/new", element: <NewSalePage /> },
+          { path: "/sales/:id", element: <SaleDetailPage /> },
+          { path: "/sales/:id/invoice", element: <SaleInvoicePage /> },
+          { path: "/purchases", element: <PurchasesPage /> },
+          { path: "/purchases/new", element: <NewPurchasePage /> },
+          { path: "/purchases/:id", element: <PurchaseDetailPage /> },
+          { path: "/expenses", element: <ExpensesPage /> },
+          { path: "/baki", element: <BakiPage /> },
+          { path: "/ledger", element: <LedgerPage /> },
+          { path: "/reports", element: <ReportsPage /> },
+          { path: "/business/settings", element: <BusinessSettingsPage /> },
+          { path: "/reports/profit-loss", element: <ProfitLossPage /> },
           { path: "/invite/:token", element: <InvitePage /> },
           {
             path: "/mess",

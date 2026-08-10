@@ -1,7 +1,18 @@
 import api from "./api";
 
-export type BusinessType = "personal" | "company" | "mass";
+export type BusinessType = "personal" | "company" | "mass" | "business";
 export type MemberRole = "owner" | "admin" | "member" | "viewer";
+
+export type BusinessSubType =
+  | "retail_shop"
+  | "restaurant"
+  | "online_shop"
+  | "service_business"
+  | "freelancer"
+  | "wholesale"
+  | "other";
+
+export type PaymentMethod = "cash" | "bank" | "bkash" | "nagad" | "other";
 
 export interface IBusiness {
   _id: string;
@@ -13,6 +24,17 @@ export interface IBusiness {
   status: boolean;
   owner: { _id: string; firstName: string; lastName: string; email: string };
   createdAt: string;
+
+  // Business Mode fields
+  businessType?: BusinessSubType;
+  phone?: string;
+  address?: string;
+  logoUrl?: string;
+  openingBalance?: number;
+  cashBalance?: number;
+  bankBalance?: number;
+  invoiceSettings?: { prefix: string; nextNumber: number };
+  paymentMethods?: PaymentMethod[];
 }
 
 export interface IBusinessMembership {
@@ -61,12 +83,34 @@ export const businessService = {
     name: string;
     type: BusinessType;
     category?: string;
+    businessType?: BusinessSubType;
+    phone?: string;
+    address?: string;
+    logoUrl?: string;
+    currency?: string;
+    openingBalance?: number;
   }): Promise<IBusiness> => {
     const { data } = await api.post("/businesses", payload);
     return data.data;
   },
   completeOnboarding: async (): Promise<void> => {
     await api.post('/businesses/complete-onboarding');
+  },
+  updateBusiness: async (
+    businessId: string,
+    payload: Partial<{
+      name: string;
+      businessType: BusinessSubType;
+      phone: string;
+      address: string;
+      logoUrl: string;
+      currency: string;
+      invoiceSettings: { prefix: string; nextNumber: number };
+      paymentMethods: PaymentMethod[];
+    }>,
+  ): Promise<IBusiness> => {
+    const { data } = await api.patch(`/businesses/${businessId}`, payload);
+    return data.data;
   },
   getMembers: async (businessId: string) => {
     const { data } = await api.get(`/business-members/${businessId}`);

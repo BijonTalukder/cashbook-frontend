@@ -26,10 +26,11 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#0a0f1e" />
 
-    <!-- Viewport — prevents zoom, important for app feel -->
+    <!-- Viewport — locks the app-like layout but still lets users pinch-zoom
+         for accessibility (low vision, small mobile screens with dense POS/inventory data) -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"
     />
 
     <!-- iOS PWA -->

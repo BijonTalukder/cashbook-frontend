@@ -43,6 +43,12 @@ export interface ITransaction {
   settlementStatus: SettleStatus;
   settledAmount: number;
   createdAt: string;
+
+  // Business Mode
+  paymentMethod?: string;
+  customer?: { _id: string; name: string; phone?: string } | null;
+  supplier?: { _id: string; name: string; phone?: string } | null;
+  source?: { type: "sale" | "purchase" | "expense" | "payment"; id: string } | null;
 }
 
 export interface ITxnSummary {

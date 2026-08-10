@@ -2,9 +2,9 @@ import { useLocation, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import {
   TrendingUp, LayoutDashboard, ArrowLeftRight, Users,
-  UtensilsCrossed, Settings, LogOut, Bell, HandCoins,
+  UtensilsCrossed, Settings, LogOut, HandCoins,
   ChevronLeft, FileText, Calculator, MoreHorizontal,
-  User, Trash2, X,
+  User, Trash2, X, Contact, Truck, Package, ShoppingCart, ShoppingBag, Receipt, ScrollText, BarChart3,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useBusinessStore } from "../store/businessStore";
@@ -21,18 +21,37 @@ const C = {
 };
 
 const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/transactions", icon: ArrowLeftRight, label: "Transactions" },
-  { to: "/members", icon: Users, label: "Members" },
-  { to: "/meals", icon: UtensilsCrossed, label: "Meals", massOnly: true },
-  { to: "/mess", icon: Calculator, label: "Mess", massOnly: true },
-  { to: "/invoices", icon: FileText, label: "Invoices" },
-  { to: "/dues", icon: HandCoins, label: "Dues" },
-  // Settings is always shown in More drawer separately
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", group: "overview" },
+  { to: "/transactions", icon: ArrowLeftRight, label: "Transactions", hideForBusiness: true, group: "money" },
+  { to: "/members", icon: Users, label: "Members", group: "team" },
+  { to: "/meals", icon: UtensilsCrossed, label: "Meals", massOnly: true, group: "mess" },
+  { to: "/mess", icon: Calculator, label: "Mess", massOnly: true, group: "mess" },
+  { to: "/invoices", icon: FileText, label: "Invoices", group: "sales" },
+  { to: "/dues", icon: HandCoins, label: "Dues", hideForBusiness: true, group: "money" },
+  { to: "/customers", icon: Contact, label: "Customers", businessModeOnly: true, group: "sales" },
+  { to: "/suppliers", icon: Truck, label: "Suppliers", businessModeOnly: true, group: "inventory" },
+  { to: "/products", icon: Package, label: "Products", businessModeOnly: true, group: "inventory" },
+  { to: "/sales", icon: ShoppingCart, label: "Sales", businessModeOnly: true, group: "sales" },
+  { to: "/purchases", icon: ShoppingBag, label: "Purchases", businessModeOnly: true, group: "inventory" },
+  { to: "/expenses", icon: Receipt, label: "Expenses", businessModeOnly: true, group: "money" },
+  { to: "/baki", icon: HandCoins, label: "Baki", businessModeOnly: true, group: "sales" },
+  { to: "/ledger", icon: ScrollText, label: "Ledger", businessModeOnly: true, group: "money" },
+  { to: "/reports", icon: BarChart3, label: "Reports", businessModeOnly: true, group: "money" },
+  // More Business Mode-only items are appended as their pages land
+  // Settings is always shown in the drawer's footer separately
 ];
 
+const GROUP_LABELS: Record<string, string> = {
+  sales: "Sales & Customers",
+  inventory: "Inventory & Purchasing",
+  money: "Money",
+  mess: "Mess",
+  team: "Team",
+};
+const GROUP_ORDER = ["sales", "inventory", "money", "mess", "team"];
+
 // Root-level pages where back button should NOT show
-const ROOT_PATHS = ["/dashboard", "/transactions", "/members", "/meals", "/settings", "/dues", "/invoices", "/mess"];
+const ROOT_PATHS = ["/dashboard", "/transactions", "/members", "/meals", "/settings", "/dues", "/invoices", "/mess", "/customers", "/suppliers", "/products", "/sales", "/purchases", "/expenses", "/baki", "/ledger", "/reports"];
 const isRootPath = (path: string) => ROOT_PATHS.some((r) => path === r);
 
 const PAGE_TITLES: Record<string, string> = {
@@ -45,6 +64,16 @@ const PAGE_TITLES: Record<string, string> = {
   "/invoices": "Invoices",
   "/mess": "Mess Summary",
   "/business/new": "New Business",
+  "/customers": "Customers",
+  "/suppliers": "Suppliers",
+  "/products": "Products",
+  "/sales": "Sales",
+  "/purchases": "Purchases",
+  "/expenses": "Expenses",
+  "/baki": "Baki",
+  "/ledger": "Ledger",
+  "/reports": "Reports",
+  "/business/settings": "Business Settings",
 };
 
 const getPageTitle = (path: string) => {
@@ -60,12 +89,21 @@ const AppLayout = () => {
   const { user, logout } = useAuthStore();
   const { activeBusiness } = useBusinessStore();
 
-  const isMass = activeBusiness?.type === "mass";
-  const visibleNav = navItems.filter((n) => !n.massOnly || isMass);
+  const isMass = activeBusiness?.type === "mass" || activeBusiness?.mealEnabled;
+  const isBusinessMode = activeBusiness?.type === "business";
+  const visibleNav = navItems.filter(
+    (n) =>
+      (!n.massOnly || !!isMass) &&
+      (!n.hideForBusiness || !isBusinessMode) &&
+      (!n.businessModeOnly || isBusinessMode),
+  );
 
-  // Bottom nav: first 4 fixed + "More" drawer for the rest
+  // Bottom nav: first 4 fixed + "More" opens a left drawer for the rest
   const bottomMain = visibleNav.slice(0, 4);
   const bottomMore = visibleNav.slice(4);
+  const bottomMoreGroups = GROUP_ORDER
+    .map((key) => ({ key, label: GROUP_LABELS[key], items: bottomMore.filter((n) => n.group === key) }))
+    .filter((g) => g.items.length > 0);
 
   const showBack = !isRootPath(location.pathname);
   const pageTitle = getPageTitle(location.pathname);
@@ -205,12 +243,12 @@ const AppLayout = () => {
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
               style={{ background: "linear-gradient(135deg, #10b981, #0d9488)" }}
             >
-              <span className="text-[11px] font-bold text-white">
+              <span className="text-xs font-bold text-white">
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate leading-tight" style={{ color: "var(--text-primary)" }}>
+              <p className="text-sm font-medium truncate leading-snug" style={{ color: "var(--text-primary)" }}>
                 {user?.firstName} {user?.lastName}
               </p>
               <p className="text-xs truncate" style={{ color: "var(--text-faint)" }}>{user?.email}</p>
@@ -284,7 +322,7 @@ const AppLayout = () => {
               className="w-8 h-8 rounded-lg flex items-center justify-center"
               style={{ background: "linear-gradient(135deg, #10b981, #0d9488)" }}
             >
-              <span className="text-[10px] font-bold text-white">
+              <span className="text-xs font-bold text-white">
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
               </span>
             </button>
@@ -362,7 +400,7 @@ const AppLayout = () => {
                   style={{ background: active ? "var(--nav-active-bg)" : "transparent" }}>
                   <Icon size={20} style={{ color: active ? "#10b981" : "var(--text-faint)" }} />
                 </div>
-                <span className="text-[10px]"
+                <span className="text-[11px] leading-snug"
                   style={{ color: active ? "#10b981" : "var(--text-faint)", fontWeight: active ? 500 : 400 }}>
                   {label}
                 </span>
@@ -380,7 +418,7 @@ const AppLayout = () => {
                 style={{ background: showMore ? "var(--nav-active-bg)" : "transparent" }}>
                 <MoreHorizontal size={20} style={{ color: showMore ? "#10b981" : "var(--text-faint)" }} />
               </div>
-              <span className="text-[10px]" style={{ color: showMore ? "#10b981" : "var(--text-faint)" }}>
+              <span className="text-[11px]" style={{ color: showMore ? "#10b981" : "var(--text-faint)" }}>
                 More
               </span>
             </button>
@@ -388,52 +426,95 @@ const AppLayout = () => {
         </div>
       </nav>
 
-      {/* ── More Drawer ──────────────────────────── */}
+      {/* ── More Drawer (left slide-out, grouped by category) ──── */}
       {showMore && (
         <>
-          <div className="lg:hidden fixed inset-0 z-[55]" style={{ background: "var(--overlay-scrim)" }}
-            onClick={() => setShowMore(false)} />
           <div
-            className="lg:hidden fixed bottom-0 inset-x-0 z-[60] rounded-t-2xl"
-            style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)" }}
+            className="lg:hidden fixed inset-0 z-[55]"
+            style={{ background: "var(--overlay-scrim)" }}
+            onClick={() => setShowMore(false)}
+          />
+          <div
+            className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] w-[78vw] max-w-[300px] flex flex-col rounded-r-2xl"
+            style={{ background: "var(--bg-elevated)", borderRight: "1px solid var(--border-strong)", boxShadow: "var(--shadow-elevated)" }}
           >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full" style={{ background: "var(--surface-8)" }} />
-            </div>
-            <div className="px-4 pb-2">
-              <p className="text-xs font-semibold mb-3 mt-2" style={{ color: "var(--text-faint)" }}>MORE</p>
-              <div className="grid grid-cols-4 gap-2 mb-4">
-                {bottomMore.map(({ to, icon: Icon, label }) => {
-                  const active = isActive(to);
-                  return (
-                    <NavLink key={to} to={to}
-                      onClick={() => setShowMore(false)}
-                      className="flex flex-col items-center gap-1.5 py-3 rounded-xl"
-                      style={{ background: active ? "rgba(16,185,129,0.08)" : "var(--surface-1)" }}>
-                      <Icon size={20} style={{ color: active ? "#10b981" : "var(--text-secondary)" }} />
-                      <span className="text-[10px] text-center leading-tight"
-                        style={{ color: active ? "#10b981" : "var(--text-muted)" }}>{label}</span>
-                    </NavLink>
-                  );
-                })}
-                {/* Settings always in More */}
-                <NavLink to="/settings" onClick={() => setShowMore(false)}
-                  className="flex flex-col items-center gap-1.5 py-3 rounded-xl"
-                  style={{ background: isActive("/settings") ? "rgba(16,185,129,0.08)" : "var(--surface-1)" }}>
-                  <Settings size={20} style={{ color: isActive("/settings") ? "#10b981" : "var(--text-secondary)" }} />
-                  <span className="text-[10px]" style={{ color: isActive("/settings") ? "#10b981" : "var(--text-muted)" }}>Settings</span>
-                </NavLink>
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-4 pb-3 flex-shrink-0"
+              style={{ paddingTop: "max(1rem, env(safe-area-inset-top))", borderBottom: "1px solid var(--border-light)" }}
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-emerald-400 rounded-lg flex items-center justify-center">
+                  <TrendingUp size={13} className="text-emerald-950" />
+                </div>
+                <span className="font-bold text-base" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
+                  HisabBoi
+                </span>
               </div>
-
-              {/* Logout */}
-              <button onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-3 text-sm"
-                style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)", color: "#ef4444" }}>
-                <LogOut size={16} /> Logout
+              <button
+                onClick={() => setShowMore(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg"
+                style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
+              >
+                <X size={16} />
               </button>
             </div>
-            <div style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }} />
+
+            {/* Grouped nav list */}
+            <div className="flex-1 overflow-y-auto px-3 py-3">
+              {bottomMoreGroups.map(({ key, label, items }) => (
+                <div key={key} className="mb-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide px-3 mb-1.5" style={{ color: "var(--text-faint)" }}>
+                    {label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {items.map(({ to, icon: Icon, label: itemLabel }) => {
+                      const active = isActive(to);
+                      return (
+                        <NavLink
+                          key={to}
+                          to={to}
+                          onClick={() => setShowMore(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm"
+                          style={{
+                            background: active ? "var(--nav-active-bg)" : "transparent",
+                            color: active ? "#10b981" : "var(--text-secondary)",
+                            fontWeight: active ? 500 : 400,
+                          }}
+                        >
+                          <Icon size={18} />
+                          {itemLabel}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer: Settings + Logout, pinned */}
+            <div className="flex-shrink-0 px-3 py-3" style={{ borderTop: "1px solid var(--border-light)" }}>
+              <NavLink
+                to="/settings"
+                onClick={() => setShowMore(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mb-1"
+                style={{
+                  background: isActive("/settings") ? "var(--nav-active-bg)" : "transparent",
+                  color: isActive("/settings") ? "#10b981" : "var(--text-secondary)",
+                  fontWeight: isActive("/settings") ? 500 : 400,
+                }}
+              >
+                <Settings size={18} /> Settings
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm"
+                style={{ color: "#ef4444" }}
+              >
+                <LogOut size={18} /> Logout
+              </button>
+              <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
+            </div>
           </div>
         </>
       )}

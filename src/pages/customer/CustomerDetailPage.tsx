@@ -1,0 +1,235 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft, Phone, Mail, MapPin, Pencil, Trash2,
+  Clock, ArrowLeftRight, StickyNote, ArrowDownCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import { customerService, type ICustomer } from "../../services/customer.service";
+import type { ITransaction } from "../../services/transaction.service";
+import { useBusinessStore } from "../../store/businessStore";
+import CustomerModal from "../../components/shared/CustomerModal";
+import PaymentModal from "../../components/shared/PaymentModal";
+
+const C = {
+  card: "var(--surface-1)",
+  border: "var(--border)",
+};
+
+const fmt = (n: number) =>
+  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
+
+const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });
+
+const CustomerDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { activeBusiness } = useBusinessStore();
+  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+
+  const [customer, setCustomer] = useState<ICustomer | null>(null);
+  const [transactions, setTransactions] = useState<ITransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editOpen, setEditOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
+
+  const load = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const data = await customerService.getOne(id);
+      setCustomer(data.customer);
+      setTransactions(data.transactions);
+    } catch {
+      toast.error("Failed to load customer");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [id]);
+
+  const handleDelete = async () => {
+    if (!customer) return;
+    if (!confirm(`Remove ${customer.name}? This won't delete their transaction history.`)) return;
+    try {
+      await customerService.remove(customer._id);
+      toast.success("Customer removed");
+      navigate("/customers");
+    } catch {
+      toast.error("Failed to remove customer");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
+        <div className="w-10 h-10 rounded-xl animate-pulse" style={{ background: "var(--surface-2)" }} />
+      </div>
+    );
+  }
+
+  if (!customer) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>Customer not found</p>
+      </div>
+    );
+  }
+
+  const stats = [
+    { label: "Total Sales", value: customer.totalSales, color: "#10b981" },
+    { label: "Total Paid", value: customer.totalPaid, color: "#3b82f6" },
+    { label: "Total Due", value: customer.totalDue, color: customer.totalDue > 0 ? "#ef4444" : "var(--text-faint)" },
+  ];
+
+  return (
+    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
+        <button
+          onClick={() => navigate("/customers")}
+          className="flex items-center gap-1.5 text-xs"
+          style={{ color: "var(--text-faint)" }}
+        >
+          <ArrowLeft size={13} /> Back to Customers
+        </button>
+
+        {/* Header */}
+        <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-semibold flex-shrink-0"
+                style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
+              >
+                {customer.name[0]?.toUpperCase()}
+              </div>
+              <div>
+                <h1 className="text-xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
+                  {customer.name}
+                </h1>
+                <div className="flex flex-col gap-0.5 mt-1">
+                  {customer.phone && (
+                    <p className="text-xs flex items-center gap-1.5" style={{ color: "var(--text-faint)" }}>
+                      <Phone size={11} /> {customer.phone}
+                    </p>
+                  )}
+                  {customer.email && (
+                    <p className="text-xs flex items-center gap-1.5" style={{ color: "var(--text-faint)" }}>
+                      <Mail size={11} /> {customer.email}
+                    </p>
+                  )}
+                  {customer.address && (
+                    <p className="text-xs flex items-center gap-1.5" style={{ color: "var(--text-faint)" }}>
+                      <MapPin size={11} /> {customer.address}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setEditOpen(true)}
+                className="w-9 h-9 flex items-center justify-center rounded-xl"
+                style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+              >
+                <Pencil size={13} />
+              </button>
+              <button
+                onClick={handleDelete}
+                className="w-9 h-9 flex items-center justify-center rounded-xl"
+                style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          </div>
+
+          {customer.notes && (
+            <div className="flex items-start gap-2 p-3 rounded-xl mb-4" style={{ background: "var(--surface-2)" }}>
+              <StickyNote size={13} style={{ color: "var(--text-faint)" }} className="mt-0.5 flex-shrink-0" />
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{customer.notes}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {stats.map(({ label, value, color }) => (
+              <div key={label} className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
+                <p className="text-[10px] mb-1" style={{ color: "var(--text-faint)" }}>{label}</p>
+                <p className="text-sm font-bold" style={{ color, fontFamily: "'DM Serif Display', serif" }}>
+                  {currencySymbol}{fmt(value)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {customer.totalDue > 0 && (
+            <button
+              onClick={() => setPayOpen(true)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
+              style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
+            >
+              <ArrowDownCircle size={15} /> Receive Payment
+            </button>
+          )}
+        </div>
+
+        {/* Transaction history */}
+        <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+          <div className="flex items-center gap-2 px-5 py-3.5" style={{ borderBottom: `1px solid ${C.border}` }}>
+            <Clock size={13} style={{ color: "var(--text-faint)" }} />
+            <span className="text-xs font-medium" style={{ color: "var(--text-faint)" }}>
+              Transaction History
+            </span>
+          </div>
+          {transactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
+                <ArrowLeftRight size={16} style={{ color: "var(--text-faint)" }} />
+              </div>
+              <p className="text-xs" style={{ color: "var(--text-faint)" }}>No sales or payments yet</p>
+            </div>
+          ) : (
+            transactions.map((txn) => (
+              <div
+                key={txn._id}
+                className="flex items-center gap-3 px-5 py-3"
+                style={{ borderBottom: "1px solid var(--border-light)" }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                    {txn.category?.name ?? "Uncategorized"}
+                  </p>
+                  <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{fmtDate(txn.date)}</p>
+                </div>
+                <p
+                  className="text-sm font-semibold flex-shrink-0"
+                  style={{ color: txn.type === "income" ? "#10b981" : "#ef4444" }}
+                >
+                  {txn.type === "income" ? "+" : "-"}{currencySymbol}{fmt(txn.amount)}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <CustomerModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        editing={customer}
+        onSuccess={(c) => setCustomer(c)}
+      />
+      <PaymentModal
+        open={payOpen}
+        mode="receive"
+        presetParty={customer ? { id: customer._id, name: customer.name, due: customer.totalDue } : null}
+        onClose={() => setPayOpen(false)}
+        onSuccess={load}
+      />
+    </div>
+  );
+};
+
+export default CustomerDetailPage;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Building2, Home, User, Check, ChevronDown, Plus } from "lucide-react";
+import { Building2, Home, User, Store, Check, ChevronDown, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
@@ -15,12 +15,14 @@ const TYPE_ICON: Record<BusinessType, any> = {
   personal: User,
   company: Building2,
   mass: Home,
+  business: Store,
 };
 
 const TYPE_COLOR: Record<BusinessType, string> = {
   personal: "#10b981",
   company: "#3b82f6",
   mass: "#8b5cf6",
+  business: "#f59e0b",
 };
 
 const C = {

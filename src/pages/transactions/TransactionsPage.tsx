@@ -95,7 +95,7 @@ const TxnRow = ({
               }}
             >
               <SettleIcon size={10} />
-              <span className="text-[9px] font-semibold">{settle.label}</span>
+              <span className="text-xs font-semibold">{settle.label}</span>
             </div>
           )}
         </div>
@@ -112,7 +112,7 @@ const TxnRow = ({
           {txn.toMember && (
             <>
               <span style={{ color: "var(--text-faint)" }}>·</span>
-              <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+              <span className="text-xs" style={{ color: "var(--text-muted)" }}>
                 → {txn.toMember.firstName}
               </span>
             </>
@@ -126,7 +126,7 @@ const TxnRow = ({
           className="w-6 h-6 rounded-md flex items-center justify-center"
           style={{ background: "linear-gradient(135deg, #10b981, #0d9488)" }}
         >
-          <span className="text-[9px] font-bold text-white">
+          <span className="text-xs font-bold text-white">
             {txn.member?.firstName?.[0]}{txn.member?.lastName?.[0]}
           </span>
         </div>
@@ -141,7 +141,7 @@ const TxnRow = ({
           {meta.sign}৳{fmt(txn.amount)}
         </p>
         {txn.settlementStatus === "partial" && (
-          <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
+          <p className="text-xs" style={{ color: "var(--text-faint)" }}>
             ৳{fmt(txn.settledAmount)} paid
           </p>
         )}

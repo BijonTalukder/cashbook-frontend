@@ -246,7 +246,7 @@ const MessSummaryPage = () => {
     load();
   });
 
-  if (!activeBusiness || activeBusiness.type !== "mass") {
+  if (!activeBusiness || (activeBusiness.type !== "mass" && !activeBusiness.mealEnabled)) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"

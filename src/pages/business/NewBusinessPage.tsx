@@ -4,9 +4,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  TrendingUp, User, Building2, Home,
+  TrendingUp, User, Building2, Home, Store,
   ArrowRight, ArrowLeft, Plus, Check, Tag,
-  Loader2, X,
+  Loader2, X, ShoppingBag, UtensilsCrossed, Globe,
+  Briefcase, Laptop, Package, MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
@@ -14,11 +15,12 @@ import { useBusinessStore } from "../../store/businessStore";
 import {
   businessService,
   type IBusinessCategory,
+  type BusinessSubType,
 } from "../../services/business.service";
 
 const schema = z.object({
   name: z.string().min(2, "Minimum 2 characters").max(60),
-  type: z.enum(["personal", "company", "mass"]),
+  type: z.enum(["personal", "company", "mass", "business"]),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -31,6 +33,15 @@ const BUSINESS_TYPES = [
     accent: "#10b981",
     bg: "rgba(16,185,129,0.08)",
     border: "rgba(16,185,129,0.35)",
+  },
+  {
+    value: "business" as const,
+    label: "Business",
+    sub: "Shop, sales & inventory",
+    icon: Store,
+    accent: "#f59e0b",
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.35)",
   },
   {
     value: "company" as const,
@@ -52,7 +63,20 @@ const BUSINESS_TYPES = [
   },
 ];
 
-const STEP_LABELS = ["Business", "Category", "Done"];
+const BUSINESS_SUB_TYPES: { value: BusinessSubType; label: string; icon: any }[] = [
+  { value: "retail_shop", label: "Retail Shop", icon: ShoppingBag },
+  { value: "restaurant", label: "Restaurant", icon: UtensilsCrossed },
+  { value: "online_shop", label: "Online Shop", icon: Globe },
+  { value: "service_business", label: "Service Business", icon: Briefcase },
+  { value: "freelancer", label: "Freelancer", icon: Laptop },
+  { value: "wholesale", label: "Wholesale", icon: Package },
+  { value: "other", label: "Other", icon: MoreHorizontal },
+];
+
+const CURRENCIES = ["BDT", "USD", "EUR", "GBP", "INR"];
+
+const STEP_LABELS_DEFAULT = ["Business", "Category", "Done"];
+const STEP_LABELS_BUSINESS = ["Business", "Details", "Done"];
 
 const NewBusinessPage = () => {
   const navigate = useNavigate();
@@ -69,6 +93,13 @@ const NewBusinessPage = () => {
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [createdBiz, setCreatedBiz] = useState<any>(null);
 
+  // Business Mode details (step 2, when type === "business")
+  const [bizSubType, setBizSubType] = useState<BusinessSubType | null>(null);
+  const [bizPhone, setBizPhone] = useState("");
+  const [bizAddress, setBizAddress] = useState("");
+  const [bizCurrency, setBizCurrency] = useState("BDT");
+  const [bizOpeningBalance, setBizOpeningBalance] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -82,7 +113,11 @@ const NewBusinessPage = () => {
 
   const selectedType = watch("type");
 
-  const onStep1Submit = async (_data: FormData) => {
+  const onStep1Submit = async (data: FormData) => {
+    if (data.type === "business") {
+      setStep(2);
+      return;
+    }
     setLoadingCats(true);
     try {
       const cats = await businessService.getCategories();
@@ -120,6 +155,10 @@ const NewBusinessPage = () => {
   const handleFinish = async () => {
     const formData = watch();
     if (!formData.name) { toast.error("Business name missing"); setStep(1); return; }
+    if (formData.type === "business" && !bizSubType) {
+      toast.error("Please choose a business type");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -127,6 +166,12 @@ const NewBusinessPage = () => {
         name: formData.name,
         type: formData.type,
         category: selectedCatId ?? undefined,
+        businessType: formData.type === "business" ? bizSubType! : undefined,
+        phone: formData.type === "business" ? bizPhone.trim() || undefined : undefined,
+        address: formData.type === "business" ? bizAddress.trim() || undefined : undefined,
+        currency: formData.type === "business" ? bizCurrency : undefined,
+        openingBalance:
+          formData.type === "business" ? Number(bizOpeningBalance) || 0 : undefined,
       });
 
       setCreatedBiz(business);
@@ -149,6 +194,8 @@ const NewBusinessPage = () => {
   const allCats = customCat
     ? [...globalCats.filter((c) => c._id !== customCat._id), customCat]
     : globalCats;
+
+  const STEP_LABELS = selectedType === "business" ? STEP_LABELS_BUSINESS : STEP_LABELS_DEFAULT;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: "var(--bg)" }}>
@@ -252,7 +299,8 @@ const NewBusinessPage = () => {
                   placeholder={
                     selectedType === "personal" ? "Rahim's Personal"
                       : selectedType === "mass" ? "Our Mess"
-                        : "Acme Ltd."
+                        : selectedType === "business" ? "Bijon Electronics"
+                          : "Acme Ltd."
                   }
                   className={`w-full bg-[var(--surface-3)] border rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-faint)]
                     focus:outline-none focus:ring-2 transition-all text-sm
@@ -268,7 +316,7 @@ const NewBusinessPage = () => {
 
               <div>
                 <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>Business type</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {BUSINESS_TYPES.map(({ value, label, sub, icon: Icon, accent, bg, border }) => {
                     const isSelected = selectedType === value;
                     return (
@@ -318,7 +366,129 @@ const NewBusinessPage = () => {
         )}
 
         {/* ── STEP 2 ── */}
-        {step === 2 && (
+        {step === 2 && selectedType === "business" && (
+          <div>
+            <div
+              className="rounded-2xl p-7"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border-strong)" }}
+            >
+              <h2
+                className="text-2xl font-bold mb-1"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
+              >
+                Business details
+              </h2>
+              <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
+                Tell us a bit more about your business.
+              </p>
+
+              <div className="mb-6">
+                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>What kind of business?</label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {BUSINESS_SUB_TYPES.map(({ value, label, icon: Icon }) => {
+                    const isSelected = bizSubType === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setBizSubType(value)}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all border"
+                        style={{
+                          background: isSelected ? "rgba(245,158,11,0.1)" : "var(--surface-2)",
+                          borderColor: isSelected ? "rgba(245,158,11,0.45)" : "var(--border)",
+                          color: isSelected ? "#f59e0b" : "var(--text-secondary)",
+                        }}
+                      >
+                        <Icon size={15} />
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Phone (optional)</label>
+                  <input
+                    value={bizPhone}
+                    onChange={(e) => setBizPhone(e.target.value)}
+                    placeholder="01XXXXXXXXX"
+                    className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
+                      placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Currency</label>
+                  <select
+                    value={bizCurrency}
+                    onChange={(e) => setBizCurrency(e.target.value)}
+                    className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
+                      focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Address (optional)</label>
+                <input
+                  value={bizAddress}
+                  onChange={(e) => setBizAddress(e.target.value)}
+                  placeholder="Shop address"
+                  className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
+                    placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Opening balance (optional)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={bizOpeningBalance}
+                  onChange={(e) => setBizOpeningBalance(e.target.value)}
+                  placeholder="0"
+                  className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
+                    placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
+                />
+                <p className="mt-1.5 text-xs" style={{ color: "var(--text-faint)" }}>Cash you're starting this business with, if any.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-5">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-[var(--border-strong)]
+                  text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all text-sm"
+              >
+                <ArrowLeft size={15} /> Back
+              </button>
+              <button
+                type="button"
+                onClick={handleFinish}
+                disabled={submitting || !bizSubType}
+                className="flex-1 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-emerald-950
+                  font-semibold rounded-xl py-3 flex items-center justify-center gap-2 transition-all text-sm group"
+              >
+                {submitting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <>
+                    Create Business
+                    <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && selectedType !== "business" && (
           <div>
             <div
               className="rounded-2xl p-7"

@@ -4,7 +4,7 @@ import {
   User, Building2, Lock, LogOut, Trash2, ChevronRight,
   Check, Loader2, Eye, EyeOff, Camera, Shield,
   Bell, Palette, Globe, CreditCard, AlertTriangle,
-  Home, X,
+  Home, X, Store,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
@@ -299,6 +299,7 @@ const BusinessSection = () => {
     personal: { icon: User, color: "#10b981", label: "Personal" },
     company: { icon: Building2, color: "#3b82f6", label: "Company" },
     mass: { icon: Home, color: "#8b5cf6", label: "Mess" },
+    business: { icon: Store, color: "#f59e0b", label: "Business" },
   };
 
   if (!activeBusiness) {
@@ -349,10 +350,17 @@ const BusinessSection = () => {
       </div>
 
       {/* Quick links */}
-      {[
-        { label: "Manage Members", to: "/members", icon: User },
-        { label: "All Transactions", to: "/transactions", icon: CreditCard },
-      ].map(({ label, to, icon: LIcon }) => (
+      {(activeBusiness.type === "business"
+        ? [
+          { label: "Business Settings", to: "/business/settings", icon: Building2 },
+          { label: "Manage Members", to: "/members", icon: User },
+          { label: "Ledger", to: "/ledger", icon: CreditCard },
+        ]
+        : [
+          { label: "Manage Members", to: "/members", icon: User },
+          { label: "All Transactions", to: "/transactions", icon: CreditCard },
+        ]
+      ).map(({ label, to, icon: LIcon }) => (
         <button
           key={to}
           onClick={() => navigate(to)}
