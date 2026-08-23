@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { expenseService, type IExpense } from "../../services/expense.service";
 import { transactionService, type ITxnCategory } from "../../services/transaction.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import { paymentMethodLabel } from "../../i18n/labels";
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -25,6 +27,7 @@ interface Props {
 
 const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
   const { activeBusiness } = useBusinessStore();
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<ITxnCategory[]>([]);
   const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
@@ -40,8 +43,8 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
     if (!open || !activeBusiness) return;
     transactionService.getCategories(activeBusiness._id)
       .then((cats) => setCategories(cats.filter((c) => c.type === "expense" || c.type === "both")))
-      .catch(() => toast.error("Failed to load categories"));
-  }, [open, activeBusiness]);
+      .catch(() => toast.error(t("expense.loadCategoriesFailed")));
+  }, [open, activeBusiness, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -53,8 +56,8 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
     e.preventDefault();
     if (!activeBusiness) return;
     const parsedAmount = Number(amount);
-    if (!categoryId) { toast.error("Select a category"); return; }
-    if (!parsedAmount || parsedAmount <= 0) { toast.error("Enter a valid amount"); return; }
+    if (!categoryId) { toast.error(t("expense.selectCategory")); return; }
+    if (!parsedAmount || parsedAmount <= 0) { toast.error(t("expense.invalidAmount")); return; }
 
     setSubmitting(true);
     try {
@@ -67,12 +70,12 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
         note: note || undefined,
         attachmentUrl: attachmentUrl || undefined,
       });
-      toast.success("Expense recorded");
+      toast.success(t("expense.recorded"));
       onSuccess(result);
       onClose();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Failed to record expense";
+        ?.response?.data?.message ?? t("expense.failed");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -95,7 +98,7 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
           style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
           <h2 className="text-base font-semibold"
             style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            Add Expense
+            {t("expense.add")}
           </h2>
           <button onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-lg"
@@ -106,7 +109,7 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
 
         <form onSubmit={onSubmit} className="p-5 space-y-4">
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Category</label>
+            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("common.category")}</label>
             <div className="flex flex-wrap gap-2">
               {categories.map((c) => (
                 <button
@@ -128,34 +131,34 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
           </div>
 
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Amount</label>
+            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("common.amount")}</label>
             <input type="number" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
-              placeholder="0" style={inputCss()} />
+              placeholder={t("common.zero")} style={inputCss()} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Payment method</label>
+              <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("paymentMethod.label")}</label>
               <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} style={inputCss()}>
                 {paymentMethods.map((m) => (
-                  <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>
+                  <option key={m} value={m}>{paymentMethodLabel(t, m)}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Date</label>
+              <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("common.date")}</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputCss()} />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Note (optional)</label>
+            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("expense.note")}</label>
             <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} style={inputCss()} />
           </div>
 
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Receipt URL (optional)</label>
-            <input value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} placeholder="https://..." style={inputCss()} />
+            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("expense.receiptUrl")}</label>
+            <input value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} placeholder={t("product.urlPlaceholder")} style={inputCss()} />
           </div>
 
           <button
@@ -165,7 +168,7 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
             style={{ background: "#ef4444", color: "#fff" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
-            Add Expense
+            {t("expense.add")}
           </button>
         </form>
       </div>

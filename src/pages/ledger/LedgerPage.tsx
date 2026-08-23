@@ -6,6 +6,9 @@ import { transactionService, type ITransaction } from "../../services/transactio
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { supplierService, type ISupplier } from "../../services/supplier.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { enumLabel, paymentMethodLabel } from "../../i18n/labels";
 
 const C = {
   card: "var(--surface-1)",
@@ -14,23 +17,11 @@ const C = {
   inputBorder: "var(--border-strong)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });
-
-const SOURCE_LABEL: Record<string, string> = {
-  sale: "Sale",
-  purchase: "Purchase",
-  expense: "Expense",
-  payment: "Payment",
-};
-
 const LedgerPage = () => {
   const { activeBusiness } = useBusinessStore();
   const [searchParams] = useSearchParams();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money, date: fmtDate } = useFormat();
 
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [customers, setCustomers] = useState<ICustomer[]>([]);
@@ -68,7 +59,7 @@ const LedgerPage = () => {
       const data = await transactionService.getAll(activeBusiness._id, params);
       setTransactions(data.transactions);
     } catch {
-      toast.error("Failed to load ledger");
+      toast.error(t("ledger.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -87,18 +78,26 @@ const LedgerPage = () => {
 
   const exportCsv = () => {
     if (transactions.length === 0) {
-      toast.error("Nothing to export");
+      toast.error(t("ledger.nothingToExport"));
       return;
     }
-    const header = ["Date", "Type", "Source", "Party", "Category", "Payment Method", "Amount"];
-    const rows = transactions.map((t) => [
-      fmtDate(t.date),
-      t.type,
-      t.source ? SOURCE_LABEL[t.source.type] : "",
-      t.customer?.name ?? t.supplier?.name ?? "",
-      t.category?.name ?? "",
-      t.paymentMethod ?? "",
-      String(t.amount),
+    const header = [
+      t("ledger.csv.date"),
+      t("ledger.csv.type"),
+      t("ledger.csv.source"),
+      t("ledger.csv.party"),
+      t("ledger.csv.category"),
+      t("ledger.csv.paymentMethod"),
+      t("ledger.csv.amount"),
+    ];
+    const rows = transactions.map((txn) => [
+      fmtDate(txn.date),
+      enumLabel(t, "txn", txn.type),
+      txn.source ? enumLabel(t, "source", txn.source.type) : "",
+      txn.customer?.name ?? txn.supplier?.name ?? "",
+      txn.category?.name ?? "",
+      paymentMethodLabel(t, txn.paymentMethod),
+      String(txn.amount),
     ]);
     const csv = [header, ...rows]
       .map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
@@ -117,7 +116,7 @@ const LedgerPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            Ledger
+            {t("ledger.title")}
           </h1>
           <div className="flex items-center gap-2">
             <button
@@ -125,7 +124,7 @@ const LedgerPage = () => {
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all"
               style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
             >
-              <Download size={13} /> Export
+              <Download size={13} /> {t("common.export")}
             </button>
             <button
               onClick={() => setShowFilters((v) => !v)}
@@ -136,7 +135,7 @@ const LedgerPage = () => {
                 color: hasFilters ? "#10b981" : "var(--text-muted)",
               }}
             >
-              <Filter size={13} /> Filters
+              <Filter size={13} /> {t("ledger.filters")}
             </button>
           </div>
         </div>
@@ -146,44 +145,44 @@ const LedgerPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <select value={type} onChange={(e) => setType(e.target.value)}
                 style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
-                <option value="">All types</option>
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
+                <option value="">{t("ledger.allTypes")}</option>
+                <option value="income">{t("txn.income")}</option>
+                <option value="expense">{t("txn.expense")}</option>
               </select>
               <select value={sourceType} onChange={(e) => setSourceType(e.target.value)}
                 style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
-                <option value="">All sources</option>
-                <option value="sale">Sales</option>
-                <option value="purchase">Purchases</option>
-                <option value="expense">Expenses</option>
-                <option value="payment">Payments</option>
+                <option value="">{t("ledger.allSources")}</option>
+                <option value="sale">{t("ledger.sourceSales")}</option>
+                <option value="purchase">{t("ledger.sourcePurchases")}</option>
+                <option value="expense">{t("ledger.sourceExpenses")}</option>
+                <option value="payment">{t("ledger.sourcePayments")}</option>
               </select>
               <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}
                 style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
-                <option value="">All customers</option>
+                <option value="">{t("ledger.allCustomers")}</option>
                 {customers.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
               </select>
               <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}
                 style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
-                <option value="">All suppliers</option>
+                <option value="">{t("ledger.allSuppliers")}</option>
                 {suppliers.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
               </select>
               <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
                 style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
-                <option value="">All methods</option>
+                <option value="">{t("ledger.allMethods")}</option>
                 {(activeBusiness?.paymentMethods ?? ["cash", "bank"]).map((m) => (
-                  <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>
+                  <option key={m} value={m}>{paymentMethodLabel(t, m)}</option>
                 ))}
               </select>
               <div />
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+              <input type="date" aria-label={t("ledger.startDate")} title={t("ledger.startDate")} value={startDate} onChange={(e) => setStartDate(e.target.value)}
                 style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }} />
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+              <input type="date" aria-label={t("ledger.endDate")} title={t("ledger.endDate")} value={endDate} onChange={(e) => setEndDate(e.target.value)}
                 style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }} />
             </div>
             {hasFilters && (
               <button onClick={clearFilters} className="text-xs font-medium" style={{ color: "#ef4444" }}>
-                Clear filters
+                {t("ledger.clearFilters")}
               </button>
             )}
           </div>
@@ -201,9 +200,9 @@ const LedgerPage = () => {
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
                 <ArrowLeftRight size={20} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>No entries found</p>
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("ledger.empty")}</p>
               <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                {hasFilters ? "Try adjusting your filters" : "Every sale, purchase, expense & payment appears here"}
+                {hasFilters ? t("ledger.emptyFiltered") : t("ledger.emptyHint")}
               </p>
             </div>
           ) : (
@@ -224,20 +223,27 @@ const LedgerPage = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {txn.source ? SOURCE_LABEL[txn.source.type] : txn.category?.name ?? "Entry"}
+                    {txn.source
+                      ? enumLabel(t, "source", txn.source.type)
+                      : txn.category?.name ?? t("ledger.fallbackEntry")}
                     {(txn.customer || txn.supplier) && (
                       <span style={{ color: "var(--text-faint)" }}> · {txn.customer?.name ?? txn.supplier?.name}</span>
                     )}
                   </p>
                   <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                    {fmtDate(txn.date)} {txn.paymentMethod ? `· ${txn.paymentMethod}` : ""}
+                    {txn.paymentMethod
+                      ? t("ledger.dateAndMethod", {
+                          date: fmtDate(txn.date),
+                          method: paymentMethodLabel(t, txn.paymentMethod),
+                        })
+                      : fmtDate(txn.date)}
                   </p>
                 </div>
                 <p
                   className="text-sm font-semibold flex-shrink-0"
                   style={{ color: txn.type === "income" ? "#10b981" : "#ef4444" }}
                 >
-                  {txn.type === "income" ? "+" : "-"}{currencySymbol}{fmt(txn.amount)}
+                  {money(txn.type === "income" ? txn.amount : -txn.amount, { signed: true })}
                 </p>
               </div>
             ))

@@ -10,6 +10,8 @@ import {
   type IBusiness,
   type BusinessType,
 } from "../../services/business.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { enumLabel } from "../../i18n/labels";
 
 const TYPE_ICON: Record<BusinessType, any> = {
   personal: User,
@@ -39,6 +41,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { activeBusiness, setActiveBusiness } = useBusinessStore();
+  const { t } = useTranslation();
 
   const [open, setOpen] = useState(false);
   const [memberships, setMemberships] = useState<IBusinessMembership[]>([]);
@@ -62,15 +65,15 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
     businessService
       .getMyBusinesses()
       .then(setMemberships)
-      .catch(() => toast.error("Failed to load businesses"))
+      .catch(() => toast.error(t("business.loadFailed")))
       .finally(() => setLoading(false));
-  }, [open]);
+  }, [open, memberships.length, t]);
 
   const handleSelect = (b: IBusiness) => {
     setActiveBusiness(b);
     setOpen(false);
     onSelect?.(b);
-    toast.success(`Switched to ${b.name}`);
+    toast.success(t("business.switched", { name: b.name }));
   };
 
   const accent = activeBusiness ? TYPE_COLOR[activeBusiness.type] : "#10b981";
@@ -99,7 +102,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
           className="text-sm font-medium max-w-[110px] sm:max-w-[150px] truncate block"
           style={{ color: "var(--text-primary)" }}
         >
-          {activeBusiness?.name ?? "Select business"}
+          {activeBusiness?.name ?? t("business.switcherPlaceholder")}
         </span>
         <ChevronDown
           size={13}
@@ -130,7 +133,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
               className="text-xs uppercase tracking-wider"
               style={{ color: "var(--text-faint)" }}
             >
-              Switch Business
+              {t("business.switchBusiness")}
             </p>
           </div>
 
@@ -151,7 +154,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
                 className="text-center text-xs py-5"
                 style={{ color: "var(--text-faint)" }}
               >
-                No businesses found
+                {t("business.none")}
               </p>
             ) : (
               memberships.map(({ business, role }) => {
@@ -196,10 +199,13 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
                         {business.name}
                       </p>
                       <p
-                        className="text-[10px] capitalize"
+                        className="text-[10px]"
                         style={{ color: "var(--text-faint)" }}
                       >
-                        {business.type} · {role}
+                        {t("business.typeAndRole", {
+                          type: enumLabel(t, "businessType", business.type),
+                          role: enumLabel(t, "role", role),
+                        })}
                       </p>
                     </div>
                     {isActive && (
@@ -230,7 +236,7 @@ const BusinessSwitcher = ({ onSelect }: BusinessSwitcherProps) => {
               }}
             >
               <Plus size={14} />
-              <span className="text-sm font-medium">New Business</span>
+              <span className="text-sm font-medium">{t("business.new")}</span>
             </button>
           </div>
         </div>

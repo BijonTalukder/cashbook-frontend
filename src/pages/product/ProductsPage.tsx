@@ -6,19 +6,19 @@ import { productService, type IProduct } from "../../services/product.service";
 import { useBusinessStore } from "../../store/businessStore";
 import ProductModal from "../../components/shared/ProductModal";
 import StockAdjustModal from "../../components/shared/StockAdjustModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money, num } = useFormat();
 
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,26 +44,26 @@ const ProductsPage = () => {
       const data = await productService.getAll(activeBusiness._id, { search: search || undefined, lowStock: lowStockOnly });
       setProducts(data);
     } catch {
-      toast.error("Failed to load products");
+      toast.error(t("product.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const t = setTimeout(load, 250);
-    return () => clearTimeout(t);
+    const timer = setTimeout(load, 250);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeBusiness?._id, search, lowStockOnly]);
 
   const handleDelete = async (p: IProduct) => {
-    if (!confirm(`Delete ${p.name}?`)) return;
+    if (!confirm(t("common.confirmDelete", { name: p.name }))) return;
     try {
       await productService.remove(p._id);
       setProducts((prev) => prev.filter((x) => x._id !== p._id));
-      toast.success("Product deleted");
+      toast.success(t("product.deleted"));
     } catch {
-      toast.error("Failed to delete product");
+      toast.error(t("product.deleteFailed"));
     }
   };
 
@@ -74,14 +74,14 @@ const ProductsPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-4xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            Products
+            {t("product.title")}
           </h1>
           <button
             onClick={() => { setEditing(null); setModalOpen(true); }}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
             style={{ background: "#10b981", color: "#022c22" }}
           >
-            <Plus size={15} /> Add Product
+            <Plus size={15} /> {t("product.add")}
           </button>
         </div>
 
@@ -91,7 +91,7 @@ const ProductsPage = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, SKU or category..."
+              placeholder={t("product.searchByNameSkuCategory")}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
               style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-primary)" }}
             />
@@ -105,7 +105,10 @@ const ProductsPage = () => {
               color: lowStockOnly ? "#ef4444" : "var(--text-muted)",
             }}
           >
-            <AlertTriangle size={13} /> Low Stock{lowStockCount > 0 ? ` (${lowStockCount})` : ""}
+            <AlertTriangle size={13} />{" "}
+            {lowStockCount > 0
+              ? t("product.lowStockFilterCount", { count: num(lowStockCount) })
+              : t("product.lowStockFilter")}
           </button>
         </div>
 
@@ -122,10 +125,10 @@ const ProductsPage = () => {
                 <Package size={20} style={{ color: "var(--text-faint)" }} />
               </div>
               <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                {search || lowStockOnly ? "No products found" : "No products yet"}
+                {search || lowStockOnly ? t("product.notFound") : t("product.empty")}
               </p>
               <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                {search || lowStockOnly ? "Try a different filter" : "Add your first product to start tracking inventory"}
+                {search || lowStockOnly ? t("common.tryDifferentFilter") : t("product.emptyHintInventory")}
               </p>
             </div>
           ) : (
@@ -150,16 +153,19 @@ const ProductsPage = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
                     <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                      {p.category || "Uncategorized"} · {currencySymbol}{fmt(p.sellingPrice)}
+                      {t("product.categoryAndPrice", {
+                        category: p.category || t("product.uncategorized"),
+                        price: money(p.sellingPrice),
+                      })}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-semibold" style={{ color: isLow ? "#ef4444" : "var(--text-primary)" }}>
-                      {p.stock} {p.unit}
+                      {t("product.stockLine", { stock: num(p.stock), unit: p.unit ?? "" })}
                     </p>
                     {isLow && (
                       <p className="text-[10px] flex items-center gap-1 justify-end" style={{ color: "#ef4444" }}>
-                        <AlertTriangle size={9} /> Low Stock
+                        <AlertTriangle size={9} /> {t("product.lowStock")}
                       </p>
                     )}
                   </div>
@@ -168,7 +174,7 @@ const ProductsPage = () => {
                       onClick={() => setAdjusting(p)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg"
                       style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
-                      title="Adjust stock"
+                      title={t("stock.adjust")}
                     >
                       <SlidersHorizontal size={12} />
                     </button>
@@ -176,7 +182,7 @@ const ProductsPage = () => {
                       onClick={() => { setEditing(p); setModalOpen(true); }}
                       className="w-8 h-8 flex items-center justify-center rounded-lg"
                       style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
-                      title="Edit"
+                      title={t("common.edit")}
                     >
                       <Pencil size={12} />
                     </button>
@@ -184,7 +190,7 @@ const ProductsPage = () => {
                       onClick={() => handleDelete(p)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg"
                       style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
-                      title="Delete"
+                      title={t("common.delete")}
                     >
                       <Trash2 size={12} />
                     </button>

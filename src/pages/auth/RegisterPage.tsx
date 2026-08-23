@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,36 +15,40 @@ import {
 import { toast } from "sonner";
 import { authService } from "../../services/auth.service";
 import { useAuthStore } from "../../store/authStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
+import LanguageToggle from "../../components/shared/LanguageToggle";
 
-const schema = z.object({
-  firstName: z.string().min(1, "First name is required").max(50),
-  lastName: z.string().min(1, "Last name is required").max(50),
-  email: z.string().email("Valid email required"),
-  password: z.string().min(8, "Minimum 8 characters"),
-  businessType: z.enum(["personal", "company", "mass"]),
-});
+const buildSchema = (t: TFunction) =>
+  z.object({
+    firstName: z.string().min(1, t("auth.validation.firstNameRequired")).max(50),
+    lastName: z.string().min(1, t("auth.validation.lastNameRequired")).max(50),
+    email: z.string().email(t("auth.validation.emailRequired")),
+    password: z.string().min(8, t("auth.validation.passwordMin")),
+    businessType: z.enum(["personal", "company", "mass"]),
+  });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.infer<ReturnType<typeof buildSchema>>;
 
 const BUSINESS_TYPES = [
   {
     value: "personal" as const,
-    label: "Personal",
-    description: "Individual finance tracking",
+    labelKey: "auth.types.personal",
+    descriptionKey: "auth.types.personalDesc",
     icon: User,
     color: "emerald",
   },
   {
     value: "company" as const,
-    label: "Company",
-    description: "Team & business expenses",
+    labelKey: "auth.types.company",
+    descriptionKey: "auth.types.companyDesc",
     icon: Building2,
     color: "blue",
   },
   {
     value: "mass" as const,
-    label: "Household",
-    description: "Family & meal management",
+    labelKey: "auth.types.household",
+    descriptionKey: "auth.types.householdDesc",
     icon: Home,
     color: "violet",
   },
@@ -74,6 +78,8 @@ const RegisterPage = () => {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+  const schema = useMemo(() => buildSchema(t), [t]);
 
   const {
     register,
@@ -95,7 +101,7 @@ const RegisterPage = () => {
 
       // ✅ token সহ setAuth — empty string না
       setAuth(res.data.user, res.data.token);
-      toast.success(`Welcome, ${res.data.user.firstName}!`);
+      toast.success(t("auth.welcome", { name: res.data.user.firstName }));
 
       // ✅ redirect param থাকলে সেখানে যাও (invite flow)
       const redirect = searchParams.get("redirect");
@@ -108,7 +114,7 @@ const RegisterPage = () => {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Registration failed";
+          ?.message ?? t("auth.registrationFailed");
       toast.error(message);
     } finally {
       setLoading(false);
@@ -119,31 +125,34 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center p-6">
       <div className="w-full max-w-lg">
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-9 h-9 bg-emerald-400 rounded-lg flex items-center justify-center">
-            <TrendingUp size={18} className="text-emerald-950" />
+        <div className="flex items-center justify-between gap-3 mb-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-emerald-400 rounded-lg flex items-center justify-center">
+              <TrendingUp size={18} className="text-emerald-950" />
+            </div>
+            <span
+              className="text-white font-bold text-xl tracking-tight"
+              style={{ fontFamily: "'DM Serif Display', serif" }}
+            >
+              {t("app.name")}
+            </span>
           </div>
-          <span
-            className="text-white font-bold text-xl tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
-          >
-            HisabBoi
-          </span>
+          <LanguageToggle variant="segmented" />
         </div>
 
         <h2
           className="text-3xl font-bold text-white mb-1"
           style={{ fontFamily: "'DM Serif Display', serif" }}
         >
-          Create account
+          {t("auth.createAccount")}
         </h2>
         <p className="text-slate-500 mb-8">
-          Already have one?{" "}
+          {t("auth.alreadyHaveOne")}{" "}
           <Link
             to={`/login${searchParams.get("redirect") ? `?redirect=${searchParams.get("redirect")}` : ""}`}
             className="text-emerald-400 hover:text-emerald-300 transition-colors"
           >
-            Sign in
+            {t("auth.signIn")}
           </Link>
         </p>
 
@@ -152,11 +161,11 @@ const RegisterPage = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-slate-400 mb-2">
-                First name
+                {t("auth.firstName")}
               </label>
               <input
                 {...register("firstName")}
-                placeholder="Rahim"
+                placeholder={t("auth.firstNamePlaceholder")}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
                   ${errors.firstName ? "border-red-500/50 focus:ring-red-500/20" : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"}`}
@@ -169,11 +178,11 @@ const RegisterPage = () => {
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-2">
-                Last name
+                {t("auth.lastName")}
               </label>
               <input
                 {...register("lastName")}
-                placeholder="Uddin"
+                placeholder={t("auth.lastNamePlaceholder")}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
                   ${errors.lastName ? "border-red-500/50 focus:ring-red-500/20" : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"}`}
@@ -189,12 +198,12 @@ const RegisterPage = () => {
           {/* Email */}
           <div>
             <label className="block text-sm text-slate-400 mb-2">
-              Email address
+              {t("auth.emailAddress")}
             </label>
             <input
               {...register("email")}
               type="email"
-              placeholder="you@example.com"
+              placeholder={t("auth.emailPlaceholder")}
               className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                 focus:outline-none focus:ring-2 transition-all text-sm
                 ${errors.email ? "border-red-500/50 focus:ring-red-500/20" : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"}`}
@@ -209,13 +218,13 @@ const RegisterPage = () => {
           {/* Password */}
           <div>
             <label className="block text-sm text-slate-400 mb-2">
-              Password
+              {t("auth.password")}
             </label>
             <div className="relative">
               <input
                 {...register("password")}
                 type={showPass ? "text" : "password"}
-                placeholder="Min. 8 characters"
+                placeholder={t("auth.passwordHint")}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-11 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
                   ${errors.password ? "border-red-500/50 focus:ring-red-500/20" : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"}`}
@@ -223,6 +232,7 @@ const RegisterPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
+                aria-label={showPass ? t("auth.hidePassword") : t("auth.showPassword")}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
               >
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -238,11 +248,11 @@ const RegisterPage = () => {
           {/* Business type */}
           <div>
             <label className="block text-sm text-slate-400 mb-3">
-              Account type
+              {t("auth.accountType")}
             </label>
             <div className="grid grid-cols-3 gap-3">
               {BUSINESS_TYPES.map(
-                ({ value, label, description, icon: Icon, color }) => {
+                ({ value, labelKey, descriptionKey, icon: Icon, color }) => {
                   const isSelected = selectedType === value;
                   const colors = colorMap[color as keyof typeof colorMap];
                   return (
@@ -264,10 +274,10 @@ const RegisterPage = () => {
                         <Icon size={15} />
                       </div>
                       <div className="text-white text-sm font-medium mb-0.5">
-                        {label}
+                        {t(labelKey)}
                       </div>
                       <div className="text-slate-500 text-xs leading-relaxed">
-                        {description}
+                        {t(descriptionKey)}
                       </div>
                     </button>
                   );
@@ -288,7 +298,7 @@ const RegisterPage = () => {
               <span className="w-5 h-5 border-2 border-emerald-900/30 border-t-emerald-900 rounded-full animate-spin" />
             ) : (
               <>
-                Create account
+                {t("auth.createAccount")}
                 <ArrowRight
                   size={16}
                   className="group-hover:translate-x-0.5 transition-transform"
@@ -299,14 +309,14 @@ const RegisterPage = () => {
         </form>
 
         <p className="text-center text-slate-600 text-xs mt-6">
-          By registering you agree to our{" "}
-          <span className="text-slate-500 cursor-pointer hover:text-slate-400">
-            Terms
-          </span>{" "}
-          &{" "}
-          <span className="text-slate-500 cursor-pointer hover:text-slate-400">
-            Privacy Policy
-          </span>
+          {t("auth.termsRegister")}{" "}
+          <Link to="/privacy-policy" className="text-slate-500 hover:text-slate-400">
+            {t("auth.terms")}
+          </Link>{" "}
+          {t("auth.and")}{" "}
+          <Link to="/privacy-policy" className="text-slate-500 hover:text-slate-400">
+            {t("auth.privacyPolicy")}
+          </Link>
         </p>
       </div>
     </div>

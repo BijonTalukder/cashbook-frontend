@@ -5,22 +5,20 @@ import { toast } from "sonner";
 import { expenseService, type IExpense } from "../../services/expense.service";
 import { useBusinessStore } from "../../store/businessStore";
 import ExpenseModal from "../../components/shared/ExpenseModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { paymentMethodLabel } from "../../i18n/labels";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short" });
-
 const ExpensesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money, date: fmtDate } = useFormat();
 
   const [expenses, setExpenses] = useState<IExpense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +40,7 @@ const ExpensesPage = () => {
       const data = await expenseService.getAll(activeBusiness._id, { limit: "50" });
       setExpenses(data.expenses);
     } catch {
-      toast.error("Failed to load expenses");
+      toast.error(t("expense.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -57,22 +55,22 @@ const ExpensesPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            Expenses
+            {t("expense.title")}
           </h1>
           <button
             onClick={() => setModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
             style={{ background: "#ef4444", color: "#fff" }}
           >
-            <Plus size={15} /> Add Expense
+            <Plus size={15} /> {t("expense.add")}
           </button>
         </div>
 
         {expenses.length > 0 && (
           <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-            <p className="text-xs" style={{ color: "var(--text-faint)" }}>Total (recent)</p>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("expense.totalRecent")}</p>
             <p className="text-2xl font-bold" style={{ color: "#ef4444", fontFamily: "'DM Serif Display', serif" }}>
-              {currencySymbol}{fmt(totalThisList)}
+              {money(totalThisList)}
             </p>
           </div>
         )}
@@ -89,8 +87,8 @@ const ExpensesPage = () => {
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
                 <Receipt size={20} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>No expenses yet</p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>Rent, electricity, salary — track business costs here</p>
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("expense.empty")}</p>
+              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("expense.emptyHintBusiness")}</p>
             </div>
           ) : (
             expenses.map((e) => (
@@ -107,14 +105,17 @@ const ExpensesPage = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {e.category?.name ?? "Expense"}
+                    {e.category?.name ?? t("expense.fallbackName")}
                   </p>
                   <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                    {fmtDate(e.date)} · {e.paymentMethod}
+                    {t("expense.dateAndMethod", {
+                      date: fmtDate(e.date, "short"),
+                      method: paymentMethodLabel(t, e.paymentMethod),
+                    })}
                   </p>
                 </div>
                 <p className="text-sm font-semibold flex-shrink-0" style={{ color: "#ef4444" }}>
-                  -{currencySymbol}{fmt(e.amount)}
+                  {money(-e.amount)}
                 </p>
               </div>
             ))

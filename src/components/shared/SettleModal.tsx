@@ -17,17 +17,8 @@ import {
   type ISettlement,
 } from "../../services/transaction.service";
 import { useAuthStore } from "../../store/authStore";
-
-/* ─── helpers ─────────────────────────────────────────── */
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   bg: "var(--bg)",
@@ -37,10 +28,10 @@ const C = {
 };
 
 const SETTLE_META = {
-  not_applicable: { color: "#475569", icon: null, label: "N/A" },
-  pending: { color: "#f59e0b", icon: Clock, label: "Pending" },
-  partial: { color: "#3b82f6", icon: AlertCircle, label: "Partial" },
-  settled: { color: "#10b981", icon: CheckCircle2, label: "Settled" },
+  not_applicable: { color: "#475569", icon: null, labelKey: "settle.status.not_applicable" },
+  pending: { color: "#f59e0b", icon: Clock, labelKey: "settle.status.pending" },
+  partial: { color: "#3b82f6", icon: AlertCircle, labelKey: "settle.status.partial" },
+  settled: { color: "#10b981", icon: CheckCircle2, labelKey: "settle.status.settled" },
 };
 
 /* ─── Props ───────────────────────────────────────────── */
@@ -53,6 +44,8 @@ interface Props {
 
 const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
   const { user } = useAuthStore();
+  const { t } = useTranslation();
+  const { money, num, date: fmtDate, symbol } = useFormat();
 
   const [settlements, setSettlements] = useState<ISettlement[]>([]);
   const [histLoading, setHistLoading] = useState(false);
@@ -72,9 +65,9 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
     transactionService
       .getSettlements(txn._id)
       .then(setSettlements)
-      .catch(() => toast.error("Failed to load settlement history"))
+      .catch(() => toast.error(t("settle.loadHistoryFailed")))
       .finally(() => setHistLoading(false));
-  }, [open, txn._id]);
+  }, [open, txn._id, t]);
 
   /* ── pre-fill amount with remaining ──────────────── */
   useEffect(() => {
@@ -89,11 +82,11 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
   const handleSettle = async () => {
     const n = parseFloat(amount);
     if (!n || n <= 0) {
-      toast.error("Enter a valid amount");
+      toast.error(t("settle.invalidAmount"));
       return;
     }
     if (n > remaining) {
-      toast.error(`Max ৳${fmt(remaining)}`);
+      toast.error(t("settle.maxAmount", { amount: money(remaining) }));
       return;
     }
 
@@ -110,8 +103,8 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
 
       toast.success(
         result.status === "settled"
-          ? "Fully settled! ✓"
-          : `৳${fmt(n)} recorded. ৳${fmt(result.remaining)} remaining.`,
+          ? t("settle.fullySettledToast")
+          : t("settle.recordedToast", { amount: money(n), remaining: money(result.remaining) }),
       );
 
       // optimistic update the transaction
@@ -135,7 +128,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Settlement failed";
+          ?.message ?? t("settle.failed");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -181,10 +174,10 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                 className="text-sm font-semibold"
                 style={{ color: "var(--text-primary)" }}
               >
-                Settlement
+                {t("settle.title")}
               </p>
               <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-                {txn.category?.name} · ৳{fmt(txn.amount)}
+                {t("settle.subtitle", { category: txn.category?.name ?? "", amount: money(txn.amount) })}
               </p>
             </div>
           </div>
@@ -215,31 +208,31 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                   className="text-xs font-semibold"
                   style={{ color: settleMeta.color }}
                 >
-                  {settleMeta.label}
+                  {t(settleMeta.labelKey)}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <div>
                   <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-                    Settled
+                    {t("settle.settled")}
                   </p>
                   <p
                     className="text-sm font-bold"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    ৳{fmt(txn.settledAmount ?? 0)}
+                    {money(txn.settledAmount ?? 0)}
                   </p>
                 </div>
                 <div style={{ color: "var(--text-faint)" }}>·</div>
                 <div>
                   <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-                    Remaining
+                    {t("settle.remaining")}
                   </p>
                   <p
                     className="text-sm font-bold"
                     style={{ color: isAlreadySettled ? "#10b981" : "#f59e0b" }}
                   >
-                    {isAlreadySettled ? "Cleared" : `৳${fmt(remaining)}`}
+                    {isAlreadySettled ? t("settle.cleared") : money(remaining)}
                   </p>
                 </div>
               </div>
@@ -248,7 +241,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
             {/* Progress bar */}
             <div className="flex flex-col items-center gap-1">
               <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-                {Math.round(((txn.settledAmount ?? 0) / txn.amount) * 100)}%
+                {num(Math.round(((txn.settledAmount ?? 0) / txn.amount) * 100))}%
               </span>
               <div
                 className="w-20 h-1.5 rounded-full overflow-hidden"
@@ -289,7 +282,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                 {txn.member?.firstName} {txn.member?.lastName}
               </p>
               <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-                paid ৳{fmt(txn.amount)} · needs to be reimbursed
+                {t("settle.paidLine", { amount: money(txn.amount) })}
               </p>
             </div>
           </div>
@@ -301,7 +294,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
               <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                Record Payment
+                {t("settle.recordPayment")}
               </p>
 
               {/* Amount */}
@@ -310,14 +303,14 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                   className="block text-xs mb-1.5"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  Amount (৳)
+                  {t("settle.amountWithCurrency", { symbol })}
                 </label>
                 <div className="relative">
                   <span
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold"
                     style={{ color: "var(--text-faint)" }}
                   >
-                    ৳
+                    {symbol}
                   </span>
                   <input
                     type="number"
@@ -358,7 +351,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                         color: "var(--text-muted)",
                       }}
                     >
-                      {pct}%
+                      {num(pct)}%
                     </button>
                   ))}
                 </div>
@@ -370,7 +363,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                   className="block text-xs mb-1.5"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  Note (optional)
+                  {t("settle.note")}
                 </label>
                 <div className="relative">
                   <StickyNote
@@ -382,7 +375,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                     type="text"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="e.g. bKash, cash..."
+                    placeholder={t("settle.notePlaceholder")}
                     className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm placeholder-slate-700 outline-none"
                     style={{
                       background: "var(--surface-3)",
@@ -413,7 +406,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                 ) : (
                   <>
                     <CheckCircle2 size={15} />
-                    Mark as Paid · ৳{fmt(parseFloat(amount) || 0)}
+                    {t("settle.markPaid", { amount: money(parseFloat(amount) || 0) })}
                   </>
                 )}
               </button>
@@ -435,10 +428,10 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                   className="text-sm font-semibold"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  Fully Settled
+                  {t("settle.fullySettled")}
                 </p>
                 <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                  All ৳{fmt(txn.amount)} has been reimbursed.
+                  {t("settle.allReimbursed", { amount: money(txn.amount) })}
                 </p>
               </div>
             </div>
@@ -450,7 +443,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               className="text-xs font-medium mb-2"
               style={{ color: "var(--text-faint)" }}
             >
-              Payment History
+              {t("settle.history")}
             </p>
 
             {histLoading ? (
@@ -467,7 +460,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                 style={{ background: C.card, border: `1px solid ${C.border}` }}
               >
                 <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                  No payments recorded yet
+                  {t("settle.noPayments")}
                 </p>
               </div>
             ) : (
@@ -501,14 +494,14 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                         )}
                       </p>
                       <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-                        {fmtDate(s.createdAt)} · {s.type}
+                        {t("settle.historyLine", { date: fmtDate(s.createdAt), type: s.type })}
                       </p>
                     </div>
                     <p
                       className="text-xs font-semibold flex-shrink-0"
                       style={{ color: "#10b981" }}
                     >
-                      +৳{fmt(s.amount)}
+                      {money(s.amount, { signed: true })}
                     </p>
                   </div>
                 ))}

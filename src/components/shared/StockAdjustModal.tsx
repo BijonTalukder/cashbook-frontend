@@ -2,6 +2,8 @@ import { useState } from "react";
 import { X, Loader2, Plus, Minus, Equal } from "lucide-react";
 import { toast } from "sonner";
 import { productService, type IProduct } from "../../services/product.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -10,9 +12,9 @@ const C = {
 };
 
 const TYPES = [
-  { value: "increase" as const, label: "Increase", icon: Plus, color: "#10b981" },
-  { value: "decrease" as const, label: "Decrease", icon: Minus, color: "#ef4444" },
-  { value: "set" as const, label: "Set to", icon: Equal, color: "#3b82f6" },
+  { value: "increase" as const, labelKey: "stock.increase", icon: Plus, color: "#10b981" },
+  { value: "decrease" as const, labelKey: "stock.decrease", icon: Minus, color: "#ef4444" },
+  { value: "set" as const, labelKey: "stock.setTo", icon: Equal, color: "#3b82f6" },
 ];
 
 interface Props {
@@ -26,25 +28,27 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
   const [type, setType] = useState<"increase" | "decrease" | "set">("increase");
   const [quantity, setQuantity] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useTranslation();
+  const { num } = useFormat();
 
   if (!open || !product) return null;
 
   const handleSubmit = async () => {
     const qty = Number(quantity);
     if (!Number.isFinite(qty) || qty < 0) {
-      toast.error("Enter a valid quantity");
+      toast.error(t("stock.invalidQuantity"));
       return;
     }
     setSubmitting(true);
     try {
       const updated = await productService.adjustStock(product._id, type, qty);
-      toast.success("Stock updated");
+      toast.success(t("stock.updated"));
       onSuccess(updated);
       setQuantity("");
       onClose();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Failed to adjust stock";
+        ?.response?.data?.message ?? t("stock.failed");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -65,7 +69,7 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
           style={{ borderBottom: `1px solid ${C.border}` }}>
           <h2 className="text-base font-semibold"
             style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            Adjust Stock
+            {t("stock.adjust")}
           </h2>
           <button onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-lg"
@@ -78,12 +82,12 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
           <div className="flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ background: "var(--surface-2)" }}>
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>{product.name}</span>
             <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-              Current: {product.stock} {product.unit}
+              {t("stock.current", { stock: num(product.stock), unit: product.unit ?? "" })}
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            {TYPES.map(({ value, label, icon: Icon, color }) => {
+            {TYPES.map(({ value, labelKey, icon: Icon, color }) => {
               const active = type === value;
               return (
                 <button
@@ -98,7 +102,7 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
                   }}
                 >
                   <Icon size={15} />
-                  <span className="text-[11px] font-medium">{label}</span>
+                  <span className="text-[11px] font-medium">{t(labelKey)}</span>
                 </button>
               );
             })}
@@ -106,13 +110,13 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
 
           <div>
             <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
-              {type === "set" ? "New stock quantity" : "Quantity"}
+              {type === "set" ? t("stock.newQuantity") : t("stock.quantity")}
             </label>
             <input
               type="number" min="0"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              placeholder="0"
+              placeholder={t("common.zero")}
               style={{
                 width: "100%", background: C.input, border: `1px solid ${C.inputBorder}`,
                 borderRadius: "12px", padding: "10px 14px", color: "var(--text-primary)",
@@ -128,7 +132,7 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
-            Update Stock
+            {t("stock.update")}
           </button>
         </div>
       </div>

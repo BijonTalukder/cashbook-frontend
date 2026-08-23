@@ -5,20 +5,20 @@ import { toast } from "sonner";
 import { supplierService, type ISupplier } from "../../services/supplier.service";
 import { useBusinessStore } from "../../store/businessStore";
 import SupplierModal from "../../components/shared/SupplierModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
 const SuppliersPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money } = useFormat();
 
   const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,15 +41,15 @@ const SuppliersPage = () => {
       const data = await supplierService.getAll(activeBusiness._id, search || undefined);
       setSuppliers(data);
     } catch {
-      toast.error("Failed to load suppliers");
+      toast.error(t("supplier.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const t = setTimeout(load, 250);
-    return () => clearTimeout(t);
+    const timer = setTimeout(load, 250);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeBusiness?._id, search]);
 
@@ -58,14 +58,14 @@ const SuppliersPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            Suppliers
+            {t("supplier.title")}
           </h1>
           <button
             onClick={() => setModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
             style={{ background: "#10b981", color: "#022c22" }}
           >
-            <Plus size={15} /> Add Supplier
+            <Plus size={15} /> {t("supplier.add")}
           </button>
         </div>
 
@@ -74,7 +74,7 @@ const SuppliersPage = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or phone..."
+            placeholder={t("common.searchByNameOrPhone")}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
             style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-primary)" }}
           />
@@ -93,10 +93,10 @@ const SuppliersPage = () => {
                 <Truck size={20} style={{ color: "var(--text-faint)" }} />
               </div>
               <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                {search ? "No suppliers found" : "No suppliers yet"}
+                {search ? t("supplier.notFound") : t("supplier.empty")}
               </p>
               <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                {search ? "Try a different search" : "Add your first supplier to start tracking purchases & payables"}
+                {search ? t("common.tryDifferentSearch") : t("supplier.emptyHintFull")}
               </p>
             </div>
           ) : (
@@ -123,7 +123,7 @@ const SuppliersPage = () => {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-semibold" style={{ color: s.totalPayable > 0 ? "#ef4444" : "var(--text-faint)" }}>
-                    {s.totalPayable > 0 ? `${currencySymbol}${fmt(s.totalPayable)} payable` : "No payable"}
+                    {s.totalPayable > 0 ? t("supplier.totalPayable", { amount: money(s.totalPayable) }) : t("supplier.noPayable")}
                   </p>
                 </div>
                 <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />

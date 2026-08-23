@@ -50,6 +50,9 @@ import {
 } from "../../services/transaction.service";
 import mealService from "../../services/meal.service";
 import BusinessDashboardContent from "./BusinessDashboardContent";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -63,69 +66,53 @@ const C = {
 /* ─── Meta maps ───────────────────────────────────────── */
 const TYPE_META: Record<
   BusinessType,
-  { icon: any; accent: string; bg: string; border: string; label: string }
+  { icon: any; accent: string; bg: string; border: string; labelKey: string }
 > = {
   personal: {
     icon: User,
     accent: "#10b981",
     bg: "rgba(16,185,129,0.08)",
     border: "rgba(16,185,129,0.2)",
-    label: "Personal",
+    labelKey: "businessType.personal",
   },
   company: {
     icon: Building2,
     accent: "#3b82f6",
     bg: "rgba(59,130,246,0.08)",
     border: "rgba(59,130,246,0.2)",
-    label: "Company",
+    labelKey: "businessType.company",
   },
   mass: {
     icon: Home,
     accent: "#8b5cf6",
     bg: "rgba(139,92,246,0.08)",
     border: "rgba(139,92,246,0.2)",
-    label: "Mess",
+    labelKey: "businessType.mass",
   },
   business: {
     icon: Store,
     accent: "#f59e0b",
     bg: "rgba(245,158,11,0.08)",
     border: "rgba(245,158,11,0.2)",
-    label: "Business",
+    labelKey: "businessType.business",
   },
 };
 
 const ROLE_META: Record<
   MemberRole,
-  { icon: any; label: string; color: string }
+  { icon: any; labelKey: string; color: string }
 > = {
-  owner: { icon: Crown, label: "Owner", color: "#f59e0b" },
-  admin: { icon: ShieldCheck, label: "Admin", color: "#3b82f6" },
-  member: { icon: Users, label: "Member", color: "#10b981" },
-  viewer: { icon: Eye, label: "Viewer", color: "#64748b" },
+  owner: { icon: Crown, labelKey: "role.owner", color: "#f59e0b" },
+  admin: { icon: ShieldCheck, labelKey: "role.admin", color: "#3b82f6" },
+  member: { icon: Users, labelKey: "role.member", color: "#10b981" },
+  viewer: { icon: Eye, labelKey: "role.viewer", color: "#64748b" },
 };
-
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
-
-const MONTHS_BN = [
-  "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
-  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর",
-];
-
-/* ─── Helpers ─────────────────────────────────────────── */
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-const fmtBn = (n: number) => n.toLocaleString("bn-BD");
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short" });
 
 /* ─── Meal Dashboard Widget ───────────────────────────── */
 const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { num, monthName } = useFormat();
   const [data, setData] = useState<{ total: number; days: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -138,7 +125,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
     return () => { cancelled = true; };
   }, [businessId]);
 
-  const monthName = MONTHS_BN[new Date().getMonth()];
+  const currentMonth = monthName(new Date().getMonth(), "long");
   const avg = data?.days ? Math.round((data.total / data.days) * 10) / 10 : 0;
 
   return (
@@ -172,9 +159,9 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
             <UtensilsCrossed size={16} />
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>খাবার ট্র্যাকার</p>
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{t("mealWidget.title")}</p>
             <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-              {monthName} মাস
+              {t("mealWidget.monthLabel", { month: currentMonth })}
             </p>
           </div>
         </div>
@@ -183,7 +170,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
             className="text-xs px-2 py-0.5 rounded-full font-medium"
             style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}
           >
-            Mess
+            {t("mealWidget.tag")}
           </span>
           <ChevronRight
             size={14}
@@ -197,7 +184,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
       {loading ? (
         <div className="flex items-center gap-2 py-1">
           <Loader2 size={14} className="animate-spin" style={{ color: "#8b5cf6" }} />
-          <span className="text-xs" style={{ color: "var(--text-faint)" }}>লোড হচ্ছে...</span>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>{t("common.loading")}</span>
         </div>
       ) : (
         <div className="flex items-end gap-6">
@@ -207,10 +194,10 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
               className="text-3xl font-bold leading-none"
               style={{ color: "#8b5cf6", fontFamily: "'DM Serif Display', serif" }}
             >
-              {fmtBn(data?.total ?? 0)}
+              {num(data?.total ?? 0)}
             </p>
             <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
-              মোট খাবার
+              {t("mealWidget.totalMeals")}
             </p>
           </div>
 
@@ -218,18 +205,18 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
           <div className="mb-0.5">
             <p className="text-xl font-bold leading-none"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-              {fmtBn(data?.days ?? 0)}
+              {num(data?.days ?? 0)}
             </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>দিন</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{t("mealWidget.days")}</p>
           </div>
 
           {/* Avg */}
           <div className="mb-0.5">
             <p className="text-xl font-bold leading-none"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-              {fmtBn(avg)}
+              {num(avg, { maximumFractionDigits: 1 })}
             </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>গড়/দিন</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{t("mealWidget.avgPerDay")}</p>
           </div>
 
           {/* CTA */}
@@ -238,7 +225,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
               className="text-xs px-2.5 py-1.5 rounded-xl font-medium transition-all group-hover:scale-105"
               style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa" }}
             >
-              বিস্তারিত →
+              {t("mealWidget.details")}
             </div>
           </div>
         </div>
@@ -258,6 +245,7 @@ const BusinessCard = ({
   onSelect: (b: IBusiness) => void;
 }) => {
   const { business, role } = membership;
+  const { t } = useTranslation();
   const type = TYPE_META[business.type];
   const roleInfo = ROLE_META[role];
   const RoleIcon = roleInfo.icon;
@@ -293,7 +281,7 @@ const BusinessCard = ({
               className="text-xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide"
               style={{ background: `${type.accent}18`, color: type.accent }}
             >
-              Active
+              {t("dashboard.active")}
             </span>
           )}
           <div
@@ -305,7 +293,7 @@ const BusinessCard = ({
             }}
           >
             <RoleIcon size={9} />
-            {roleInfo.label}
+            {t(roleInfo.labelKey)}
           </div>
         </div>
       </div>
@@ -313,7 +301,7 @@ const BusinessCard = ({
         {business.name}
       </p>
       <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
-        {type.label}
+        {t(type.labelKey)}
       </p>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -322,7 +310,7 @@ const BusinessCard = ({
               className="flex items-center gap-1 text-xs"
               style={{ color: "#8b5cf6" }}
             >
-              <UtensilsCrossed size={10} /> Meals
+              <UtensilsCrossed size={10} /> {t("dashboard.meals")}
             </div>
           )}
           <span className="text-xs" style={{ color: "var(--text-faint)" }}>
@@ -340,7 +328,7 @@ const BusinessCard = ({
 };
 
 /* ─── Custom Tooltip ──────────────────────────────────── */
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, t, money }: any) => {
   if (!active || !payload?.length) return null;
   return (
     <div
@@ -356,7 +344,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       </p>
       {payload.map((p: any) => (
         <p key={p.name} className="text-xs font-semibold" style={{ color: p.color }}>
-          {p.name}: ৳{fmt(p.value)}
+          {t("dashboard.tooltipRow", { name: p.name, amount: money(p.value) })}
         </p>
       ))}
     </div>
@@ -376,6 +364,8 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { activeBusiness, setActiveBusiness } = useBusinessStore();
+  const { t } = useTranslation();
+  const { money, num, compact, date: fmtDate, monthName } = useFormat();
 
   const [memberships, setMemberships] = useState<IBusinessMembership[]>([]);
   const [loading, setLoading] = useState(true);
@@ -407,7 +397,7 @@ const DashboardPage = () => {
         setActiveBusiness(def.business);
       }
     } catch {
-      toast.error("Failed to load businesses");
+      toast.error(t("dashboard.loadBusinessesFailed"));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -427,7 +417,7 @@ const DashboardPage = () => {
 
       const chart = summaryRes.months.map(
         (m: { month: number; income: number; expense: number }) => ({
-          month: MONTHS[m.month - 1],
+          month: monthName(m.month - 1),
           income: m.income,
           expense: m.expense,
         }),
@@ -446,18 +436,18 @@ const DashboardPage = () => {
 
       setRecentTxns(recentRes.transactions.slice(0, 5));
     } catch {
-      toast.error("Failed to load business data");
+      toast.error(t("dashboard.loadDataFailed"));
     } finally {
       setDataLoading(false);
     }
-  }, [activeBusiness]);
+  }, [activeBusiness, monthName, t]);
 
   useEffect(() => { fetchBusinesses(); }, []);
   useEffect(() => { fetchBusinessData(); }, [fetchBusinessData]);
 
   const handleSelect = (b: IBusiness) => {
     setActiveBusiness(b);
-    toast.success(`Switched to ${b.name}`);
+    toast.success(t("business.switched", { name: b.name }));
   };
 
   const owned = memberships.filter((m) => m.role === "owner");
@@ -465,7 +455,11 @@ const DashboardPage = () => {
 
   const greeting = (() => {
     const h = new Date().getHours();
-    return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    return h < 12
+      ? t("dashboard.goodMorning")
+      : h < 17
+        ? t("dashboard.goodAfternoon")
+        : t("dashboard.goodEvening");
   })();
 
   const TXN_TYPE_META = {
@@ -508,36 +502,40 @@ const DashboardPage = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             {
-              label: "Businesses",
-              value: String(memberships.length),
+              key: "businesses",
+              label: t("dashboard.businesses"),
+              value: num(memberships.length),
               icon: Building2,
               color: "#10b981",
-              sub: `${owned.length} owned`,
+              sub: t("dashboard.ownedCount", { count: num(owned.length) }),
             },
             {
-              label: "Members",
-              value: String(joined.length),
+              key: "members",
+              label: t("nav.members"),
+              value: num(joined.length),
               icon: Users,
               color: "#3b82f6",
-              sub: "joined via invite",
+              sub: t("dashboard.membersJoined"),
             },
             {
-              label: "Income",
-              value: monthSummary ? `৳${fmt(monthSummary.income)}` : "৳0",
+              key: "income",
+              label: t("txn.income"),
+              value: money(monthSummary?.income ?? 0),
               icon: ArrowUpRight,
               color: "#10b981",
-              sub: "this month",
+              sub: t("dashboard.thisMonth"),
             },
             {
-              label: "Expense",
-              value: monthSummary ? `৳${fmt(monthSummary.expense)}` : "৳0",
+              key: "expense",
+              label: t("txn.expense"),
+              value: money(monthSummary?.expense ?? 0),
               icon: ArrowDownRight,
               color: "#ef4444",
-              sub: "this month",
+              sub: t("dashboard.thisMonth"),
             },
-          ].map(({ label, value, icon: Icon, color, sub }) => (
+          ].map(({ key, label, value, icon: Icon, color, sub }) => (
             <div
-              key={label}
+              key={key}
               className="rounded-2xl p-4"
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
@@ -550,7 +548,7 @@ const DashboardPage = () => {
                   <Icon size={13} />
                 </div>
               </div>
-              {dataLoading && (label === "Income" || label === "Expense") ? (
+              {dataLoading && (key === "income" || key === "expense") ? (
                 <div
                   className="h-6 w-16 rounded animate-pulse"
                   style={{ background: "var(--surface-4)" }}
@@ -585,10 +583,10 @@ const DashboardPage = () => {
                   className="text-base font-bold"
                   style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
                 >
-                  {new Date().getFullYear()} Overview
+                  {t("dashboard.yearOverview", { year: num(new Date().getFullYear(), { useGrouping: false }) })}
                 </h2>
                 <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                  {activeBusiness.name} · monthly income vs expense
+                  {t("dashboard.chartSubtitle", { business: activeBusiness.name })}
                 </p>
               </div>
               <div
@@ -602,13 +600,13 @@ const DashboardPage = () => {
                   <button
                     key={mode}
                     onClick={() => setChartMode(mode)}
-                    className="px-3 py-1 rounded-lg text-xs font-medium capitalize transition-all"
+                    className="px-3 py-1 rounded-lg text-xs font-medium transition-all"
                     style={{
                       background: chartMode === mode ? "rgba(16,185,129,0.15)" : "transparent",
                       color: chartMode === mode ? "#10b981" : "var(--text-faint)",
                     }}
                   >
-                    {mode}
+                    {mode === "area" ? t("dashboard.chartArea") : t("dashboard.chartBar")}
                   </button>
                 ))}
               </div>
@@ -626,7 +624,7 @@ const DashboardPage = () => {
                 >
                   <TrendingUp size={18} style={{ color: "var(--text-faint)" }} />
                 </div>
-                <p className="text-xs" style={{ color: "var(--text-faint)" }}>No transaction data yet</p>
+                <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("dashboard.noChartData")}</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={210}>
@@ -645,20 +643,20 @@ const DashboardPage = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
                     <XAxis dataKey="month" tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false}
-                      tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={2} fill="url(#incomeGrad)" dot={false} activeDot={{ r: 4, fill: "#10b981" }} />
-                    <Area type="monotone" dataKey="expense" name="Expense" stroke="#ef4444" strokeWidth={2} fill="url(#expenseGrad)" dot={false} activeDot={{ r: 4, fill: "#ef4444" }} />
+                      tickFormatter={(v) => compact(v)} />
+                    <Tooltip content={<CustomTooltip t={t} money={money} />} />
+                    <Area type="monotone" dataKey="income" name={t("txn.income")} stroke="#10b981" strokeWidth={2} fill="url(#incomeGrad)" dot={false} activeDot={{ r: 4, fill: "#10b981" }} />
+                    <Area type="monotone" dataKey="expense" name={t("txn.expense")} stroke="#ef4444" strokeWidth={2} fill="url(#expenseGrad)" dot={false} activeDot={{ r: 4, fill: "#ef4444" }} />
                   </AreaChart>
                 ) : (
                   <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }} barGap={4}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
                     <XAxis dataKey="month" tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false}
-                      tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
-                    <Bar dataKey="expense" name="Expense" fill="#ef4444" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
+                      tickFormatter={(v) => compact(v)} />
+                    <Tooltip content={<CustomTooltip t={t} money={money} />} />
+                    <Bar dataKey="income" name={t("txn.income")} fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
+                    <Bar dataKey="expense" name={t("txn.expense")} fill="#ef4444" radius={[4, 4, 0, 0]} fillOpacity={0.85} maxBarSize={20} />
                   </BarChart>
                 )}
               </ResponsiveContainer>
@@ -666,10 +664,10 @@ const DashboardPage = () => {
 
             <div className="flex items-center gap-5 mt-3 justify-center">
               {[
-                { color: "#10b981", label: "Income" },
-                { color: "#ef4444", label: "Expense" },
-              ].map(({ color, label }) => (
-                <div key={label} className="flex items-center gap-1.5">
+                { key: "income", color: "#10b981", label: t("txn.income") },
+                { key: "expense", color: "#ef4444", label: t("txn.expense") },
+              ].map(({ key, color, label }) => (
+                <div key={key} className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
                   <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
                 </div>
@@ -693,7 +691,7 @@ const DashboardPage = () => {
                 <div className="flex items-center gap-2">
                   <Clock size={13} style={{ color: "var(--text-faint)" }} />
                   <span className="text-xs font-medium" style={{ color: "var(--text-faint)" }}>
-                    Recent Transactions
+                    {t("dashboard.recentTransactions")}
                   </span>
                 </div>
                 <button
@@ -701,7 +699,7 @@ const DashboardPage = () => {
                   className="text-xs flex items-center gap-1 transition-all"
                   style={{ color: "#10b981" }}
                 >
-                  View all <ArrowRight size={11} />
+                  {t("common.viewAll")} <ArrowRight size={11} />
                 </button>
               </div>
 
@@ -720,7 +718,7 @@ const DashboardPage = () => {
                   >
                     <ArrowLeftRight size={16} style={{ color: "var(--text-faint)" }} />
                   </div>
-                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>No transactions yet</p>
+                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("dashboard.noTransactions")}</p>
                 </div>
               ) : (
                 recentTxns.map((txn) => {
@@ -742,17 +740,17 @@ const DashboardPage = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                          {txn.category?.name ?? "Uncategorized"}
+                          {txn.category?.name ?? t("product.uncategorized")}
                           {txn.category?.icon && (
                             <span className="ml-1">{txn.category.icon}</span>
                           )}
                         </p>
                         <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                          {fmtDate(txn.date)} · {txn.member?.firstName}
+                          {fmtDate(txn.date, "short")} · {txn.member?.firstName}
                         </p>
                       </div>
                       <p className="text-sm font-semibold flex-shrink-0" style={{ color: meta.color }}>
-                        {meta.sign}৳{fmt(txn.amount)}
+                        {money(txn.type === "expense" ? -txn.amount : txn.amount, { signed: txn.type === "income" })}
                       </p>
                     </div>
                   );
@@ -777,7 +775,7 @@ const DashboardPage = () => {
                   style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.6), transparent)" }}
                 />
                 <p className="text-xs mb-1" style={{ color: "rgba(16,185,129,0.7)" }}>
-                  This month's balance
+                  {t("dashboard.monthBalance")}
                 </p>
                 <p
                   className="text-3xl font-bold mb-3"
@@ -786,19 +784,19 @@ const DashboardPage = () => {
                     color: monthSummary.balance >= 0 ? "#10b981" : "#ef4444",
                   }}
                 >
-                  {monthSummary.balance < 0 ? "-" : ""}৳{fmt(Math.abs(monthSummary.balance))}
+                  {money(monthSummary.balance)}
                 </p>
                 <div className="flex gap-4">
                   <div>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>In</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t("dashboard.in")}</p>
                     <p className="text-xs font-semibold" style={{ color: "#10b981" }}>
-                      ৳{fmt(monthSummary.income)}
+                      {money(monthSummary.income)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>Out</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t("dashboard.out")}</p>
                     <p className="text-xs font-semibold" style={{ color: "#ef4444" }}>
-                      ৳{fmt(monthSummary.expense)}
+                      {money(monthSummary.expense)}
                     </p>
                   </div>
                 </div>
@@ -812,20 +810,20 @@ const DashboardPage = () => {
                 style={{ background: C.card, border: `1px solid ${C.border}` }}
               >
                 <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>
-                  Quick actions
+                  {t("dashboard.quickActions")}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { label: "Income", icon: TrendingUp, color: "#10b981", to: "/transactions?type=income" },
-                    { label: "Expense", icon: TrendingDown, color: "#ef4444", to: "/transactions?type=expense" },
-                    { label: "Members", icon: Users, color: "#3b82f6", to: "/members" },
+                    { label: t("txn.income"), icon: TrendingUp, color: "#10b981", to: "/transactions?type=income" },
+                    { label: t("txn.expense"), icon: TrendingDown, color: "#ef4444", to: "/transactions?type=expense" },
+                    { label: t("nav.members"), icon: Users, color: "#3b82f6", to: "/members" },
                     ...(isMass
-                      ? [{ label: "Meals", icon: UtensilsCrossed, color: "#8b5cf6", to: "/meals" }]
-                      : [{ label: "Transactions", icon: Wallet, color: "#f59e0b", to: "/transactions" }]
+                      ? [{ label: t("nav.meals"), icon: UtensilsCrossed, color: "#8b5cf6", to: "/meals" }]
+                      : [{ label: t("nav.transactions"), icon: Wallet, color: "#f59e0b", to: "/transactions" }]
                     ),
                   ].map(({ label, icon: Icon, color, to }) => (
                     <button
-                      key={label}
+                      key={to}
                       onClick={() => navigate(to)}
                       className="flex flex-col items-center gap-1.5 p-3 rounded-xl active:scale-95 transition-all group"
                       style={{ border: `1px solid ${C.borderLight}` }}
@@ -858,7 +856,7 @@ const DashboardPage = () => {
               className="text-base font-bold"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
-              My Businesses
+              {t("dashboard.myBusinesses")}
             </h2>
             <button
               onClick={() => navigate("/business/new")}
@@ -869,7 +867,7 @@ const DashboardPage = () => {
                 color: "#10b981",
               }}
             >
-              <Plus size={12} /> New
+              <Plus size={12} /> {t("dashboard.newShort")}
             </button>
           </div>
 
@@ -883,14 +881,14 @@ const DashboardPage = () => {
               style={{ background: C.card, border: `1px dashed ${C.border}` }}
             >
               <Building2 size={20} className="mx-auto mb-3" style={{ color: "var(--text-faint)" }} />
-              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>No businesses yet</p>
-              <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>Set one up to get started</p>
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>{t("dashboard.noBusinesses")}</p>
+              <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>{t("dashboard.noBusinessesHint")}</p>
               <button
                 onClick={() => navigate("/onboarding")}
                 className="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold active:scale-95 transition-all"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
-                Set up business <ArrowRight size={14} />
+                {t("dashboard.setUpBusiness")} <ArrowRight size={14} />
               </button>
             </div>
           ) : (
@@ -901,7 +899,7 @@ const DashboardPage = () => {
                     className="flex items-center gap-1.5 text-xs uppercase tracking-wider mb-3"
                     style={{ color: "var(--text-faint)" }}
                   >
-                    <Crown size={10} style={{ color: "#d97706" }} /> Owned by me
+                    <Crown size={10} style={{ color: "#d97706" }} /> {t("dashboard.ownedByMe")}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {owned.map((m) => (
@@ -921,7 +919,7 @@ const DashboardPage = () => {
                     className="flex items-center gap-1.5 text-xs uppercase tracking-wider mb-3"
                     style={{ color: "var(--text-faint)" }}
                   >
-                    <Users size={10} style={{ color: "#60a5fa" }} /> Joined via invite
+                    <Users size={10} style={{ color: "#60a5fa" }} /> {t("dashboard.joinedViaInvite")}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {joined.map((m) => (

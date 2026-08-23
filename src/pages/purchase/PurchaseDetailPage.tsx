@@ -4,37 +4,35 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseService, type IPurchase } from "../../services/purchase.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { paymentMethodLabel } from "../../i18n/labels";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });
-
-const STATUS_META: Record<string, { label: string; color: string }> = {
-  paid: { label: "Paid", color: "#10b981" },
-  partial: { label: "Partial", color: "#f59e0b" },
-  due: { label: "Due", color: "#ef4444" },
+const STATUS_META: Record<string, { labelKey: string; color: string }> = {
+  paid: { labelKey: "docStatus.paid", color: "#10b981" },
+  partial: { labelKey: "docStatus.partial", color: "#f59e0b" },
+  due: { labelKey: "docStatus.due", color: "#ef4444" },
 };
 
 const PurchaseDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money, num, date: fmtDate } = useFormat();
 
   const [purchase, setPurchase] = useState<IPurchase | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
-    purchaseService.getOne(id).then(setPurchase).catch(() => toast.error("Failed to load purchase")).finally(() => setLoading(false));
-  }, [id]);
+    purchaseService.getOne(id).then(setPurchase).catch(() => toast.error(t("purchase.loadOneFailed"))).finally(() => setLoading(false));
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -47,7 +45,7 @@ const PurchaseDetailPage = () => {
   if (!purchase) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
-        <p className="text-sm" style={{ color: "var(--text-faint)" }}>Purchase not found</p>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>{t("purchase.notFound")}</p>
       </div>
     );
   }
@@ -58,7 +56,7 @@ const PurchaseDetailPage = () => {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-2xl mx-auto space-y-5">
         <button onClick={() => navigate("/purchases")} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-faint)" }}>
-          <ArrowLeft size={13} /> Back to Purchases
+          <ArrowLeft size={13} /> {t("purchase.backToPurchases")}
         </button>
 
         <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
@@ -68,14 +66,17 @@ const PurchaseDetailPage = () => {
                 {purchase.referenceNumber}
               </h1>
               <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
-                {fmtDate(purchase.date)} · {purchase.supplier ? purchase.supplier.name : "No supplier"}
+                {t("purchase.dateAndSupplier", {
+                  date: fmtDate(purchase.date),
+                  supplier: purchase.supplier ? purchase.supplier.name : t("purchase.noSupplier"),
+                })}
               </p>
             </div>
             <span
               className="text-xs font-semibold px-2.5 py-1 rounded-full"
               style={{ background: `${meta.color}15`, color: meta.color }}
             >
-              {meta.label}
+              {t(meta.labelKey)}
             </span>
           </div>
 
@@ -89,37 +90,39 @@ const PurchaseDetailPage = () => {
                 <div>
                   <p style={{ color: "var(--text-primary)" }}>{item.productName}</p>
                   <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                    {item.quantity} × {currencySymbol}{fmt(item.unitPrice)}
+                    {t("sale.lineQty", { quantity: num(item.quantity), price: money(item.unitPrice) })}
                   </p>
                 </div>
-                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{currencySymbol}{fmt(item.lineTotal)}</p>
+                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{money(item.lineTotal)}</p>
               </div>
             ))}
           </div>
 
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>Subtotal</span>
-              <span style={{ color: "var(--text-primary)" }}>{currencySymbol}{fmt(purchase.subtotal)}</span>
+              <span style={{ color: "var(--text-muted)" }}>{t("common.subtotal")}</span>
+              <span style={{ color: "var(--text-primary)" }}>{money(purchase.subtotal)}</span>
             </div>
             {purchase.discount > 0 && (
               <div className="flex justify-between">
-                <span style={{ color: "var(--text-muted)" }}>Discount</span>
-                <span style={{ color: "var(--text-primary)" }}>-{currencySymbol}{fmt(purchase.discount)}</span>
+                <span style={{ color: "var(--text-muted)" }}>{t("common.discount")}</span>
+                <span style={{ color: "var(--text-primary)" }}>{money(-purchase.discount)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold pt-1.5" style={{ borderTop: `1px solid ${C.border}` }}>
-              <span style={{ color: "var(--text-primary)" }}>Total</span>
-              <span style={{ color: "var(--text-primary)" }}>{currencySymbol}{fmt(purchase.total)}</span>
+              <span style={{ color: "var(--text-primary)" }}>{t("common.total")}</span>
+              <span style={{ color: "var(--text-primary)" }}>{money(purchase.total)}</span>
             </div>
             <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>Paid ({purchase.paymentMethod})</span>
-              <span style={{ color: "#10b981" }}>{currencySymbol}{fmt(purchase.paidAmount)}</span>
+              <span style={{ color: "var(--text-muted)" }}>
+                {t("sale.paidWithMethod", { method: paymentMethodLabel(t, purchase.paymentMethod) })}
+              </span>
+              <span style={{ color: "#10b981" }}>{money(purchase.paidAmount)}</span>
             </div>
             {purchase.dueAmount > 0 && (
               <div className="flex justify-between font-semibold">
-                <span style={{ color: "#ef4444" }}>Payable</span>
-                <span style={{ color: "#ef4444" }}>{currencySymbol}{fmt(purchase.dueAmount)}</span>
+                <span style={{ color: "#ef4444" }}>{t("purchase.payable")}</span>
+                <span style={{ color: "#ef4444" }}>{money(purchase.dueAmount)}</span>
               </div>
             )}
           </div>

@@ -10,23 +10,20 @@ import type { ITransaction } from "../../services/transaction.service";
 import { useBusinessStore } from "../../store/businessStore";
 import SupplierModal from "../../components/shared/SupplierModal";
 import PaymentModal from "../../components/shared/PaymentModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });
-
 const SupplierDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money, date: fmtDate } = useFormat();
 
   const [supplier, setSupplier] = useState<ISupplier | null>(null);
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
@@ -42,7 +39,7 @@ const SupplierDetailPage = () => {
       setSupplier(data.supplier);
       setTransactions(data.transactions);
     } catch {
-      toast.error("Failed to load supplier");
+      toast.error(t("supplier.loadOneFailed"));
     } finally {
       setLoading(false);
     }
@@ -52,13 +49,13 @@ const SupplierDetailPage = () => {
 
   const handleDelete = async () => {
     if (!supplier) return;
-    if (!confirm(`Remove ${supplier.name}? This won't delete their transaction history.`)) return;
+    if (!confirm(t("supplier.confirmRemove", { name: supplier.name }))) return;
     try {
       await supplierService.remove(supplier._id);
-      toast.success("Supplier removed");
+      toast.success(t("supplier.removed"));
       navigate("/suppliers");
     } catch {
-      toast.error("Failed to remove supplier");
+      toast.error(t("supplier.removeFailed"));
     }
   };
 
@@ -73,15 +70,15 @@ const SupplierDetailPage = () => {
   if (!supplier) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
-        <p className="text-sm" style={{ color: "var(--text-faint)" }}>Supplier not found</p>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>{t("supplier.notFoundOne")}</p>
       </div>
     );
   }
 
   const stats = [
-    { label: "Total Purchases", value: supplier.totalPurchases, color: "#3b82f6" },
-    { label: "Total Paid", value: supplier.totalPaid, color: "#10b981" },
-    { label: "Total Payable", value: supplier.totalPayable, color: supplier.totalPayable > 0 ? "#ef4444" : "var(--text-faint)" },
+    { key: "purchases", label: t("supplier.totalPurchases"), value: supplier.totalPurchases, color: "#3b82f6" },
+    { key: "paid", label: t("supplier.totalPaid"), value: supplier.totalPaid, color: "#10b981" },
+    { key: "payable", label: t("supplier.totalPayableLabel"), value: supplier.totalPayable, color: supplier.totalPayable > 0 ? "#ef4444" : "var(--text-faint)" },
   ];
 
   return (
@@ -92,7 +89,7 @@ const SupplierDetailPage = () => {
           className="flex items-center gap-1.5 text-xs"
           style={{ color: "var(--text-faint)" }}
         >
-          <ArrowLeft size={13} /> Back to Suppliers
+          <ArrowLeft size={13} /> {t("supplier.backToSuppliers")}
         </button>
 
         {/* Header */}
@@ -154,11 +151,11 @@ const SupplierDetailPage = () => {
           )}
 
           <div className="grid grid-cols-3 gap-3 mb-4">
-            {stats.map(({ label, value, color }) => (
-              <div key={label} className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
+            {stats.map(({ key, label, value, color }) => (
+              <div key={key} className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
                 <p className="text-[10px] mb-1" style={{ color: "var(--text-faint)" }}>{label}</p>
                 <p className="text-sm font-bold" style={{ color, fontFamily: "'DM Serif Display', serif" }}>
-                  {currencySymbol}{fmt(value)}
+                  {money(value)}
                 </p>
               </div>
             ))}
@@ -170,7 +167,7 @@ const SupplierDetailPage = () => {
               className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
               style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
             >
-              <ArrowUpCircle size={15} /> Make Payment
+              <ArrowUpCircle size={15} /> {t("payment.make")}
             </button>
           )}
         </div>
@@ -180,7 +177,7 @@ const SupplierDetailPage = () => {
           <div className="flex items-center gap-2 px-5 py-3.5" style={{ borderBottom: `1px solid ${C.border}` }}>
             <Clock size={13} style={{ color: "var(--text-faint)" }} />
             <span className="text-xs font-medium" style={{ color: "var(--text-faint)" }}>
-              Purchase &amp; Payment History
+              {t("supplier.history")}
             </span>
           </div>
           {transactions.length === 0 ? (
@@ -188,7 +185,7 @@ const SupplierDetailPage = () => {
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
                 <ArrowLeftRight size={16} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>No purchases or payments yet</p>
+              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("supplier.noHistory")}</p>
             </div>
           ) : (
             transactions.map((txn) => (
@@ -199,7 +196,7 @@ const SupplierDetailPage = () => {
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {txn.category?.name ?? "Uncategorized"}
+                    {txn.category?.name ?? t("product.uncategorized")}
                   </p>
                   <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{fmtDate(txn.date)}</p>
                 </div>
@@ -207,7 +204,7 @@ const SupplierDetailPage = () => {
                   className="text-sm font-semibold flex-shrink-0"
                   style={{ color: txn.type === "income" ? "#10b981" : "#ef4444" }}
                 >
-                  {txn.type === "income" ? "+" : "-"}{currencySymbol}{fmt(txn.amount)}
+                  {money(txn.type === "income" ? txn.amount : -txn.amount, { signed: true })}
                 </p>
               </div>
             ))

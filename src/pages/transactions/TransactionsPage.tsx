@@ -16,6 +16,9 @@ import {
 } from "../../services/transaction.service";
 import TxnModal from "../../components/shared/TxnModal";
 import SettleModal from "../../components/shared/SettleModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { plural } from "../../i18n/labels";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -25,14 +28,6 @@ const C = {
 };
 
 /* ─── Helpers ─────────────────────────────────────────── */
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", {
-    day: "2-digit", month: "short", year: "numeric",
-  });
-
 const TYPE_META = {
   income: { color: "#10b981", bg: "rgba(16,185,129,0.1)", icon: TrendingUp, sign: "+" },
   expense: { color: "#ef4444", bg: "rgba(239,68,68,0.1)", icon: TrendingDown, sign: "-" },
@@ -40,10 +35,10 @@ const TYPE_META = {
 };
 
 const SETTLE_META = {
-  not_applicable: { color: "var(--text-faint)", icon: null, label: "" },
-  pending: { color: "#f59e0b", icon: Clock, label: "Pending" },
-  partial: { color: "#3b82f6", icon: AlertCircle, label: "Partial" },
-  settled: { color: "#10b981", icon: CheckCircle2, label: "Settled" },
+  not_applicable: { color: "var(--text-faint)", icon: null, labelKey: "" },
+  pending: { color: "#f59e0b", icon: Clock, labelKey: "settle.status.pending" },
+  partial: { color: "#3b82f6", icon: AlertCircle, labelKey: "settle.status.partial" },
+  settled: { color: "#10b981", icon: CheckCircle2, labelKey: "settle.status.settled" },
 };
 
 /* ─── Transaction Row ─────────────────────────────────── */
@@ -57,6 +52,8 @@ const TxnRow = ({
   isMass?: boolean;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useTranslation();
+  const { money, date: fmtDate } = useFormat();
   const meta = TYPE_META[txn.type];
   const settle = SETTLE_META[txn.settlementStatus];
   const SettleIcon = settle.icon;
@@ -81,7 +78,7 @@ const TxnRow = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-            {txn.category?.name ?? "Uncategorized"}
+            {txn.category?.name ?? t("product.uncategorized")}
             {txn.category?.icon && <span className="ml-1">{txn.category.icon}</span>}
           </p>
           {/* Settlement badge */}
@@ -95,7 +92,7 @@ const TxnRow = ({
               }}
             >
               <SettleIcon size={10} />
-              <span className="text-xs font-semibold">{settle.label}</span>
+              <span className="text-xs font-semibold">{settle.labelKey ? t(settle.labelKey) : ""}</span>
             </div>
           )}
         </div>
@@ -113,7 +110,7 @@ const TxnRow = ({
             <>
               <span style={{ color: "var(--text-faint)" }}>·</span>
               <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                → {txn.toMember.firstName}
+                {t("transactions.toMember", { name: txn.toMember.firstName })}
               </span>
             </>
           )}
@@ -138,11 +135,11 @@ const TxnRow = ({
       {/* Amount */}
       <div className="text-right flex-shrink-0 min-w-[80px]">
         <p className="text-sm font-semibold" style={{ color: meta.color }}>
-          {meta.sign}৳{fmt(txn.amount)}
+          {money(txn.type === "expense" ? -txn.amount : txn.amount, { signed: txn.type === "income" })}
         </p>
         {txn.settlementStatus === "partial" && (
           <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-            ৳{fmt(txn.settledAmount)} paid
+            {t("transactions.partialPaid", { amount: money(txn.settledAmount) })}
           </p>
         )}
       </div>
@@ -177,7 +174,7 @@ const TxnRow = ({
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(16,185,129,0.08)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
-                  <HandCoins size={13} /> Settle
+                  <HandCoins size={13} /> {t("transactions.settle")}
                 </button>
               )}
               {txn.settlementStatus === "settled" && (
@@ -188,7 +185,7 @@ const TxnRow = ({
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-2)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
-                  <CheckCircle2 size={13} /> View Settlement
+                  <CheckCircle2 size={13} /> {t("transactions.viewSettlement")}
                 </button>
               )}
               <button
@@ -198,7 +195,7 @@ const TxnRow = ({
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-3)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
-                <Pencil size={13} /> Edit
+                <Pencil size={13} /> {t("common.edit")}
               </button>
               <button
                 onClick={() => { onDelete(txn); setMenuOpen(false); }}
@@ -207,7 +204,7 @@ const TxnRow = ({
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
               >
-                <Trash2 size={13} /> Delete
+                <Trash2 size={13} /> {t("common.delete")}
               </button>
             </div>
           </>
@@ -221,6 +218,8 @@ const TxnRow = ({
 const TransactionsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
+  const { t } = useTranslation();
+  const { money, num } = useFormat();
   const isMass = activeBusiness?.type === "mass";
 
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
@@ -249,19 +248,19 @@ const TransactionsPage = () => {
       setTotalPages(result.pagination.totalPages);
       setTotal(result.pagination.total);
     } catch {
-      toast.error("Failed to load transactions");
+      toast.error(t("transactions.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [activeBusiness, typeFilter]);
+  }, [activeBusiness, typeFilter, t]);
 
   useEffect(() => { fetchTxns(1); setPage(1); }, [fetchTxns]);
 
   // Handle ?type= from quick actions / dashboard
   useEffect(() => {
-    const t = searchParams.get("type") as TxnType | null;
-    if (t && ["income", "expense", "transfer"].includes(t)) {
-      setDefaultType(t);
+    const paramType = searchParams.get("type") as TxnType | null;
+    if (paramType && ["income", "expense", "transfer"].includes(paramType)) {
+      setDefaultType(paramType);
       setModalOpen(true);
       setSearchParams({});
     }
@@ -288,9 +287,9 @@ const TransactionsPage = () => {
     try {
       await transactionService.delete(deleting._id);
       setTransactions((prev) => prev.filter((t) => t._id !== deleting._id));
-      toast.success("Deleted");
+      toast.success(t("transactions.deleted"));
     } catch {
-      toast.error("Delete failed");
+      toast.error(t("transactions.deleteFailed"));
     } finally {
       setDeleting(null);
     }
@@ -307,12 +306,15 @@ const TransactionsPage = () => {
               className="text-2xl font-bold"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
-              Transactions
+              {t("transactions.title")}
             </h1>
             {activeBusiness && (
               <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                {activeBusiness.name} · {total} {isMass ? "এন্ট্রি" : "entries"}
-                {isMass && <span style={{ color: "#8b5cf6" }}> · Mess</span>}
+                {plural(t, "transactions.subtitle", total, {
+                  business: activeBusiness.name,
+                  count: num(total),
+                })}
+                {isMass && <span style={{ color: "#8b5cf6" }}>{t("transactions.messTag")}</span>}
               </p>
             )}
           </div>
@@ -329,21 +331,21 @@ const TransactionsPage = () => {
               className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium active:scale-95"
               style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981" }}
             >
-              <TrendingUp size={13} /> Income
+              <TrendingUp size={13} /> {t("txn.income")}
             </button>
             <button
               onClick={() => openAdd("expense")}
               className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium active:scale-95"
               style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}
             >
-              <TrendingDown size={13} /> Expense
+              <TrendingDown size={13} /> {t("txn.expense")}
             </button>
             <button
               onClick={() => openAdd("expense")}
               className="sm:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium"
               style={{ background: "#10b981", color: "#022c22" }}
             >
-              <Plus size={14} /> Add
+              <Plus size={14} /> {t("common.add")}
             </button>
           </div>
         </div>
@@ -352,16 +354,17 @@ const TransactionsPage = () => {
         {summary && (
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: "Income", value: summary.totalIncome, color: "#10b981", icon: ArrowUpRight },
-              { label: "Expense", value: summary.totalExpense, color: "#ef4444", icon: ArrowDownRight },
+              { key: "income", label: t("txn.income"), value: summary.totalIncome, color: "#10b981", icon: ArrowUpRight },
+              { key: "expense", label: t("txn.expense"), value: summary.totalExpense, color: "#ef4444", icon: ArrowDownRight },
               {
-                label: "Balance",
+                key: "balance",
+                label: t("common.balance"),
                 value: summary.balance,
                 color: summary.balance >= 0 ? "#10b981" : "#ef4444",
                 icon: summary.balance >= 0 ? ArrowUpRight : ArrowDownRight,
               },
-            ].map(({ label, value, color, icon: Icon }) => (
-              <div key={label} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+            ].map(({ key, label, value, color, icon: Icon }) => (
+              <div key={key} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
                   <div
@@ -375,7 +378,7 @@ const TransactionsPage = () => {
                   className="text-lg font-bold"
                   style={{ fontFamily: "'DM Serif Display', serif", color }}
                 >
-                  ৳{fmt(Math.abs(value))}
+                  {money(Math.abs(value))}
                 </p>
               </div>
             ))}
@@ -385,10 +388,10 @@ const TransactionsPage = () => {
         {/* ── Type filter pills ────────────────────────── */}
         <div className="flex items-center gap-2 flex-wrap">
           {[
-            { label: "All", value: "" },
-            { label: "Income", value: "income" },
-            { label: "Expense", value: "expense" },
-            { label: "Transfer", value: "transfer" },
+            { label: t("transactions.filterAll"), value: "" },
+            { label: t("txn.income"), value: "income" },
+            { label: t("txn.expense"), value: "expense" },
+            { label: t("txn.transfer"), value: "transfer" },
           ].map(({ label, value }) => {
             const isActive = typeFilter === value;
             const color = value ? TYPE_META[value as TxnType]?.color : "#10b981";
@@ -421,7 +424,7 @@ const TransactionsPage = () => {
           ) : !activeBusiness ? (
             <div className="text-center py-16">
               <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-                Select a business to view transactions
+                {t("transactions.selectBusiness")}
               </p>
             </div>
           ) : transactions.length === 0 ? (
@@ -432,9 +435,9 @@ const TransactionsPage = () => {
               >
                 <ArrowLeftRight size={20} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>No transactions yet</p>
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>{t("transactions.empty")}</p>
               <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
-                Add your first income or expense
+                {t("transactions.emptyHint")}
               </p>
               <div className="flex items-center justify-center gap-2">
                 <button
@@ -442,14 +445,14 @@ const TransactionsPage = () => {
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
                   style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#10b981" }}
                 >
-                  <TrendingUp size={13} /> {isMass ? "Add Deposit" : "Add Income"}
+                  <TrendingUp size={13} /> {isMass ? t("txn.addDeposit") : t("transactions.addIncome")}
                 </button>
                 <button
                   onClick={() => openAdd("expense")}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
                   style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444" }}
                 >
-                  <TrendingDown size={13} /> {isMass ? "Add Cost" : "Add Expense"}
+                  <TrendingDown size={13} /> {isMass ? t("txn.addCost") : t("transactions.addExpense")}
                 </button>
               </div>
             </div>
@@ -478,10 +481,10 @@ const TransactionsPage = () => {
                     className="px-4 py-2 rounded-xl text-xs disabled:opacity-40"
                     style={{ background: "var(--surface-2)", border: `1px solid ${C.border}`, color: "var(--text-secondary)" }}
                   >
-                    Previous
+                    {t("common.previous")}
                   </button>
                   <span className="text-xs" style={{ color: "var(--text-faint)" }}>
-                    {page} / {totalPages}
+                    {t("transactions.pageOf", { page: num(page), total: num(totalPages) })}
                   </span>
                   <button
                     onClick={() => { const p = page + 1; setPage(p); fetchTxns(p); }}
@@ -489,7 +492,7 @@ const TransactionsPage = () => {
                     className="px-4 py-2 rounded-xl text-xs disabled:opacity-40"
                     style={{ background: "var(--surface-2)", border: `1px solid ${C.border}`, color: "var(--text-secondary)" }}
                   >
-                    Next
+                    {t("common.next")}
                   </button>
                 </div>
               )}
@@ -552,9 +555,12 @@ const TransactionsPage = () => {
             >
               <Trash2 size={18} style={{ color: "#ef4444" }} />
             </div>
-            <p className="text-center font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Delete transaction?</p>
+            <p className="text-center font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{t("transactions.deleteQuestion")}</p>
             <p className="text-xs text-center mb-5" style={{ color: "var(--text-faint)" }}>
-              ৳{fmt(deleting.amount)} · {deleting.category?.name}
+              {t("transactions.deleteSummary", {
+                amount: money(deleting.amount),
+                category: deleting.category?.name ?? "",
+              })}
             </p>
             <div className="flex gap-3">
               <button
@@ -562,14 +568,14 @@ const TransactionsPage = () => {
                 className="flex-1 py-2.5 rounded-xl text-sm"
                 style={{ background: "var(--surface-3)", border: `1px solid ${C.border}`, color: "var(--text-secondary)" }}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
                 style={{ background: "#ef4444", color: "#fff" }}
               >
-                Delete
+                {t("common.delete")}
               </button>
             </div>
           </div>

@@ -5,6 +5,9 @@ import { paymentService } from "../../services/payment.service";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { supplierService, type ISupplier } from "../../services/supplier.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { paymentMethodLabel } from "../../i18n/labels";
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -16,9 +19,6 @@ const inputCss: React.CSSProperties = {
   borderRadius: "12px", padding: "10px 14px", color: "var(--text-primary)",
   fontSize: "14px", outline: "none",
 };
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n);
 
 interface PresetParty {
   id: string;
@@ -36,7 +36,8 @@ interface Props {
 
 const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) => {
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money } = useFormat();
   const paymentMethods = activeBusiness?.paymentMethods?.length ? activeBusiness.paymentMethods : ["cash", "bank"];
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
@@ -73,9 +74,9 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
     e.preventDefault();
     if (!activeBusiness) return;
     const parsedAmount = Number(amount);
-    if (!partyId) { toast.error(mode === "receive" ? "Select a customer" : "Select a supplier"); return; }
-    if (!parsedAmount || parsedAmount <= 0) { toast.error("Enter a valid amount"); return; }
-    if (parsedAmount > selectedDue) { toast.error("Amount cannot exceed the outstanding balance"); return; }
+    if (!partyId) { toast.error(mode === "receive" ? t("payment.selectCustomer") : t("payment.selectSupplier")); return; }
+    if (!parsedAmount || parsedAmount <= 0) { toast.error(t("payment.invalidAmount")); return; }
+    if (parsedAmount > selectedDue) { toast.error(t("payment.exceedsBalance")); return; }
 
     setSubmitting(true);
     try {
@@ -83,18 +84,18 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
         await paymentService.receive({
           businessId: activeBusiness._id, customerId: partyId, amount: parsedAmount, method, note: note || undefined,
         });
-        toast.success("Payment received");
+        toast.success(t("payment.received"));
       } else {
         await paymentService.pay({
           businessId: activeBusiness._id, supplierId: partyId, amount: parsedAmount, method, note: note || undefined,
         });
-        toast.success("Payment made");
+        toast.success(t("payment.made"));
       }
       onSuccess();
       onClose();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Payment failed";
+        ?.response?.data?.message ?? t("payment.failed");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -117,7 +118,7 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
           style={{ borderBottom: `1px solid ${C.border}` }}>
           <h2 className="text-base font-semibold"
             style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {mode === "receive" ? "Receive Payment" : "Make Payment"}
+            {mode === "receive" ? t("payment.receive") : t("payment.make")}
           </h2>
           <button onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-lg"
@@ -130,18 +131,21 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
           {presetParty ? (
             <div className="flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ background: "var(--surface-2)" }}>
               <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{presetParty.name}</span>
-              <span className="text-xs" style={{ color: "var(--text-faint)" }}>Due: {currencySymbol}{fmt(presetParty.due)}</span>
+              <span className="text-xs" style={{ color: "var(--text-faint)" }}>{t("payment.duePrefix", { amount: money(presetParty.due) })}</span>
             </div>
           ) : (
             <div>
               <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
-                {mode === "receive" ? "Customer" : "Supplier"}
+                {mode === "receive" ? t("payment.customer") : t("payment.supplier")}
               </label>
               <select value={partyId} onChange={(e) => setPartyId(e.target.value)} style={inputCss}>
-                <option value="">Select {mode === "receive" ? "customer" : "supplier"}</option>
+                <option value="">{mode === "receive" ? t("payment.selectCustomer") : t("payment.selectSupplier")}</option>
                 {options.map((o) => (
                   <option key={o._id} value={o._id}>
-                    {o.name} — due {currencySymbol}{fmt(mode === "receive" ? (o as ICustomer).totalDue : (o as ISupplier).totalPayable)}
+                    {t("payment.optionDue", {
+                      name: o.name,
+                      amount: money(mode === "receive" ? (o as ICustomer).totalDue : (o as ISupplier).totalPayable),
+                    })}
                   </option>
                 ))}
               </select>
@@ -150,28 +154,28 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs" style={{ color: "var(--text-muted)" }}>Amount</label>
+              <label className="text-xs" style={{ color: "var(--text-muted)" }}>{t("common.amount")}</label>
               {selectedDue > 0 && (
                 <button type="button" onClick={() => setAmount(String(selectedDue))} className="text-[11px] font-medium" style={{ color: "#10b981" }}>
-                  Pay full ({currencySymbol}{fmt(selectedDue)})
+                  {t("payment.payFull", { amount: money(selectedDue) })}
                 </button>
               )}
             </div>
             <input type="number" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
-              placeholder="0" style={inputCss} />
+              placeholder={t("common.zero")} style={inputCss} />
           </div>
 
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Method</label>
+            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("payment.method")}</label>
             <select value={method} onChange={(e) => setMethod(e.target.value)} style={inputCss}>
               {paymentMethods.map((m) => (
-                <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>
+                <option key={m} value={m}>{paymentMethodLabel(t, m)}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>Note (optional)</label>
+            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("payment.note")}</label>
             <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} style={inputCss} />
           </div>
 
@@ -182,7 +186,7 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
-            {mode === "receive" ? "Receive Payment" : "Make Payment"}
+            {mode === "receive" ? t("payment.receive") : t("payment.make")}
           </button>
         </form>
       </div>

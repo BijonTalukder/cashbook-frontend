@@ -4,13 +4,18 @@ import {
   User, Building2, Lock, LogOut, Trash2, ChevronRight,
   Check, Loader2, Eye, EyeOff, Camera, Shield,
   Bell, Palette, Globe, CreditCard, AlertTriangle,
-  Home, X, Store,
+  Home, X, Store, Send, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
 import { useBusinessStore } from "../../store/businessStore";
 import api from "../../services/api";
 import ThemeToggle from "../../components/shared/ThemeToggle";
+import LanguageToggle from "../../components/shared/LanguageToggle";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { enumLabel } from "../../i18n/labels";
+import { TELEGRAM_URL, TELEGRAM_HANDLE } from "../../config/links";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -57,6 +62,7 @@ const SectionHead = ({ icon: Icon, title, desc }: {
 /* ─── Profile Section ─────────────────────────────────── */
 const ProfileSection = () => {
   const { user, setAuth, token } = useAuthStore();
+  const { t } = useTranslation();
 
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
@@ -65,14 +71,14 @@ const ProfileSection = () => {
   const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase();
 
   const handleSave = async () => {
-    if (!firstName.trim()) { toast.error("First name required"); return; }
+    if (!firstName.trim()) { toast.error(t("settings.profile.firstNameRequired")); return; }
     setSaving(true);
     try {
       const { data } = await api.patch("/auth/profile", { firstName, lastName });
       setAuth(data.data, token!);
-      toast.success("Profile updated");
+      toast.success(t("settings.profile.updated"));
     } catch {
-      toast.error("Failed to update profile");
+      toast.error(t("settings.profile.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -83,7 +89,7 @@ const ProfileSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead icon={User} title="Profile" desc="Your personal information" />
+      <SectionHead icon={User} title={t("settings.profile.title")} desc={t("settings.profile.desc")} />
 
       {/* Avatar */}
       <div className="flex items-center gap-4 mb-5">
@@ -113,26 +119,26 @@ const ProfileSection = () => {
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
           <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
-            First Name
+            {t("settings.profile.firstName")}
           </label>
           <input
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             style={inputCls()}
-            placeholder="First name"
+            placeholder={t("settings.profile.firstNamePlaceholder")}
             onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
             onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--border-strong)"; }}
           />
         </div>
         <div>
           <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
-            Last Name
+            {t("settings.profile.lastName")}
           </label>
           <input
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             style={inputCls()}
-            placeholder="Last name"
+            placeholder={t("settings.profile.lastNamePlaceholder")}
             onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(16,185,129,0.4)"; }}
             onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--border-strong)"; }}
           />
@@ -141,7 +147,7 @@ const ProfileSection = () => {
 
       <div className="mb-5">
         <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
-          Email
+          {t("common.email")}
         </label>
         <input
           value={user?.email ?? ""}
@@ -149,7 +155,7 @@ const ProfileSection = () => {
           style={{ ...inputCls(), opacity: 0.5, cursor: "not-allowed" }}
         />
         <p className="text-[10px] mt-1" style={{ color: "var(--text-faint)" }}>
-          Email cannot be changed
+          {t("settings.profile.emailLocked")}
         </p>
       </div>
 
@@ -160,7 +166,7 @@ const ProfileSection = () => {
         style={{ background: "#10b981", color: "#022c22" }}
       >
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-        Save Changes
+        {t("common.saveChanges")}
       </button>
     </div>
   );
@@ -168,6 +174,7 @@ const ProfileSection = () => {
 
 /* ─── Password Section ────────────────────────────────── */
 const PasswordSection = () => {
+  const { t } = useTranslation();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -178,10 +185,10 @@ const PasswordSection = () => {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!current) e.current = "Required";
-    if (!next) e.next = "Required";
-    if (next.length < 8) e.next = "Min 8 characters";
-    if (next !== confirm) e.confirm = "Passwords don't match";
+    if (!current) e.current = t("settings.password.required");
+    if (!next) e.next = t("settings.password.required");
+    if (next.length < 8) e.next = t("settings.password.min8");
+    if (next !== confirm) e.confirm = t("settings.password.mismatch");
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -194,11 +201,11 @@ const PasswordSection = () => {
         currentPassword: current,
         newPassword: next,
       });
-      toast.success("Password changed successfully");
+      toast.success(t("settings.password.changed"));
       setCurrent(""); setNext(""); setConfirm("");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Failed to change password";
+        ?.response?.data?.message ?? t("settings.password.changeFailed");
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -246,22 +253,22 @@ const PasswordSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead icon={Lock} title="Password" desc="Keep your account secure" />
+      <SectionHead icon={Lock} title={t("settings.password.title")} desc={t("settings.password.desc")} />
 
       <div className="space-y-3 mb-4">
         <PwField
-          label="Current Password" value={current}
+          label={t("settings.password.current")} value={current}
           onChange={setCurrent} show={showCur}
           onToggle={() => setShowCur((p) => !p)} name="current"
         />
         <PwField
-          label="New Password" value={next}
+          label={t("settings.password.new")} value={next}
           onChange={setNext} show={showNew}
           onToggle={() => setShowNew((p) => !p)} name="next"
         />
         <div>
           <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>
-            Confirm New Password
+            {t("settings.password.confirm")}
           </label>
           <input
             type="password"
@@ -284,7 +291,7 @@ const PasswordSection = () => {
         style={{ background: "var(--surface-4)", border: "1px solid var(--border-strong)", color: "var(--text-secondary)" }}
       >
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
-        Update Password
+        {t("settings.password.update")}
       </button>
     </div>
   );
@@ -294,12 +301,14 @@ const PasswordSection = () => {
 const BusinessSection = () => {
   const { activeBusiness } = useBusinessStore();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { currency } = useFormat();
 
   const TYPE_META = {
-    personal: { icon: User, color: "#10b981", label: "Personal" },
-    company: { icon: Building2, color: "#3b82f6", label: "Company" },
-    mass: { icon: Home, color: "#8b5cf6", label: "Mess" },
-    business: { icon: Store, color: "#f59e0b", label: "Business" },
+    personal: { icon: User, color: "#10b981" },
+    company: { icon: Building2, color: "#3b82f6" },
+    mass: { icon: Home, color: "#8b5cf6" },
+    business: { icon: Store, color: "#f59e0b" },
   };
 
   if (!activeBusiness) {
@@ -308,8 +317,8 @@ const BusinessSection = () => {
         className="rounded-2xl p-5 mb-4"
         style={{ background: C.card, border: `1px solid ${C.border}` }}
       >
-        <SectionHead icon={Building2} title="Business" desc="Active business settings" />
-        <p className="text-sm" style={{ color: "var(--text-faint)" }}>No active business selected.</p>
+        <SectionHead icon={Building2} title={t("settings.business.title")} desc={t("settings.business.desc")} />
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>{t("settings.business.none")}</p>
       </div>
     );
   }
@@ -322,7 +331,7 @@ const BusinessSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead icon={Building2} title="Business" desc="Active business settings" />
+      <SectionHead icon={Building2} title={t("settings.business.title")} desc={t("settings.business.desc")} />
 
       {/* Active business card */}
       <div
@@ -338,27 +347,30 @@ const BusinessSection = () => {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{activeBusiness.name}</p>
           <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-            {meta.label} · {activeBusiness.currency}
+            {t("settings.business.typeAndCurrency", {
+              type: enumLabel(t, "businessType", activeBusiness.type),
+              currency,
+            })}
           </p>
         </div>
         <span
           className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase"
           style={{ background: `${meta.color}15`, color: meta.color }}
         >
-          Active
+          {t("settings.business.active")}
         </span>
       </div>
 
       {/* Quick links */}
       {(activeBusiness.type === "business"
         ? [
-          { label: "Business Settings", to: "/business/settings", icon: Building2 },
-          { label: "Manage Members", to: "/members", icon: User },
-          { label: "Ledger", to: "/ledger", icon: CreditCard },
+          { label: t("nav.businessSettings"), to: "/business/settings", icon: Building2 },
+          { label: t("settings.business.manageMembers"), to: "/members", icon: User },
+          { label: t("nav.ledger"), to: "/ledger", icon: CreditCard },
         ]
         : [
-          { label: "Manage Members", to: "/members", icon: User },
-          { label: "All Transactions", to: "/transactions", icon: CreditCard },
+          { label: t("settings.business.manageMembers"), to: "/members", icon: User },
+          { label: t("settings.business.allTransactions"), to: "/transactions", icon: CreditCard },
         ]
       ).map(({ label, to, icon: LIcon }) => (
         <button
@@ -382,6 +394,8 @@ const BusinessSection = () => {
 
 /* ─── Preferences Section ─────────────────────────────── */
 const PreferencesSection = () => {
+  const { t } = useTranslation();
+  const { currency } = useFormat();
   const [notifs, setNotifs] = useState(true);
 
   const Toggle = ({
@@ -419,41 +433,93 @@ const PreferencesSection = () => {
       className="rounded-2xl p-5 mb-4"
       style={{ background: C.card, border: `1px solid ${C.border}` }}
     >
-      <SectionHead icon={Palette} title="Preferences" desc="App behavior & notifications" />
+      <SectionHead icon={Palette} title={t("settings.preferences.title")} desc={t("settings.preferences.desc")} />
 
-      {/* Appearance / theme */}
-      <div className="mb-3">
+      {/* Appearance / language */}
+      <div className="mb-3 space-y-2">
         <ThemeToggle variant="row" />
+        <LanguageToggle variant="row" />
       </div>
 
       <Toggle
-        label="Push Notifications"
-        desc="Get alerts for new transactions and dues"
+        label={t("settings.preferences.pushNotifications")}
+        desc={t("settings.preferences.pushDesc")}
         value={notifs}
-        onChange={(v) => { setNotifs(v); toast.success(v ? "Notifications enabled" : "Notifications disabled"); }}
+        onChange={(v) => {
+          setNotifs(v);
+          toast.success(v ? t("settings.preferences.notificationsOn") : t("settings.preferences.notificationsOff"));
+        }}
       />
 
       <div className="flex items-center justify-between py-3">
         <div>
-          <p className="text-sm" style={{ color: "var(--text-primary)" }}>Currency</p>
-          <p className="text-xs" style={{ color: "var(--text-faint)" }}>Default display currency</p>
+          <p className="text-sm" style={{ color: "var(--text-primary)" }}>{t("settings.currency")}</p>
+          <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("settings.currencyDesc")}</p>
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
           style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
         >
           <Globe size={12} style={{ color: "var(--text-muted)" }} />
-          <span className="text-xs" style={{ color: "var(--text-primary)" }}>BDT</span>
+          <span className="text-xs" style={{ color: "var(--text-primary)" }}>{currency}</span>
         </div>
       </div>
     </div>
   );
 };
 
+/* ─── Support & Feedback ──────────────────────────────── */
+const SupportSection = () => {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      className="rounded-2xl p-5 mb-4"
+      style={{ background: C.card, border: `1px solid ${C.border}` }}
+    >
+      <SectionHead
+        icon={Send}
+        title={t("settings.supportSection.title")}
+        desc={t("settings.supportSection.desc")}
+      />
+
+      <a
+        href={TELEGRAM_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all"
+        style={{ background: "rgba(56,151,222,0.08)", border: "1px solid rgba(56,151,222,0.2)" }}
+      >
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: "rgba(56,151,222,0.15)", color: "#3897de" }}
+        >
+          <Send size={16} />
+        </div>
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+            {t("settings.supportSection.telegramTitle")}
+          </p>
+          <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+            {t("settings.supportSection.telegramDesc")}
+          </p>
+          <p className="text-[11px] mt-0.5 font-medium" style={{ color: "#3897de" }}>
+            {TELEGRAM_HANDLE}
+          </p>
+        </div>
+        <ExternalLink size={14} style={{ color: "var(--text-faint)" }} />
+      </a>
+    </div>
+  );
+};
+
 /* ─── Danger Zone ─────────────────────────────────────── */
+const DELETE_TOKEN = "DELETE";
+
 const DangerZone = () => {
   const navigate = useNavigate();
   const { logout } = useAuthStore();
+  const { t } = useTranslation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -461,12 +527,12 @@ const DangerZone = () => {
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
-    toast.success("Logged out");
+    toast.success(t("settings.danger.loggedOut"));
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteInput !== "DELETE") {
-      toast.error('Type "DELETE" to confirm');
+    if (deleteInput !== DELETE_TOKEN) {
+      toast.error(t("settings.danger.typeDelete"));
       return;
     }
     setDeleting(true);
@@ -474,9 +540,9 @@ const DangerZone = () => {
       await api.delete("/auth/account");
       logout();
       navigate("/login", { replace: true });
-      toast.success("Account deleted");
+      toast.success(t("settings.danger.deleted"));
     } catch {
-      toast.error("Failed to delete account");
+      toast.error(t("settings.danger.deleteFailed"));
     } finally {
       setDeleting(false);
     }
@@ -487,7 +553,7 @@ const DangerZone = () => {
       className="rounded-2xl p-5"
       style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.15)" }}
     >
-      <SectionHead icon={AlertTriangle} title="Danger Zone" desc="Irreversible actions" />
+      <SectionHead icon={AlertTriangle} title={t("settings.danger.title")} desc={t("settings.danger.desc")} />
 
       {/* Logout */}
       <button
@@ -499,7 +565,7 @@ const DangerZone = () => {
       >
         <div className="flex items-center gap-2.5">
           <LogOut size={14} style={{ color: "#f59e0b" }} />
-          <span className="text-sm" style={{ color: "#fbbf24" }}>Sign Out</span>
+          <span className="text-sm" style={{ color: "#fbbf24" }}>{t("settings.danger.signOut")}</span>
         </div>
         <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
       </button>
@@ -515,7 +581,7 @@ const DangerZone = () => {
         >
           <div className="flex items-center gap-2.5">
             <Trash2 size={14} style={{ color: "#ef4444" }} />
-            <span className="text-sm" style={{ color: "#f87171" }}>Delete Account</span>
+            <span className="text-sm" style={{ color: "#f87171" }}>{t("settings.danger.deleteAccount")}</span>
           </div>
           <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
         </button>
@@ -526,7 +592,7 @@ const DangerZone = () => {
         >
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold" style={{ color: "#f87171" }}>
-              Delete Account?
+              {t("settings.danger.deleteAccountQuestion")}
             </p>
             <button
               onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
@@ -536,14 +602,13 @@ const DangerZone = () => {
             </button>
           </div>
           <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
-            This will permanently delete your account and all associated data. Type{" "}
-            <strong style={{ color: "#ef4444" }}>DELETE</strong> to confirm.
+            {t("settings.danger.deleteWarning", { token: DELETE_TOKEN })}
           </p>
           <input
             value={deleteInput}
             onChange={(e) => setDeleteInput(e.target.value)}
-            placeholder='Type "DELETE"'
-            style={{ ...inputCls(!!deleteInput && deleteInput !== "DELETE"), marginBottom: "12px" }}
+            placeholder={t("settings.danger.deletePlaceholder")}
+            style={{ ...inputCls(!!deleteInput && deleteInput !== DELETE_TOKEN), marginBottom: "12px" }}
           />
           <div className="flex gap-2">
             <button
@@ -551,16 +616,16 @@ const DangerZone = () => {
               className="flex-1 py-2 rounded-xl text-sm"
               style={{ background: "var(--surface-3)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onClick={handleDeleteAccount}
-              disabled={deleting || deleteInput !== "DELETE"}
+              disabled={deleting || deleteInput !== DELETE_TOKEN}
               className="flex-1 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
               style={{ background: "#ef4444", color: "#fff" }}
             >
               {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-              Delete
+              {t("common.delete")}
             </button>
           </div>
         </div>
@@ -570,18 +635,20 @@ const DangerZone = () => {
 };
 
 /* ─── Main Settings Page ──────────────────────────────── */
-type SettingsTab = "profile" | "business" | "security" | "preferences" | "danger";
+type SettingsTab = "profile" | "business" | "security" | "preferences" | "support" | "danger";
 
-const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "business", label: "Business", icon: Building2 },
-  { id: "security", label: "Security", icon: Shield },
-  { id: "preferences", label: "Preferences", icon: Bell },
-  { id: "danger", label: "Account", icon: AlertTriangle },
+const TABS: { id: SettingsTab; labelKey: string; icon: React.ElementType }[] = [
+  { id: "profile", labelKey: "settings.tabs.profile", icon: User },
+  { id: "business", labelKey: "settings.tabs.business", icon: Building2 },
+  { id: "security", labelKey: "settings.tabs.security", icon: Shield },
+  { id: "preferences", labelKey: "settings.tabs.preferences", icon: Bell },
+  { id: "support", labelKey: "settings.tabs.support", icon: Send },
+  { id: "danger", labelKey: "settings.tabs.danger", icon: AlertTriangle },
 ];
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
@@ -593,10 +660,10 @@ const SettingsPage = () => {
             className="text-2xl font-bold"
             style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
           >
-            Settings
+            {t("settings.title")}
           </h1>
           <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-            Manage your account and preferences
+            {t("settings.subtitle")}
           </p>
         </div>
 
@@ -606,7 +673,7 @@ const SettingsPage = () => {
           <div className="lg:w-48 flex-shrink-0">
             {/* Mobile: horizontal scroll pills */}
             <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
-              {TABS.map(({ id, label, icon: Icon }) => {
+              {TABS.map(({ id, labelKey, icon: Icon }) => {
                 const isActive = activeTab === id;
                 const isDanger = id === "danger";
                 return (
@@ -627,7 +694,7 @@ const SettingsPage = () => {
                     }}
                   >
                     <Icon size={12} />
-                    {label}
+                    {t(labelKey)}
                   </button>
                 );
               })}
@@ -638,7 +705,7 @@ const SettingsPage = () => {
               className="hidden lg:block rounded-2xl overflow-hidden sticky top-8"
               style={{ background: C.sidebar, border: `1px solid ${C.border}` }}
             >
-              {TABS.map(({ id, label, icon: Icon }, i) => {
+              {TABS.map(({ id, labelKey, icon: Icon }, i) => {
                 const isActive = activeTab === id;
                 const isDanger = id === "danger";
                 return (
@@ -666,7 +733,7 @@ const SettingsPage = () => {
                     }}
                   >
                     <Icon size={15} />
-                    {label}
+                    {t(labelKey)}
                   </button>
                 );
               })}
@@ -679,6 +746,7 @@ const SettingsPage = () => {
             {activeTab === "business" && <BusinessSection />}
             {activeTab === "security" && <PasswordSection />}
             {activeTab === "preferences" && <PreferencesSection />}
+            {activeTab === "support" && <SupportSection />}
             {activeTab === "danger" && <DangerZone />}
           </div>
         </div>

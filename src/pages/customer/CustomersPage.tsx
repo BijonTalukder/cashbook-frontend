@@ -5,20 +5,20 @@ import { toast } from "sonner";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { useBusinessStore } from "../../store/businessStore";
 import CustomerModal from "../../components/shared/CustomerModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
 const CustomersPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money } = useFormat();
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,15 +41,15 @@ const CustomersPage = () => {
       const data = await customerService.getAll(activeBusiness._id, search || undefined);
       setCustomers(data);
     } catch {
-      toast.error("Failed to load customers");
+      toast.error(t("customer.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const t = setTimeout(load, 250);
-    return () => clearTimeout(t);
+    const timer = setTimeout(load, 250);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeBusiness?._id, search]);
 
@@ -58,14 +58,14 @@ const CustomersPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            Customers
+            {t("customer.title")}
           </h1>
           <button
             onClick={() => setModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
             style={{ background: "#10b981", color: "#022c22" }}
           >
-            <Plus size={15} /> Add Customer
+            <Plus size={15} /> {t("customer.add")}
           </button>
         </div>
 
@@ -74,7 +74,7 @@ const CustomersPage = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or phone..."
+            placeholder={t("common.searchByNameOrPhone")}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
             style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-primary)" }}
           />
@@ -93,10 +93,10 @@ const CustomersPage = () => {
                 <Users size={20} style={{ color: "var(--text-faint)" }} />
               </div>
               <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                {search ? "No customers found" : "No customers yet"}
+                {search ? t("customer.notFound") : t("customer.empty")}
               </p>
               <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                {search ? "Try a different search" : "Add your first customer to start tracking sales & dues"}
+                {search ? t("common.tryDifferentSearch") : t("customer.emptyHintFull")}
               </p>
             </div>
           ) : (
@@ -123,7 +123,7 @@ const CustomersPage = () => {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-semibold" style={{ color: c.totalDue > 0 ? "#ef4444" : "var(--text-faint)" }}>
-                    {c.totalDue > 0 ? `${currencySymbol}${fmt(c.totalDue)} due` : "No due"}
+                    {c.totalDue > 0 ? t("customer.totalDue", { amount: money(c.totalDue) }) : t("customer.noDue")}
                   </p>
                 </div>
                 <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />

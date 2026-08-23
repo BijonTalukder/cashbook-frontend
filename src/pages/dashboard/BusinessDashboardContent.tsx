@@ -14,17 +14,14 @@ import { dashboardService, type IBusinessSummary } from "../../services/dashboar
 import type { IBusiness } from "../../services/business.service";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { supplierService, type ISupplier } from "../../services/supplier.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { toCurrency } from "../../utils/currency";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short" });
 
 const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
   const navigate = useNavigate();
@@ -32,18 +29,18 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
   const [topDebtors, setTopDebtors] = useState<ICustomer[]>([]);
   const [topCreditors, setTopCreditors] = useState<ISupplier[]>([]);
   const [loading, setLoading] = useState(true);
-  const currency = business.currency || "BDT";
-  const currencySymbol = currency === "BDT" ? "৳" : `${currency} `;
+  const { t } = useTranslation();
+  const { money, compact, date: fmtDate } = useFormat(toCurrency(business.currency));
 
   const QUICK_ACTIONS = [
-    { label: "Add Sale", icon: ShoppingCart, color: "#10b981", onClick: () => navigate("/sales/new") },
-    { label: "Add Purchase", icon: Package, color: "#3b82f6", onClick: () => navigate("/purchases/new") },
-    { label: "Add Expense", icon: Receipt, color: "#ef4444", onClick: () => navigate("/expenses?new=1") },
-    { label: "Add Customer", icon: UserPlus, color: "#8b5cf6", onClick: () => navigate("/customers?new=1") },
-    { label: "Add Supplier", icon: Truck, color: "#f59e0b", onClick: () => navigate("/suppliers?new=1") },
-    { label: "Receive Payment", icon: ArrowDownCircle, color: "#10b981", onClick: () => navigate("/baki") },
-    { label: "Make Payment", icon: ArrowUpCircle, color: "#ef4444", onClick: () => navigate("/baki") },
-    { label: "Add Product", icon: PackagePlus, color: "#3b82f6", onClick: () => navigate("/products?new=1") },
+    { key: "sale", label: t("bizDashboard.addSale"), icon: ShoppingCart, color: "#10b981", onClick: () => navigate("/sales/new") },
+    { key: "purchase", label: t("bizDashboard.addPurchase"), icon: Package, color: "#3b82f6", onClick: () => navigate("/purchases/new") },
+    { key: "expense", label: t("bizDashboard.addExpense"), icon: Receipt, color: "#ef4444", onClick: () => navigate("/expenses?new=1") },
+    { key: "customer", label: t("bizDashboard.addCustomer"), icon: UserPlus, color: "#8b5cf6", onClick: () => navigate("/customers?new=1") },
+    { key: "supplier", label: t("bizDashboard.addSupplier"), icon: Truck, color: "#f59e0b", onClick: () => navigate("/suppliers?new=1") },
+    { key: "receive", label: t("payment.receive"), icon: ArrowDownCircle, color: "#10b981", onClick: () => navigate("/baki") },
+    { key: "pay", label: t("payment.make"), icon: ArrowUpCircle, color: "#ef4444", onClick: () => navigate("/baki") },
+    { key: "product", label: t("bizDashboard.addProduct"), icon: PackagePlus, color: "#3b82f6", onClick: () => navigate("/products?new=1") },
   ];
 
   const load = async (silent = false) => {
@@ -58,7 +55,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
       setTopDebtors(customers.filter((c) => c.totalDue > 0).sort((a, b) => b.totalDue - a.totalDue).slice(0, 3));
       setTopCreditors(suppliers.filter((s) => s.totalPayable > 0).sort((a, b) => b.totalPayable - a.totalPayable).slice(0, 3));
     } catch {
-      toast.error("Failed to load business summary");
+      toast.error(t("bizDashboard.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -70,14 +67,14 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
   }, [business._id]);
 
   const statCards = [
-    { label: "Today's Sales", value: summary?.todaySales ?? 0, icon: ShoppingCart, color: "#10b981" },
-    { label: "Today's Purchases", value: summary?.todayPurchases ?? 0, icon: Package, color: "#3b82f6" },
-    { label: "Today's Expenses", value: summary?.todayExpenses ?? 0, icon: Receipt, color: "#ef4444" },
-    { label: "Total Receivable", value: summary?.totalReceivable ?? 0, icon: HandCoins, color: "#8b5cf6" },
-    { label: "Total Payable", value: summary?.totalPayable ?? 0, icon: HandCoins, color: "#f59e0b" },
-    { label: "Cash Balance", value: summary?.cashBalance ?? 0, icon: Wallet, color: "#10b981" },
-    { label: "Bank Balance", value: summary?.bankBalance ?? 0, icon: Landmark, color: "#3b82f6" },
-    { label: "Current Profit", value: summary?.currentProfit ?? 0, icon: TrendingUp, color: (summary?.currentProfit ?? 0) >= 0 ? "#10b981" : "#ef4444" },
+    { key: "todaySales", label: t("bizDashboard.todaySales"), value: summary?.todaySales ?? 0, icon: ShoppingCart, color: "#10b981" },
+    { key: "todayPurchases", label: t("bizDashboard.todayPurchases"), value: summary?.todayPurchases ?? 0, icon: Package, color: "#3b82f6" },
+    { key: "todayExpenses", label: t("bizDashboard.todayExpenses"), value: summary?.todayExpenses ?? 0, icon: Receipt, color: "#ef4444" },
+    { key: "receivable", label: t("bizDashboard.totalReceivable"), value: summary?.totalReceivable ?? 0, icon: HandCoins, color: "#8b5cf6" },
+    { key: "payable", label: t("bizDashboard.totalPayable"), value: summary?.totalPayable ?? 0, icon: HandCoins, color: "#f59e0b" },
+    { key: "cash", label: t("bizDashboard.cashBalance"), value: summary?.cashBalance ?? 0, icon: Wallet, color: "#10b981" },
+    { key: "bank", label: t("bizDashboard.bankBalance"), value: summary?.bankBalance ?? 0, icon: Landmark, color: "#3b82f6" },
+    { key: "profit", label: t("bizDashboard.currentProfit"), value: summary?.currentProfit ?? 0, icon: TrendingUp, color: (summary?.currentProfit ?? 0) >= 0 ? "#10b981" : "#ef4444" },
   ];
 
   const maxSales = Math.max(1, ...(summary?.salesOverview.map((d) => d.total) ?? [1]));
@@ -100,8 +97,8 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
 
       {/* ── Financial summary ──────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {statCards.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        {statCards.map(({ key, label, value, icon: Icon, color }) => (
+          <div key={key} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}15`, color }}>
@@ -112,7 +109,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
               <div className="h-6 w-16 rounded animate-pulse" style={{ background: "var(--surface-4)" }} />
             ) : (
               <p className="text-xl font-bold leading-none truncate" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-                {currencySymbol}{fmt(value)}
+                {money(value)}
               </p>
             )}
           </div>
@@ -121,11 +118,11 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
 
       {/* ── Quick actions ───────────────────────────────── */}
       <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>Quick actions</p>
+        <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>{t("dashboard.quickActions")}</p>
         <div className="grid grid-cols-4 gap-2">
-          {QUICK_ACTIONS.map(({ label, icon: Icon, color, onClick }) => (
+          {QUICK_ACTIONS.map(({ key, label, icon: Icon, color, onClick }) => (
             <button
-              key={label}
+              key={key}
               onClick={onClick}
               className="flex flex-col items-center gap-1.5 p-3 rounded-xl active:scale-95 transition-all group"
               style={{ border: "1px solid var(--border-light)" }}
@@ -147,7 +144,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
           <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: `1px solid ${C.border}` }}>
             <div className="flex items-center gap-2">
               <Clock size={13} style={{ color: "var(--text-faint)" }} />
-              <span className="text-xs font-medium" style={{ color: "var(--text-faint)" }}>Recent Transactions</span>
+              <span className="text-xs font-medium" style={{ color: "var(--text-faint)" }}>{t("dashboard.recentTransactions")}</span>
             </div>
           </div>
           {loading ? (
@@ -182,15 +179,15 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {txn.category?.name ?? "Uncategorized"}
+                    {txn.category?.name ?? t("product.uncategorized")}
                   </p>
-                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>{fmtDate(txn.date)}</p>
+                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>{fmtDate(txn.date, "short")}</p>
                 </div>
                 <p
                   className="text-sm font-semibold flex-shrink-0"
                   style={{ color: txn.type === "income" ? "#10b981" : "#ef4444" }}
                 >
-                  {txn.type === "income" ? "+" : "-"}{currencySymbol}{fmt(txn.amount)}
+                  {money(txn.type === "income" ? txn.amount : -txn.amount, { signed: true })}
                 </p>
               </div>
             ))
@@ -199,22 +196,22 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
 
         {/* ── Outstanding dues ───────────────────────────── */}
         <div className="lg:col-span-2 rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>Outstanding Dues</p>
+          <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.outstandingDues")}</p>
           {topDebtors.length === 0 && topCreditors.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
                 <HandCoins size={16} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>No dues yet</p>
+              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.noDues")}</p>
               <p className="text-xs px-4" style={{ color: "var(--text-faint)" }}>
-                Customer &amp; supplier balances will appear here once you add them
+                {t("bizDashboard.noDuesHint")}
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               {topDebtors.length > 0 && (
                 <div>
-                  <p className="text-xs mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>I Will Receive</p>
+                  <p className="text-xs mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>{t("baki.willReceive")}</p>
                   <div className="space-y-1">
                     {topDebtors.map((c) => (
                       <button
@@ -223,7 +220,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
                         className="w-full flex items-center justify-between text-xs py-1"
                       >
                         <span style={{ color: "var(--text-primary)" }}>{c.name}</span>
-                        <span className="font-semibold" style={{ color: "#10b981" }}>{currencySymbol}{fmt(c.totalDue)}</span>
+                        <span className="font-semibold" style={{ color: "#10b981" }}>{money(c.totalDue)}</span>
                       </button>
                     ))}
                   </div>
@@ -231,7 +228,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
               )}
               {topCreditors.length > 0 && (
                 <div>
-                  <p className="text-xs mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>I Will Pay</p>
+                  <p className="text-xs mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>{t("baki.willPay")}</p>
                   <div className="space-y-1">
                     {topCreditors.map((s) => (
                       <button
@@ -240,7 +237,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
                         className="w-full flex items-center justify-between text-xs py-1"
                       >
                         <span style={{ color: "var(--text-primary)" }}>{s.name}</span>
-                        <span className="font-semibold" style={{ color: "#ef4444" }}>{currencySymbol}{fmt(s.totalPayable)}</span>
+                        <span className="font-semibold" style={{ color: "#ef4444" }}>{money(s.totalPayable)}</span>
                       </button>
                     ))}
                   </div>
@@ -256,16 +253,16 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-base font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-              Sales Overview
+              {t("bizDashboard.salesOverview")}
             </h2>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>Last 7 days</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.last7Days")}</p>
           </div>
           <button
             onClick={() => navigate("/reports")}
             className="text-xs flex items-center gap-1 transition-all"
             style={{ color: "#10b981" }}
           >
-            View reports <ArrowRight size={11} />
+            {t("bizDashboard.viewReports")} <ArrowRight size={11} />
           </button>
         </div>
         {loading ? (
@@ -277,7 +274,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
               <TrendingUp size={18} style={{ color: "var(--text-faint)" }} />
             </div>
-            <p className="text-xs" style={{ color: "var(--text-faint)" }}>No sales recorded yet</p>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.noSales")}</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={180}>
@@ -285,18 +282,18 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
               <XAxis
                 dataKey="date"
-                tickFormatter={(v) => fmtDate(v)}
+                tickFormatter={(v) => fmtDate(v, "short")}
                 tick={{ fill: "var(--text-faint)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false}
-                tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                tickFormatter={(v) => compact(v)} />
               <Tooltip
-                formatter={(v?: number) => [`${currencySymbol}${fmt(v ?? 0)}`, "Sales"]}
-                labelFormatter={(v) => fmtDate(String(v))}
+                formatter={(v?: number) => [money(v ?? 0), t("bizDashboard.salesSeries")]}
+                labelFormatter={(v) => fmtDate(String(v), "short")}
               />
-              <Bar dataKey="total" name="Sales" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="total" name={t("bizDashboard.salesSeries")} fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
         )}

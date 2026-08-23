@@ -6,19 +6,22 @@ import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { productService, type IProduct } from "../../services/product.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
 
-const schema = z.object({
-  name: z.string().min(1, "Name is required").max(80),
-  sku: z.string().optional(),
-  category: z.string().optional(),
-  purchasePrice: z.number().min(0, "Cannot be negative").optional(),
-  sellingPrice: z.number().min(0, "Cannot be negative").optional(),
-  stock: z.number().min(0, "Cannot be negative").optional(),
-  minStock: z.number().min(0, "Cannot be negative").optional(),
-  unit: z.string().optional(),
-  imageUrl: z.string().optional(),
-});
-type FormData = z.infer<typeof schema>;
+const buildSchema = (t: TFunction) =>
+  z.object({
+    name: z.string().min(1, t("validation.nameRequired")).max(80),
+    sku: z.string().optional(),
+    category: z.string().optional(),
+    purchasePrice: z.number().min(0, t("validation.notNegative")).optional(),
+    sellingPrice: z.number().min(0, t("validation.notNegative")).optional(),
+    stock: z.number().min(0, t("validation.notNegative")).optional(),
+    minStock: z.number().min(0, t("validation.notNegative")).optional(),
+    unit: z.string().optional(),
+    imageUrl: z.string().optional(),
+  });
+type FormData = z.infer<ReturnType<typeof buildSchema>>;
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -50,6 +53,8 @@ interface Props {
 const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
   const { activeBusiness } = useBusinessStore();
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useTranslation();
+  const schema = React.useMemo(() => buildSchema(t), [t]);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -91,16 +96,16 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
           unit: data.unit,
           imageUrl: data.imageUrl,
         });
-        toast.success("Product updated");
+        toast.success(t("product.updated"));
       } else {
         result = await productService.create({ ...data, businessId: activeBusiness._id });
-        toast.success("Product added");
+        toast.success(t("product.created"));
       }
       onSuccess(result);
       onClose();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Something went wrong";
+        ?.response?.data?.message ?? t("common.unknownError");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -123,7 +128,7 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
           style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
           <h2 className="text-base font-semibold"
             style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {editing ? "Edit Product" : "Add Product"}
+            {editing ? t("product.edit") : t("product.add")}
           </h2>
           <button onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-lg"
@@ -133,48 +138,48 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-4">
-          <Field label="Product name" error={errors.name?.message}>
-            <input {...register("name")} placeholder="e.g. Rice 5kg" style={inputCss(!!errors.name)} />
+          <Field label={t("product.name")} error={errors.name?.message}>
+            <input {...register("name")} placeholder={t("product.namePlaceholder")} style={inputCss(!!errors.name)} />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="SKU (optional)" error={errors.sku?.message}>
-              <input {...register("sku")} placeholder="SKU-001" style={inputCss()} />
+            <Field label={t("product.sku")} error={errors.sku?.message}>
+              <input {...register("sku")} placeholder={t("product.skuPlaceholder")} style={inputCss()} />
             </Field>
-            <Field label="Category (optional)" error={errors.category?.message}>
-              <input {...register("category")} placeholder="e.g. Grocery" style={inputCss()} />
+            <Field label={t("product.category")} error={errors.category?.message}>
+              <input {...register("category")} placeholder={t("product.categoryPlaceholder")} style={inputCss()} />
             </Field>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Purchase price" error={errors.purchasePrice?.message}>
+            <Field label={t("product.purchasePrice")} error={errors.purchasePrice?.message}>
               <input type="number" min="0" step="0.01" {...register("purchasePrice", { valueAsNumber: true })}
-                placeholder="0" style={inputCss(!!errors.purchasePrice)} />
+                placeholder={t("common.zero")} style={inputCss(!!errors.purchasePrice)} />
             </Field>
-            <Field label="Selling price" error={errors.sellingPrice?.message}>
+            <Field label={t("product.sellingPrice")} error={errors.sellingPrice?.message}>
               <input type="number" min="0" step="0.01" {...register("sellingPrice", { valueAsNumber: true })}
-                placeholder="0" style={inputCss(!!errors.sellingPrice)} />
+                placeholder={t("common.zero")} style={inputCss(!!errors.sellingPrice)} />
             </Field>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             {!editing && (
-              <Field label="Stock" error={errors.stock?.message}>
+              <Field label={t("product.stock")} error={errors.stock?.message}>
                 <input type="number" min="0" {...register("stock", { valueAsNumber: true })}
-                  placeholder="0" style={inputCss(!!errors.stock)} />
+                  placeholder={t("common.zero")} style={inputCss(!!errors.stock)} />
               </Field>
             )}
-            <Field label="Min stock" error={errors.minStock?.message}>
+            <Field label={t("product.minStock")} error={errors.minStock?.message}>
               <input type="number" min="0" {...register("minStock", { valueAsNumber: true })}
-                placeholder="0" style={inputCss(!!errors.minStock)} />
+                placeholder={t("common.zero")} style={inputCss(!!errors.minStock)} />
             </Field>
-            <Field label="Unit" error={errors.unit?.message}>
-              <input {...register("unit")} placeholder="pcs" style={inputCss()} />
+            <Field label={t("product.unit")} error={errors.unit?.message}>
+              <input {...register("unit")} placeholder={t("product.unitPlaceholder")} style={inputCss()} />
             </Field>
           </div>
 
-          <Field label="Image URL (optional)" error={errors.imageUrl?.message}>
-            <input {...register("imageUrl")} placeholder="https://..." style={inputCss()} />
+          <Field label={t("product.imageUrl")} error={errors.imageUrl?.message}>
+            <input {...register("imageUrl")} placeholder={t("product.urlPlaceholder")} style={inputCss()} />
           </Field>
 
           <button
@@ -184,7 +189,7 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
-            {editing ? "Save Changes" : "Add Product"}
+            {editing ? t("common.saveChanges") : t("product.add")}
           </button>
         </form>
       </div>

@@ -6,20 +6,20 @@ import { customerService, type ICustomer } from "../../services/customer.service
 import { supplierService, type ISupplier } from "../../services/supplier.service";
 import { useBusinessStore } from "../../store/businessStore";
 import PaymentModal from "../../components/shared/PaymentModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
 const BakiPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money } = useFormat();
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
@@ -38,7 +38,7 @@ const BakiPage = () => {
       setCustomers(c.filter((x) => x.totalDue > 0).sort((a, b) => b.totalDue - a.totalDue));
       setSuppliers(s.filter((x) => x.totalPayable > 0).sort((a, b) => b.totalPayable - a.totalPayable));
     } catch {
-      toast.error("Failed to load dues");
+      toast.error(t("baki.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -53,36 +53,36 @@ const BakiPage = () => {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
         <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-          Baki (Dues)
+          {t("baki.title")}
         </h1>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl p-4" style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
-            <p className="text-xs" style={{ color: "rgba(16,185,129,0.8)" }}>I Will Receive</p>
+            <p className="text-xs" style={{ color: "rgba(16,185,129,0.8)" }}>{t("baki.willReceive")}</p>
             <p className="text-xl font-bold mt-1" style={{ color: "#10b981", fontFamily: "'DM Serif Display', serif" }}>
-              {currencySymbol}{fmt(totalReceivable)}
+              {money(totalReceivable)}
             </p>
           </div>
           <div className="rounded-2xl p-4" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
-            <p className="text-xs" style={{ color: "rgba(239,68,68,0.8)" }}>I Will Pay</p>
+            <p className="text-xs" style={{ color: "rgba(239,68,68,0.8)" }}>{t("baki.willPay")}</p>
             <p className="text-xl font-bold mt-1" style={{ color: "#ef4444", fontFamily: "'DM Serif Display', serif" }}>
-              {currencySymbol}{fmt(totalPayable)}
+              {money(totalPayable)}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "var(--surface-2)", border: "1px solid var(--border-light)" }}>
-          {(["receive", "pay"] as const).map((t) => (
+          {(["receive", "pay"] as const).map((key) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={key}
+              onClick={() => setTab(key)}
               className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
               style={{
-                background: tab === t ? (t === "receive" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)") : "transparent",
-                color: tab === t ? (t === "receive" ? "#10b981" : "#ef4444") : "var(--text-faint)",
+                background: tab === key ? (key === "receive" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)") : "transparent",
+                color: tab === key ? (key === "receive" ? "#10b981" : "#ef4444") : "var(--text-faint)",
               }}
             >
-              {t === "receive" ? "I Will Receive" : "I Will Pay"}
+              {key === "receive" ? t("baki.willReceive") : t("baki.willPay")}
             </button>
           ))}
         </div>
@@ -100,8 +100,8 @@ const BakiPage = () => {
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
                   <HandCoins size={20} style={{ color: "var(--text-faint)" }} />
                 </div>
-                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>No receivables</p>
-                <p className="text-xs" style={{ color: "var(--text-faint)" }}>Nobody owes you money right now</p>
+                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("baki.noReceivables")}</p>
+                <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("baki.noReceivablesHint")}</p>
               </div>
             ) : (
               customers.map((c) => (
@@ -109,7 +109,7 @@ const BakiPage = () => {
                   <button onClick={() => navigate(`/customers/${c._id}`)} className="flex-1 min-w-0 text-left flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{c.name}</p>
-                      <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{currencySymbol}{fmt(c.totalDue)} due</p>
+                      <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{t("customer.totalDue", { amount: money(c.totalDue) })}</p>
                     </div>
                   </button>
                   <button
@@ -117,7 +117,7 @@ const BakiPage = () => {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
                     style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
                   >
-                    <ArrowDownCircle size={12} /> Receive
+                    <ArrowDownCircle size={12} /> {t("baki.receive")}
                   </button>
                   <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
                 </div>
@@ -128,8 +128,8 @@ const BakiPage = () => {
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
                 <HandCoins size={20} style={{ color: "var(--text-faint)" }} />
               </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>No payables</p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>You don't owe any supplier right now</p>
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("baki.noPayables")}</p>
+              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("baki.noPayablesHint")}</p>
             </div>
           ) : (
             suppliers.map((s) => (
@@ -137,7 +137,7 @@ const BakiPage = () => {
                 <button onClick={() => navigate(`/suppliers/${s._id}`)} className="flex-1 min-w-0 text-left flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{s.name}</p>
-                    <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{currencySymbol}{fmt(s.totalPayable)} payable</p>
+                    <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{t("supplier.totalPayable", { amount: money(s.totalPayable) })}</p>
                   </div>
                 </button>
                 <button
@@ -145,7 +145,7 @@ const BakiPage = () => {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
                   style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
                 >
-                  <ArrowUpCircle size={12} /> Pay
+                  <ArrowUpCircle size={12} /> {t("baki.pay")}
                 </button>
                 <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
               </div>

@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react";
 import { useThemeStore } from "../../store/themeStore";
+import { useTranslation } from "../../i18n/useTranslation";
 
 interface ThemeToggleProps {
   variant?: "icon" | "row";
@@ -8,6 +9,7 @@ interface ThemeToggleProps {
 
 const ThemeToggle = ({ variant = "icon", className = "" }: ThemeToggleProps) => {
   const { theme, toggleTheme } = useThemeStore();
+  const { t } = useTranslation();
   const isDark = theme === "dark";
 
   if (variant === "row") {
@@ -19,7 +21,7 @@ const ThemeToggle = ({ variant = "icon", className = "" }: ThemeToggleProps) => 
       >
         <span className="flex items-center gap-3 text-sm" style={{ color: "var(--text-primary)" }}>
           {isDark ? <Moon size={16} /> : <Sun size={16} />}
-          {isDark ? "Dark mode" : "Light mode"}
+          {isDark ? t("theme.dark") : t("theme.light")}
         </span>
         <span
           className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors"
@@ -38,7 +40,7 @@ const ThemeToggle = ({ variant = "icon", className = "" }: ThemeToggleProps) => 
   return (
     <button
       onClick={toggleTheme}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={isDark ? t("theme.switchToLight") : t("theme.switchToDark")}
       className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all active:scale-90 ${className}`}
       style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
     >

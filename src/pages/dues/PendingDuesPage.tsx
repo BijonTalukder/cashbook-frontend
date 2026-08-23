@@ -18,13 +18,9 @@ import {
   type IPendingDue,
   type IDueTransaction,
 } from "../../services/transaction.service";
-
-/* ─── helpers ─────────────────────────────────────────── */
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short" });
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { plural } from "../../i18n/labels";
 
 const C = {
   bg: "var(--bg)",
@@ -70,6 +66,8 @@ const DueCard = ({
   onSettleAll: (due: IPendingDue) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
+  const { money, num, date: fmtDate } = useFormat();
 
   const isMeFrom = due.from._id === currentUserId;
   const isMeTo = due.to._id === currentUserId;
@@ -77,7 +75,7 @@ const DueCard = ({
   // "I owe": isMeFrom
   // "I'm owed": isMeTo
   const directionColor = isMeFrom ? "#ef4444" : "#10b981";
-  const directionLabel = isMeFrom ? "You owe" : "You're owed";
+  const directionLabel = isMeFrom ? t("dues.youOwe") : t("dues.youreOwed");
   const directionBg = isMeFrom
     ? "rgba(239,68,68,0.06)"
     : "rgba(16,185,129,0.06)";
@@ -119,13 +117,13 @@ const DueCard = ({
               <span
                 style={{ color: isMeFrom ? "#f87171" : "var(--text-secondary)" }}
               >
-                {isMeFrom ? "You" : due.from.firstName}
+                {isMeFrom ? t("dues.you") : due.from.firstName}
               </span>{" "}
               →{" "}
               <span
                 style={{ color: isMeTo ? "#10b981" : "var(--text-secondary)" }}
               >
-                {isMeTo ? "You" : due.to.firstName}
+                {isMeTo ? t("dues.you") : due.to.firstName}
               </span>
             </p>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -143,8 +141,9 @@ const DueCard = ({
                 className="text-[10px]"
                 style={{ color: "var(--text-faint)" }}
               >
-                {due.transactions.length} txn
-                {due.transactions.length > 1 ? "s" : ""}
+                {plural(t, "dues.txnCount", due.transactions.length, {
+                  count: num(due.transactions.length),
+                })}
               </span>
             </div>
           </div>
@@ -158,7 +157,7 @@ const DueCard = ({
                 color: directionColor,
               }}
             >
-              ৳{fmt(due.amount)}
+              {money(due.amount)}
             </p>
           </div>
         </div>
@@ -172,7 +171,7 @@ const DueCard = ({
                 className="flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
-                <CheckCircle2 size={13} /> Mark as Paid
+                <CheckCircle2 size={13} /> {t("dues.markPaid")}
               </button>
             )}
             <button
@@ -185,7 +184,7 @@ const DueCard = ({
               }}
             >
               {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-              Details
+              {t("dues.details")}
             </button>
           </div>
         )}
@@ -194,9 +193,9 @@ const DueCard = ({
       {/* ── Expanded transaction list ────────────────── */}
       {expanded && (
         <div style={{ borderTop: "1px solid var(--border-light)" }}>
-          {due.transactions.map((t: IDueTransaction, i: number) => (
+          {due.transactions.map((txn: IDueTransaction, i: number) => (
             <div
-              key={t._id}
+              key={txn._id}
               className="flex items-center justify-between px-4 py-2.5"
               style={{
                 borderBottom:
@@ -207,17 +206,17 @@ const DueCard = ({
             >
               <div>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  {t.note ?? "No note"}
+                  {txn.note ?? t("dues.noNote")}
                 </p>
                 <p
                   className="text-[10px]"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  {fmtDate(t.date)}
+                  {fmtDate(txn.date, "short")}
                 </p>
               </div>
               <p className="text-xs font-semibold" style={{ color: "#f59e0b" }}>
-                ৳{fmt(t.amount)}
+                {money(txn.amount)}
               </p>
             </div>
           ))}
@@ -239,6 +238,8 @@ const QuickSettleModal = ({
 }) => {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useTranslation();
+  const { money, num } = useFormat();
 
   // Settle all transactions in this due group
   const handleSettle = async () => {
@@ -246,18 +247,18 @@ const QuickSettleModal = ({
     try {
       // Settle each transaction's remaining amount
       await Promise.all(
-        due.transactions.map((t) =>
-          transactionService.settle(t._id, {
-            amount: t.amount,
+        due.transactions.map((txn) =>
+          transactionService.settle(txn._id, {
+            amount: txn.amount,
             paidTo: due.to._id,
             note: note.trim() || undefined,
           }),
         ),
       );
-      toast.success(`৳${fmt(due.amount)} settled!`);
+      toast.success(t("dues.settled", { amount: money(due.amount) }));
       onDone();
     } catch {
-      toast.error("Settlement failed");
+      toast.error(t("dues.settleFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -295,18 +296,16 @@ const QuickSettleModal = ({
             color: "var(--text-primary)",
           }}
         >
-          Settle ৳{fmt(due.amount)}
+          {t("dues.settleTitle", { amount: money(due.amount) })}
         </h3>
         <p
           className="text-xs text-center mb-5"
           style={{ color: "var(--text-faint)" }}
         >
-          Pay{" "}
-          <strong style={{ color: "var(--text-primary)" }}>
-            {due.to.firstName}
-          </strong>{" "}
-          to clear {due.transactions.length} pending transaction
-          {due.transactions.length > 1 ? "s" : ""}
+          {plural(t, "dues.settle", due.transactions.length, {
+            name: due.to.firstName,
+            count: num(due.transactions.length),
+          })}
         </p>
 
         {/* Note */}
@@ -315,13 +314,13 @@ const QuickSettleModal = ({
             className="block text-xs mb-1.5"
             style={{ color: "var(--text-faint)" }}
           >
-            Payment note (optional)
+            {t("dues.paymentNote")}
           </label>
           <input
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="e.g. bKash, cash, bank transfer..."
+            placeholder={t("dues.paymentNotePlaceholder")}
             className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
             style={{
               background: "var(--surface-3)",
@@ -341,7 +340,7 @@ const QuickSettleModal = ({
               color: "var(--text-secondary)",
             }}
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleSettle}
@@ -352,7 +351,7 @@ const QuickSettleModal = ({
             {submitting ? (
               <Loader2 size={14} className="animate-spin" />
             ) : (
-              "Confirm"
+              t("common.confirm")
             )}
           </button>
         </div>
@@ -365,6 +364,8 @@ const QuickSettleModal = ({
 const PendingDuesPage = () => {
   const { activeBusiness } = useBusinessStore();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
+  const { money, num } = useFormat();
 
   const [dues, setDues] = useState<IPendingDue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -386,11 +387,11 @@ const PendingDuesPage = () => {
       const data = await transactionService.getPendingDues(activeBusiness._id);
       setDues(data);
     } catch {
-      toast.error("Failed to load dues");
+      toast.error(t("dues.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [activeBusiness]);
+  }, [activeBusiness, t]);
 
   useEffect(() => {
     fetchDues();
@@ -409,14 +410,14 @@ const PendingDuesPage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              Pending Dues
+              {t("dues.title")}
             </h1>
             {activeBusiness && (
               <p
                 className="text-xs mt-0.5"
                 style={{ color: "var(--text-faint)" }}
               >
-                {activeBusiness.name} · {dues.length} pending
+                {t("dues.subtitle", { business: activeBusiness.name, count: num(dues.length) })}
               </p>
             )}
           </div>
@@ -445,7 +446,7 @@ const PendingDuesPage = () => {
             <div className="flex items-center gap-1.5 mb-2">
               <Clock size={12} style={{ color: "#ef4444" }} />
               <span className="text-xs" style={{ color: "#ef4444" }}>
-                I owe
+                {t("dues.iOwe")}
               </span>
             </div>
             <p
@@ -455,10 +456,10 @@ const PendingDuesPage = () => {
                 color: "#f87171",
               }}
             >
-              ৳{fmt(totalIOwe)}
+              {money(totalIOwe)}
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "#7f1d1d" }}>
-              {myDues.length} people
+              {plural(t, "dues.peopleCount", myDues.length, { count: num(myDues.length) })}
             </p>
           </div>
 
@@ -472,7 +473,7 @@ const PendingDuesPage = () => {
             <div className="flex items-center gap-1.5 mb-2">
               <AlertCircle size={12} style={{ color: "#10b981" }} />
               <span className="text-xs" style={{ color: "#10b981" }}>
-                Owed to me
+                {t("dues.owedToMe")}
               </span>
             </div>
             <p
@@ -482,10 +483,10 @@ const PendingDuesPage = () => {
                 color: "#10b981",
               }}
             >
-              ৳{fmt(totalOwedToMe)}
+              {money(totalOwedToMe)}
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "#064e3b" }}>
-              {owedToMe.length} people
+              {plural(t, "dues.peopleCount", owedToMe.length, { count: num(owedToMe.length) })}
             </p>
           </div>
         </div>
@@ -514,10 +515,10 @@ const PendingDuesPage = () => {
               className="text-sm font-medium mb-1"
               style={{ color: "var(--text-primary)" }}
             >
-              All clear!
+              {t("dues.allClear")}
             </p>
             <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-              No pending dues in {activeBusiness?.name}
+              {t("dues.noPending", { business: activeBusiness?.name ?? "" })}
             </p>
           </div>
         ) : (
@@ -529,8 +530,7 @@ const PendingDuesPage = () => {
                   className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  <Clock size={10} style={{ color: "#ef4444" }} /> You need to
-                  pay
+                  <Clock size={10} style={{ color: "#ef4444" }} /> {t("dues.youNeedToPay")}
                 </p>
                 <div className="space-y-2">
                   {myDues.map((due, i) => (
@@ -552,8 +552,7 @@ const PendingDuesPage = () => {
                   className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  <AlertCircle size={10} style={{ color: "#10b981" }} /> You'll
-                  receive
+                  <AlertCircle size={10} style={{ color: "#10b981" }} /> {t("dues.youWillReceive")}
                 </p>
                 <div className="space-y-2">
                   {owedToMe.map((due, i) => (
@@ -575,7 +574,7 @@ const PendingDuesPage = () => {
                   className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider mb-3"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  <Users size={10} /> Within team
+                  <Users size={10} /> {t("dues.withinTeam")}
                 </p>
                 <div className="space-y-2">
                   {otherDues.map((due, i) => (

@@ -11,6 +11,8 @@ import { useBusinessStore } from "../store/businessStore";
 import BusinessSwitcher from "../components/shared/BusinessSwitcher";
 import FloatingAI from "../pages/Ai/FloatingAI";
 import ThemeToggle from "../components/shared/ThemeToggle";
+import LanguageToggle from "../components/shared/LanguageToggle";
+import { useTranslation } from "../i18n/useTranslation";
 
 const C = {
   bg: "var(--bg)",
@@ -21,32 +23,32 @@ const C = {
 };
 
 const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", group: "overview" },
-  { to: "/transactions", icon: ArrowLeftRight, label: "Transactions", hideForBusiness: true, group: "money" },
-  { to: "/members", icon: Users, label: "Members", group: "team" },
-  { to: "/meals", icon: UtensilsCrossed, label: "Meals", massOnly: true, group: "mess" },
-  { to: "/mess", icon: Calculator, label: "Mess", massOnly: true, group: "mess" },
-  { to: "/invoices", icon: FileText, label: "Invoices", group: "sales" },
-  { to: "/dues", icon: HandCoins, label: "Dues", hideForBusiness: true, group: "money" },
-  { to: "/customers", icon: Contact, label: "Customers", businessModeOnly: true, group: "sales" },
-  { to: "/suppliers", icon: Truck, label: "Suppliers", businessModeOnly: true, group: "inventory" },
-  { to: "/products", icon: Package, label: "Products", businessModeOnly: true, group: "inventory" },
-  { to: "/sales", icon: ShoppingCart, label: "Sales", businessModeOnly: true, group: "sales" },
-  { to: "/purchases", icon: ShoppingBag, label: "Purchases", businessModeOnly: true, group: "inventory" },
-  { to: "/expenses", icon: Receipt, label: "Expenses", businessModeOnly: true, group: "money" },
-  { to: "/baki", icon: HandCoins, label: "Baki", businessModeOnly: true, group: "sales" },
-  { to: "/ledger", icon: ScrollText, label: "Ledger", businessModeOnly: true, group: "money" },
-  { to: "/reports", icon: BarChart3, label: "Reports", businessModeOnly: true, group: "money" },
+  { to: "/dashboard", icon: LayoutDashboard, labelKey: "nav.dashboard", group: "overview" },
+  { to: "/transactions", icon: ArrowLeftRight, labelKey: "nav.transactions", hideForBusiness: true, group: "money" },
+  { to: "/members", icon: Users, labelKey: "nav.members", group: "team" },
+  { to: "/meals", icon: UtensilsCrossed, labelKey: "nav.meals", massOnly: true, group: "mess" },
+  { to: "/mess", icon: Calculator, labelKey: "nav.mess", massOnly: true, group: "mess" },
+  { to: "/invoices", icon: FileText, labelKey: "nav.invoices", group: "sales" },
+  { to: "/dues", icon: HandCoins, labelKey: "nav.dues", hideForBusiness: true, group: "money" },
+  { to: "/customers", icon: Contact, labelKey: "nav.customers", businessModeOnly: true, group: "sales" },
+  { to: "/suppliers", icon: Truck, labelKey: "nav.suppliers", businessModeOnly: true, group: "inventory" },
+  { to: "/products", icon: Package, labelKey: "nav.products", businessModeOnly: true, group: "inventory" },
+  { to: "/sales", icon: ShoppingCart, labelKey: "nav.sales", businessModeOnly: true, group: "sales" },
+  { to: "/purchases", icon: ShoppingBag, labelKey: "nav.purchases", businessModeOnly: true, group: "inventory" },
+  { to: "/expenses", icon: Receipt, labelKey: "nav.expenses", businessModeOnly: true, group: "money" },
+  { to: "/baki", icon: HandCoins, labelKey: "nav.baki", businessModeOnly: true, group: "sales" },
+  { to: "/ledger", icon: ScrollText, labelKey: "nav.ledger", businessModeOnly: true, group: "money" },
+  { to: "/reports", icon: BarChart3, labelKey: "nav.reports", businessModeOnly: true, group: "money" },
   // More Business Mode-only items are appended as their pages land
   // Settings is always shown in the drawer's footer separately
 ];
 
-const GROUP_LABELS: Record<string, string> = {
-  sales: "Sales & Customers",
-  inventory: "Inventory & Purchasing",
-  money: "Money",
-  mess: "Mess",
-  team: "Team",
+const GROUP_LABEL_KEYS: Record<string, string> = {
+  sales: "nav.groups.sales",
+  inventory: "nav.groups.inventory",
+  money: "nav.groups.money",
+  mess: "nav.groups.mess",
+  team: "nav.groups.team",
 };
 const GROUP_ORDER = ["sales", "inventory", "money", "mess", "team"];
 
@@ -54,33 +56,33 @@ const GROUP_ORDER = ["sales", "inventory", "money", "mess", "team"];
 const ROOT_PATHS = ["/dashboard", "/transactions", "/members", "/meals", "/settings", "/dues", "/invoices", "/mess", "/customers", "/suppliers", "/products", "/sales", "/purchases", "/expenses", "/baki", "/ledger", "/reports"];
 const isRootPath = (path: string) => ROOT_PATHS.some((r) => path === r);
 
-const PAGE_TITLES: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/transactions": "Transactions",
-  "/members": "Members",
-  "/meals": "Meals",
-  "/settings": "Settings",
-  "/dues": "Dues",
-  "/invoices": "Invoices",
-  "/mess": "Mess Summary",
-  "/business/new": "New Business",
-  "/customers": "Customers",
-  "/suppliers": "Suppliers",
-  "/products": "Products",
-  "/sales": "Sales",
-  "/purchases": "Purchases",
-  "/expenses": "Expenses",
-  "/baki": "Baki",
-  "/ledger": "Ledger",
-  "/reports": "Reports",
-  "/business/settings": "Business Settings",
+const PAGE_TITLE_KEYS: Record<string, string> = {
+  "/dashboard": "nav.dashboard",
+  "/transactions": "nav.transactions",
+  "/members": "nav.members",
+  "/meals": "nav.meals",
+  "/settings": "nav.settings",
+  "/dues": "nav.dues",
+  "/invoices": "nav.invoices",
+  "/mess": "nav.messSummary",
+  "/business/new": "nav.newBusiness",
+  "/customers": "nav.customers",
+  "/suppliers": "nav.suppliers",
+  "/products": "nav.products",
+  "/sales": "nav.sales",
+  "/purchases": "nav.purchases",
+  "/expenses": "nav.expenses",
+  "/baki": "nav.baki",
+  "/ledger": "nav.ledger",
+  "/reports": "nav.reports",
+  "/business/settings": "nav.businessSettings",
 };
 
-const getPageTitle = (path: string) => {
-  const exact = PAGE_TITLES[path];
+const getPageTitleKey = (path: string) => {
+  const exact = PAGE_TITLE_KEYS[path];
   if (exact) return exact;
-  const partial = Object.entries(PAGE_TITLES).find(([k]) => path.startsWith(k) && k !== "/");
-  return partial ? partial[1] : "HisabBoi";
+  const partial = Object.entries(PAGE_TITLE_KEYS).find(([k]) => path.startsWith(k) && k !== "/");
+  return partial ? partial[1] : "app.name";
 };
 
 const AppLayout = () => {
@@ -88,6 +90,7 @@ const AppLayout = () => {
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const { activeBusiness } = useBusinessStore();
+  const { t } = useTranslation();
 
   const isMass = activeBusiness?.type === "mass" || activeBusiness?.mealEnabled;
   const isBusinessMode = activeBusiness?.type === "business";
@@ -102,11 +105,11 @@ const AppLayout = () => {
   const bottomMain = visibleNav.slice(0, 4);
   const bottomMore = visibleNav.slice(4);
   const bottomMoreGroups = GROUP_ORDER
-    .map((key) => ({ key, label: GROUP_LABELS[key], items: bottomMore.filter((n) => n.group === key) }))
+    .map((key) => ({ key, label: t(GROUP_LABEL_KEYS[key]), items: bottomMore.filter((n) => n.group === key) }))
     .filter((g) => g.items.length > 0);
 
   const showBack = !isRootPath(location.pathname);
-  const pageTitle = getPageTitle(location.pathname);
+  const pageTitle = t(getPageTitleKey(location.pathname));
 
   const [showMore, setShowMore] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -194,7 +197,7 @@ const AppLayout = () => {
             <TrendingUp size={15} className="text-emerald-950" />
           </div>
           <span className="font-bold text-lg" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            HisabBoi
+            {t("app.name")}
           </span>
         </div>
 
@@ -205,7 +208,7 @@ const AppLayout = () => {
 
         {/* Nav */}
         <nav className="flex-1 px-3 space-y-0.5">
-          {[...visibleNav, { to: "/settings", icon: Settings, label: "Settings" }].map(({ to, icon: Icon, label }) => {
+          {[...visibleNav, { to: "/settings", icon: Settings, labelKey: "nav.settings" }].map(({ to, icon: Icon, labelKey }) => {
             const active = isActive(to);
             return (
               <NavLink
@@ -225,15 +228,16 @@ const AppLayout = () => {
                 }}
               >
                 <Icon size={16} />
-                {label}
+                {t(labelKey)}
               </NavLink>
             );
           })}
         </nav>
 
-        {/* Theme toggle */}
-        <div className="px-3 mt-3">
+        {/* Appearance & language */}
+        <div className="px-3 mt-3 space-y-2">
           <ThemeToggle variant="row" />
+          <LanguageToggle variant="row" />
         </div>
 
         {/* User */}
@@ -295,7 +299,7 @@ const AppLayout = () => {
                 className="font-bold text-base"
                 style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                HisabBoi
+                {t("app.name")}
               </span>
             </div>
           )}
@@ -316,6 +320,7 @@ const AppLayout = () => {
 
           {/* Right: theme toggle + avatar with dropdown */}
           <div className="flex items-center gap-1.5 flex-shrink-0 relative">
+            <LanguageToggle />
             <ThemeToggle />
             <button
               onClick={() => setShowUserMenu((v) => !v)}
@@ -351,9 +356,9 @@ const AppLayout = () => {
 
                   {/* Menu items */}
                   {[
-                    { icon: User, label: "Profile & Settings", action: () => { navigate("/settings"); setShowUserMenu(false); } },
-                    { icon: LogOut, label: "Logout", action: handleLogout, danger: false },
-                    { icon: Trash2, label: "Delete Account", action: () => { navigate("/data-deletion"); setShowUserMenu(false); }, danger: true },
+                    { icon: User, label: t("nav.profileSettings"), action: () => { navigate("/settings"); setShowUserMenu(false); } },
+                    { icon: LogOut, label: t("nav.logout"), action: handleLogout, danger: false },
+                    { icon: Trash2, label: t("nav.deleteAccount"), action: () => { navigate("/data-deletion"); setShowUserMenu(false); }, danger: true },
                   ].map(({ icon: Icon, label, action, danger }) => (
                     <button
                       key={label}
@@ -392,7 +397,7 @@ const AppLayout = () => {
           className="flex items-center justify-around px-2 pt-2"
           style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
         >
-          {bottomMain.map(({ to, icon: Icon, label }) => {
+          {bottomMain.map(({ to, icon: Icon, labelKey }) => {
             const active = isActive(to);
             return (
               <NavLink key={to} to={to} className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl">
@@ -402,7 +407,7 @@ const AppLayout = () => {
                 </div>
                 <span className="text-[11px] leading-snug"
                   style={{ color: active ? "#10b981" : "var(--text-faint)", fontWeight: active ? 500 : 400 }}>
-                  {label}
+                  {t(labelKey)}
                 </span>
               </NavLink>
             );
@@ -419,7 +424,7 @@ const AppLayout = () => {
                 <MoreHorizontal size={20} style={{ color: showMore ? "#10b981" : "var(--text-faint)" }} />
               </div>
               <span className="text-[11px]" style={{ color: showMore ? "#10b981" : "var(--text-faint)" }}>
-                More
+                {t("nav.more")}
               </span>
             </button>
           )}
@@ -448,7 +453,7 @@ const AppLayout = () => {
                   <TrendingUp size={13} className="text-emerald-950" />
                 </div>
                 <span className="font-bold text-base" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-                  HisabBoi
+                  {t("app.name")}
                 </span>
               </div>
               <button
@@ -468,7 +473,7 @@ const AppLayout = () => {
                     {label}
                   </p>
                   <div className="space-y-0.5">
-                    {items.map(({ to, icon: Icon, label: itemLabel }) => {
+                    {items.map(({ to, icon: Icon, labelKey }) => {
                       const active = isActive(to);
                       return (
                         <NavLink
@@ -483,7 +488,7 @@ const AppLayout = () => {
                           }}
                         >
                           <Icon size={18} />
-                          {itemLabel}
+                          {t(labelKey)}
                         </NavLink>
                       );
                     })}
@@ -504,14 +509,14 @@ const AppLayout = () => {
                   fontWeight: isActive("/settings") ? 500 : 400,
                 }}
               >
-                <Settings size={18} /> Settings
+                <Settings size={18} /> {t("nav.settings")}
               </NavLink>
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm"
                 style={{ color: "#ef4444" }}
               >
-                <LogOut size={18} /> Logout
+                <LogOut size={18} /> {t("nav.logout")}
               </button>
               <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
             </div>

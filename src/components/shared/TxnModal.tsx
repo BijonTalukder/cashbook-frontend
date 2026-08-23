@@ -16,31 +16,36 @@ import {
 import { businessService } from "../../services/business.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useThemeStore } from "../../store/themeStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { enumLabel } from "../../i18n/labels";
 
 /* ─── Schema ──────────────────────────────────────────── */
-const schema = z
-  .object({
-    type: z.enum(["income", "expense", "transfer"]),
-    amount: z
-      .number({ error: "Amount required", })
-      .min(0.01, "Amount must be > 0"),
-    category: z.string().min(1, "Category required"),
-    note: z.string().optional(),
-    date: z.string().min(1, "Date required"),
-    reference: z.string().optional(),
-    toMember: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.type === "transfer" && !data.toMember) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Select a recipient for transfer",
-        path: ["toMember"],
-      });
-    }
-  });
+const buildSchema = (t: TFunction) =>
+  z
+    .object({
+      type: z.enum(["income", "expense", "transfer"]),
+      amount: z
+        .number({ error: t("txn.validation.amountRequired") })
+        .min(0.01, t("txn.validation.amountMin")),
+      category: z.string().min(1, t("txn.validation.categoryRequired")),
+      note: z.string().optional(),
+      date: z.string().min(1, t("txn.validation.dateRequired")),
+      reference: z.string().optional(),
+      toMember: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (data.type === "transfer" && !data.toMember) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: t("txn.validation.recipientRequired"),
+          path: ["toMember"],
+        });
+      }
+    });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.infer<ReturnType<typeof buildSchema>>;
 
 /* ─── Interfaces ──────────────────────────────────────── */
 interface IMemberOption {
@@ -48,19 +53,19 @@ interface IMemberOption {
 }
 
 interface TypeTab {
-  value: TxnType; label: string; icon: React.ElementType; color: string;
+  value: TxnType; labelKey: string; icon: React.ElementType; color: string;
 }
 
 /* ─── Tab configs ─────────────────────────────────────── */
 const DEFAULT_TABS: TypeTab[] = [
-  { value: "income", label: "Income", icon: TrendingUp, color: "#10b981" },
-  { value: "expense", label: "Expense", icon: TrendingDown, color: "#ef4444" },
-  { value: "transfer", label: "Transfer", icon: ArrowLeftRight, color: "#3b82f6" },
+  { value: "income", labelKey: "txn.income", icon: TrendingUp, color: "#10b981" },
+  { value: "expense", labelKey: "txn.expense", icon: TrendingDown, color: "#ef4444" },
+  { value: "transfer", labelKey: "txn.transfer", icon: ArrowLeftRight, color: "#3b82f6" },
 ];
 const MASS_TABS: TypeTab[] = [
-  { value: "income", label: "Deposit", icon: TrendingUp, color: "#10b981" },
-  { value: "expense", label: "Cost", icon: TrendingDown, color: "#ef4444" },
-  { value: "transfer", label: "Transfer", icon: ArrowLeftRight, color: "#3b82f6" },
+  { value: "income", labelKey: "txn.deposit", icon: TrendingUp, color: "#10b981" },
+  { value: "expense", labelKey: "txn.cost", icon: TrendingDown, color: "#ef4444" },
+  { value: "transfer", labelKey: "txn.transfer", icon: ArrowLeftRight, color: "#3b82f6" },
 ];
 
 /* ─── Styles ──────────────────────────────────────────── */
@@ -101,6 +106,9 @@ const TxnModal = ({
 }: Props) => {
   const { activeBusiness } = useBusinessStore();
   const { theme } = useThemeStore();
+  const { t } = useTranslation();
+  const { symbol } = useFormat();
+  const schema = React.useMemo(() => buildSchema(t), [t]);
 
   const [categories, setCategories] = useState<ITxnCategory[]>([]);
   const [members, setMembers] = useState<IMemberOption[]>([]);
@@ -140,9 +148,9 @@ const TxnModal = ({
     setLoadingCats(true);
     transactionService.getCategories(activeBusiness._id)
       .then(setCategories)
-      .catch(() => toast.error("Failed to load categories"))
+      .catch(() => toast.error(t("txn.loadCategoriesFailed")))
       .finally(() => setLoadingCats(false));
-  }, [open, activeBusiness]);
+  }, [open, activeBusiness, t]);
 
   /* load members */
   useEffect(() => {
@@ -150,9 +158,9 @@ const TxnModal = ({
     setLoadingMems(true);
     businessService.getMembers(activeBusiness._id)
       .then(setMembers)
-      .catch(() => toast.error("Failed to load members"))
+      .catch(() => toast.error(t("txn.loadMembersFailed")))
       .finally(() => setLoadingMems(false));
-  }, [open, activeBusiness, selType, members.length]);
+  }, [open, activeBusiness, selType, members.length, t]);
 
   /* reset */
   useEffect(() => {
@@ -191,10 +199,10 @@ const TxnModal = ({
       setCategories((prev) => [...prev, newCat]);
       setValue("category", newCat._id);
       setNewCatName(""); setAddingCat(false);
-      toast.success(`"${name}" added`);
+      toast.success(t("txn.categoryAdded", { name }));
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Failed to create category";
+        ?.response?.data?.message ?? t("txn.createCategoryFailed");
       toast.error(msg);
     } finally { setSavingCat(false); }
   };
@@ -211,15 +219,15 @@ const TxnModal = ({
       let result: ITransaction;
       if (editing) {
         result = await transactionService.update(editing._id, payload);
-        toast.success("Transaction updated");
+        toast.success(t("txn.updated"));
       } else {
         result = await transactionService.create(payload);
-        toast.success("Transaction added");
+        toast.success(t("txn.created"));
       }
       onSuccess(result); onClose();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Something went wrong";
+        ?.response?.data?.message ?? t("common.unknownError");
       toast.error(msg);
     } finally { setSubmitting(false); }
   };
@@ -227,17 +235,18 @@ const TxnModal = ({
   if (!open) return null;
 
   const modalTitle = editing
-    ? (isMass ? "Edit Entry" : "Edit Transaction")
-    : (isMass ? "New Entry" : "New Transaction");
+    ? (isMass ? t("txn.editEntry") : t("txn.editTransaction"))
+    : (isMass ? t("txn.newEntry") : t("txn.newTransaction"));
 
   const submitLabel = (() => {
-    if (editing) return "Save Changes";
+    if (editing) return t("common.saveChanges");
     if (isMass) {
-      if (selType === "income") return "Add Deposit";
-      if (selType === "expense") return "Add Cost";
-      return "Add Transfer";
+      if (selType === "income") return t("txn.addDeposit");
+      if (selType === "expense") return t("txn.addCost");
+      return t("txn.addTransfer");
     }
-    return `Add ${tabs.find((t) => t.value === selType)?.label ?? ""}`;
+    const tab = tabs.find((tab) => tab.value === selType);
+    return t("txn.addType", { type: tab ? t(tab.labelKey) : "" });
   })();
 
   return (
@@ -266,14 +275,14 @@ const TxnModal = ({
 
           {/* Type tabs */}
           <div className="grid grid-cols-3 gap-2">
-            {tabs.map(({ value, label, icon: Icon, color }) => {
+            {tabs.map(({ value, labelKey, icon: Icon, color }) => {
               const active = selType === value;
               return (
                 <button key={value} type="button"
                   onClick={() => { setValue("type", value); setValue("category", ""); setValue("toMember", ""); setAddingCat(false); setNewCatName(""); }}
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all"
                   style={{ background: active ? `${color}15` : C.input, border: `1px solid ${active ? `${color}40` : C.inputBorder}`, color: active ? color : "var(--text-muted)" }}>
-                  <Icon size={14} />{label}
+                  <Icon size={14} />{t(labelKey)}
                 </button>
               );
             })}
@@ -285,25 +294,25 @@ const TxnModal = ({
               style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)" }}>
               <Users size={12} style={{ color: "#8b5cf6", flexShrink: 0 }} />
               <p className="text-xs" style={{ color: "#8b5cf6" }}>
-                This entry will be recorded under your name and shown in the invoice.
+                {t("txn.massHint")}
               </p>
             </div>
           )}
 
           {/* Amount */}
-          <Field label="Amount (৳)" error={errors.amount?.message}>
+          <Field label={t("txn.amountWithCurrency", { symbol })} error={errors.amount?.message}>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold"
-                style={{ color: typeColor, fontSize: "15px" }}>৳</span>
+                style={{ color: typeColor, fontSize: "15px" }}>{symbol}</span>
               <input {...register("amount", { valueAsNumber: true })}
-                type="number" step="0.01" min="0" placeholder="0.00"
+                type="number" step="0.01" min="0" placeholder={t("txn.amountPlaceholder")}
                 style={{ ...inputCss(!!errors.amount), paddingLeft: "28px", fontSize: "20px", fontWeight: 700 }} />
             </div>
           </Field>
 
           {/* To Member */}
           {selType === "transfer" && (
-            <Field label="Send to" error={errors.toMember?.message}>
+            <Field label={t("txn.sendTo")} error={errors.toMember?.message}>
               {loadingMems ? (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 size={16} className="animate-spin" style={{ color: "#3b82f6" }} />
@@ -311,7 +320,7 @@ const TxnModal = ({
               ) : members.length === 0 ? (
                 <div className="rounded-xl p-3 text-center"
                   style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.15)" }}>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>No other members</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t("txn.noOtherMembers")}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -328,8 +337,8 @@ const TxnModal = ({
                         <div className="flex-1 text-left min-w-0">
                           <p className="text-sm font-medium truncate" style={{ color: sel ? "var(--text-primary)" : "var(--text-secondary)" }}>
                             {m.firstName} {m.lastName}</p>
-                          <p className="text-[11px] truncate capitalize" style={{ color: "var(--text-faint)" }}>
-                            {m.role} · {m.email}</p>
+                          <p className="text-[11px] truncate" style={{ color: "var(--text-faint)" }}>
+                            {t("txn.memberLine", { role: enumLabel(t, "role", m.role), email: m.email })}</p>
                         </div>
                         {sel && (
                           <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
@@ -348,7 +357,7 @@ const TxnModal = ({
           )}
 
           {/* Category */}
-          <Field label="Category" error={errors.category?.message}>
+          <Field label={t("common.category")} error={errors.category?.message}>
             {loadingCats ? (
               <div className="flex items-center justify-center py-4">
                 <Loader2 size={16} className="animate-spin" style={{ color: "#10b981" }} />
@@ -372,7 +381,7 @@ const TxnModal = ({
                     <button type="button" onClick={() => setAddingCat(true)}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
                       style={{ background: "transparent", border: `1px dashed ${C.inputBorder}`, color: "var(--text-faint)", flexShrink: 0 }}>
-                      <Plus size={11} /> New
+                      <Plus size={11} /> {t("txn.newCategory")}
                     </button>
                   )}
                 </div>
@@ -384,7 +393,7 @@ const TxnModal = ({
                         if (e.key === "Enter") { e.preventDefault(); handleCreateCat(); }
                         if (e.key === "Escape") { setAddingCat(false); setNewCatName(""); }
                       }}
-                      placeholder="Category name..."
+                      placeholder={t("txn.categoryNamePlaceholder")}
                       className="flex-1 rounded-xl px-3 py-2 text-xs outline-none"
                       style={{ background: C.input, border: `1px solid ${typeColor}55`, color: "var(--text-primary)" }} />
                     <button type="button" onClick={handleCreateCat}
@@ -405,21 +414,21 @@ const TxnModal = ({
           </Field>
 
           {/* Date */}
-          <Field label="Date" error={errors.date?.message}>
+          <Field label={t("common.date")} error={errors.date?.message}>
             <input {...register("date")} type="date"
               style={{ ...inputCss(!!errors.date), colorScheme: theme }} />
           </Field>
 
           {/* Note */}
-          <Field label="Note (optional)">
+          <Field label={t("txn.note")}>
             <input {...register("note")}
-              placeholder={isMass ? "e.g. House rent, grocery, gas bill..." : "What was this for?"}
+              placeholder={isMass ? t("txn.notePlaceholderMass") : t("txn.notePlaceholder")}
               style={inputCss()} />
           </Field>
 
           {/* Reference */}
-          <Field label="Reference / Invoice # (optional)">
-            <input {...register("reference")} placeholder="INV-001" style={inputCss()} />
+          <Field label={t("txn.reference")}>
+            <input {...register("reference")} placeholder={t("txn.referencePlaceholder")} style={inputCss()} />
           </Field>
 
           {/* Submit */}

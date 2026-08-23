@@ -4,37 +4,35 @@ import { ArrowLeft, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { saleService, type ISale } from "../../services/sale.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { paymentMethodLabel } from "../../i18n/labels";
 
 const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n);
-
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });
-
-const STATUS_META: Record<string, { label: string; color: string }> = {
-  paid: { label: "Paid", color: "#10b981" },
-  partial: { label: "Partial", color: "#f59e0b" },
-  due: { label: "Due", color: "#ef4444" },
+const STATUS_META: Record<string, { labelKey: string; color: string }> = {
+  paid: { labelKey: "docStatus.paid", color: "#10b981" },
+  partial: { labelKey: "docStatus.partial", color: "#f59e0b" },
+  due: { labelKey: "docStatus.due", color: "#ef4444" },
 };
 
 const SaleDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { activeBusiness } = useBusinessStore();
-  const currencySymbol = (activeBusiness?.currency || "BDT") === "BDT" ? "৳" : `${activeBusiness?.currency} `;
+  const { t } = useTranslation();
+  const { money, num, date: fmtDate } = useFormat();
 
   const [sale, setSale] = useState<ISale | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
-    saleService.getOne(id).then(setSale).catch(() => toast.error("Failed to load sale")).finally(() => setLoading(false));
-  }, [id]);
+    saleService.getOne(id).then(setSale).catch(() => toast.error(t("sale.loadOneFailed"))).finally(() => setLoading(false));
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -47,7 +45,7 @@ const SaleDetailPage = () => {
   if (!sale) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
-        <p className="text-sm" style={{ color: "var(--text-faint)" }}>Sale not found</p>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>{t("sale.notFound")}</p>
       </div>
     );
   }
@@ -59,14 +57,14 @@ const SaleDetailPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-2xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate("/sales")} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-faint)" }}>
-            <ArrowLeft size={13} /> Back to Sales
+            <ArrowLeft size={13} /> {t("sale.backToSales")}
           </button>
           <button
             onClick={() => navigate(`/sales/${sale._id}/invoice`)}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium"
             style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
           >
-            <FileText size={13} /> View Invoice
+            <FileText size={13} /> {t("sale.viewInvoice")}
           </button>
         </div>
 
@@ -77,14 +75,17 @@ const SaleDetailPage = () => {
                 {sale.invoiceNumber}
               </h1>
               <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
-                {fmtDate(sale.date)} · {sale.customer ? sale.customer.name : "Walk-in customer"}
+                {t("sale.dateAndCustomer", {
+                  date: fmtDate(sale.date),
+                  customer: sale.customer ? sale.customer.name : t("sale.walkInCustomer"),
+                })}
               </p>
             </div>
             <span
               className="text-xs font-semibold px-2.5 py-1 rounded-full"
               style={{ background: `${meta.color}15`, color: meta.color }}
             >
-              {meta.label}
+              {t(meta.labelKey)}
             </span>
           </div>
 
@@ -98,43 +99,45 @@ const SaleDetailPage = () => {
                 <div>
                   <p style={{ color: "var(--text-primary)" }}>{item.productName}</p>
                   <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                    {item.quantity} × {currencySymbol}{fmt(item.unitPrice)}
+                    {t("sale.lineQty", { quantity: num(item.quantity), price: money(item.unitPrice) })}
                   </p>
                 </div>
-                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{currencySymbol}{fmt(item.lineTotal)}</p>
+                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{money(item.lineTotal)}</p>
               </div>
             ))}
           </div>
 
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>Subtotal</span>
-              <span style={{ color: "var(--text-primary)" }}>{currencySymbol}{fmt(sale.subtotal)}</span>
+              <span style={{ color: "var(--text-muted)" }}>{t("common.subtotal")}</span>
+              <span style={{ color: "var(--text-primary)" }}>{money(sale.subtotal)}</span>
             </div>
             {sale.discount > 0 && (
               <div className="flex justify-between">
-                <span style={{ color: "var(--text-muted)" }}>Discount</span>
-                <span style={{ color: "var(--text-primary)" }}>-{currencySymbol}{fmt(sale.discount)}</span>
+                <span style={{ color: "var(--text-muted)" }}>{t("common.discount")}</span>
+                <span style={{ color: "var(--text-primary)" }}>{money(-sale.discount)}</span>
               </div>
             )}
             {sale.tax > 0 && (
               <div className="flex justify-between">
-                <span style={{ color: "var(--text-muted)" }}>Tax</span>
-                <span style={{ color: "var(--text-primary)" }}>+{currencySymbol}{fmt(sale.tax)}</span>
+                <span style={{ color: "var(--text-muted)" }}>{t("sale.tax")}</span>
+                <span style={{ color: "var(--text-primary)" }}>{money(sale.tax, { signed: true })}</span>
               </div>
             )}
             <div className="flex justify-between font-bold pt-1.5" style={{ borderTop: `1px solid ${C.border}` }}>
-              <span style={{ color: "var(--text-primary)" }}>Total</span>
-              <span style={{ color: "var(--text-primary)" }}>{currencySymbol}{fmt(sale.total)}</span>
+              <span style={{ color: "var(--text-primary)" }}>{t("common.total")}</span>
+              <span style={{ color: "var(--text-primary)" }}>{money(sale.total)}</span>
             </div>
             <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>Paid ({sale.paymentMethod})</span>
-              <span style={{ color: "#10b981" }}>{currencySymbol}{fmt(sale.paidAmount)}</span>
+              <span style={{ color: "var(--text-muted)" }}>
+                {t("sale.paidWithMethod", { method: paymentMethodLabel(t, sale.paymentMethod) })}
+              </span>
+              <span style={{ color: "#10b981" }}>{money(sale.paidAmount)}</span>
             </div>
             {sale.dueAmount > 0 && (
               <div className="flex justify-between font-semibold">
-                <span style={{ color: "#ef4444" }}>Due</span>
-                <span style={{ color: "#ef4444" }}>{currencySymbol}{fmt(sale.dueAmount)}</span>
+                <span style={{ color: "#ef4444" }}>{t("common.due")}</span>
+                <span style={{ color: "#ef4444" }}>{money(sale.dueAmount)}</span>
               </div>
             )}
           </div>

@@ -6,16 +6,19 @@ import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
 
-const schema = z.object({
-  name: z.string().min(1, "Name is required").max(80),
-  phone: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  address: z.string().optional(),
-  openingBalance: z.number().min(0, "Cannot be negative").optional(),
-  notes: z.string().optional(),
-});
-type FormData = z.infer<typeof schema>;
+const buildSchema = (t: TFunction) =>
+  z.object({
+    name: z.string().min(1, t("validation.nameRequired")).max(80),
+    phone: z.string().optional(),
+    email: z.string().email(t("validation.invalidEmail")).optional().or(z.literal("")),
+    address: z.string().optional(),
+    openingBalance: z.number().min(0, t("validation.notNegative")).optional(),
+    notes: z.string().optional(),
+  });
+type FormData = z.infer<ReturnType<typeof buildSchema>>;
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -47,6 +50,8 @@ interface Props {
 const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
   const { activeBusiness } = useBusinessStore();
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useTranslation();
+  const schema = React.useMemo(() => buildSchema(t), [t]);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -72,16 +77,16 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
       let result: ICustomer;
       if (editing) {
         result = await customerService.update(editing._id, data);
-        toast.success("Customer updated");
+        toast.success(t("customer.updated"));
       } else {
         result = await customerService.create({ ...data, businessId: activeBusiness._id });
-        toast.success("Customer added");
+        toast.success(t("customer.created"));
       }
       onSuccess(result);
       onClose();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? "Something went wrong";
+        ?.response?.data?.message ?? t("common.unknownError");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -104,7 +109,7 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
           style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
           <h2 className="text-base font-semibold"
             style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {editing ? "Edit Customer" : "Add Customer"}
+            {editing ? t("customer.edit") : t("customer.add")}
           </h2>
           <button onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-lg"
@@ -114,36 +119,36 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-4">
-          <Field label="Name" error={errors.name?.message}>
-            <input {...register("name")} placeholder="Customer name" style={inputCss(!!errors.name)} />
+          <Field label={t("common.name")} error={errors.name?.message}>
+            <input {...register("name")} placeholder={t("customer.namePlaceholder")} style={inputCss(!!errors.name)} />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Phone" error={errors.phone?.message}>
-              <input {...register("phone")} placeholder="01XXXXXXXXX" style={inputCss()} />
+            <Field label={t("common.phone")} error={errors.phone?.message}>
+              <input {...register("phone")} placeholder={t("customer.phonePlaceholder")} style={inputCss()} />
             </Field>
-            <Field label="Email" error={errors.email?.message}>
-              <input {...register("email")} placeholder="email@example.com" style={inputCss(!!errors.email)} />
+            <Field label={t("common.email")} error={errors.email?.message}>
+              <input {...register("email")} placeholder={t("customer.emailPlaceholder")} style={inputCss(!!errors.email)} />
             </Field>
           </div>
 
-          <Field label="Address" error={errors.address?.message}>
-            <input {...register("address")} placeholder="Address" style={inputCss()} />
+          <Field label={t("common.address")} error={errors.address?.message}>
+            <input {...register("address")} placeholder={t("customer.addressPlaceholder")} style={inputCss()} />
           </Field>
 
           {!editing && (
-            <Field label="Opening balance (amount already due)" error={errors.openingBalance?.message}>
+            <Field label={t("customer.openingBalance")} error={errors.openingBalance?.message}>
               <input
                 type="number" min="0" step="0.01"
                 {...register("openingBalance", { valueAsNumber: true })}
-                placeholder="0"
+                placeholder={t("common.zero")}
                 style={inputCss(!!errors.openingBalance)}
               />
             </Field>
           )}
 
-          <Field label="Notes" error={errors.notes?.message}>
-            <textarea {...register("notes")} placeholder="Optional notes" rows={2} style={inputCss()} />
+          <Field label={t("common.notes")} error={errors.notes?.message}>
+            <textarea {...register("notes")} placeholder={t("customer.notesPlaceholder")} rows={2} style={inputCss()} />
           </Field>
 
           <button
@@ -153,7 +158,7 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
-            {editing ? "Save Changes" : "Add Customer"}
+            {editing ? t("common.saveChanges") : t("customer.add")}
           </button>
         </form>
       </div>

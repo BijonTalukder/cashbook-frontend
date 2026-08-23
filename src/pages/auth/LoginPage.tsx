@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,19 +7,25 @@ import { Eye, EyeOff, ArrowRight, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { authService } from "../../services/auth.service";
 import { useAuthStore } from "../../store/authStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
+import LanguageToggle from "../../components/shared/LanguageToggle";
 
-const schema = z.object({
-  email: z.string().email("Valid email required"),
-  password: z.string().min(1, "Password is required"),
-});
+const buildSchema = (t: TFunction) =>
+  z.object({
+    email: z.string().email(t("auth.validation.emailRequired")),
+    password: z.string().min(1, t("auth.validation.passwordRequired")),
+  });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.infer<ReturnType<typeof buildSchema>>;
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+  const schema = useMemo(() => buildSchema(t), [t]);
 
   const {
     register,
@@ -32,7 +38,7 @@ const LoginPage = () => {
     try {
       const res = await authService.login(data);
       setAuth(res.data.user, res.data.token);
-      toast.success(`Welcome back, ${res.data.user.firstName}!`);
+      toast.success(t("auth.welcomeBack", { name: res.data.user.firstName }));
 
       // ✅ Fix: defaultBusiness আছে কিনা দেখে navigate করো
       // GuestRoute এও handle করা আছে, কিন্তু explicit navigate better UX
@@ -50,7 +56,7 @@ const LoginPage = () => {
         err instanceof Error
           ? err.message
           : ((err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ?? "Login failed");
+            ?.data?.message ?? t("auth.loginFailed"));
       toast.error(message);
     } finally {
       setLoading(false);
@@ -91,7 +97,7 @@ const LoginPage = () => {
               className="text-white font-bold text-xl tracking-tight"
               style={{ fontFamily: "'DM Serif Display', serif" }}
             >
-              HisabBoi
+              {t("app.name")}
             </span>
           </div>
 
@@ -99,23 +105,23 @@ const LoginPage = () => {
             className="text-5xl font-bold text-white leading-tight mb-6"
             style={{ fontFamily: "'DM Serif Display', serif" }}
           >
-            Track every
+            {t("auth.heroTitleLine1")}
             <br />
-            <span className="text-emerald-400">taka</span>,<br />
-            effortlessly.
+            <span className="text-emerald-400">{t("auth.heroTitleHighlight")}</span>
+            <br />
+            {t("auth.heroTitleLine2")}
           </h1>
 
           <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-            Manage your personal finances, team expenses, and household budgets
-            — all in one place.
+            {t("auth.heroSubtitle")}
           </p>
         </div>
 
         <div className="relative z-10 flex gap-8">
           {[
-            { value: "৳2.4M", label: "Tracked monthly" },
-            { value: "12K+", label: "Active users" },
-            { value: "99.9%", label: "Uptime" },
+            { value: "৳2.4M", label: t("auth.statTracked") },
+            { value: "12K+", label: t("auth.statUsers") },
+            { value: "99.9%", label: t("auth.statUptime") },
           ].map((stat) => (
             <div key={stat.label}>
               <div
@@ -133,43 +139,48 @@ const LoginPage = () => {
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 mb-10 lg:hidden">
-            <div className="w-8 h-8 bg-emerald-400 rounded-lg flex items-center justify-center">
-              <TrendingUp size={16} className="text-emerald-950" />
+          <div className="flex items-center justify-between gap-3 mb-10">
+            <div className="flex items-center gap-3 lg:hidden">
+              <div className="w-8 h-8 bg-emerald-400 rounded-lg flex items-center justify-center">
+                <TrendingUp size={16} className="text-emerald-950" />
+              </div>
+              <span
+                className="text-white font-bold text-lg"
+                style={{ fontFamily: "'DM Serif Display', serif" }}
+              >
+                {t("app.name")}
+              </span>
             </div>
-            <span
-              className="text-white font-bold text-lg"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
-            >
-              HisabBoi
-            </span>
+            <div className="ml-auto">
+              <LanguageToggle variant="segmented" />
+            </div>
           </div>
 
           <h2
             className="text-3xl font-bold text-white mb-2"
             style={{ fontFamily: "'DM Serif Display', serif" }}
           >
-            Sign in
+            {t("auth.signIn")}
           </h2>
           <p className="text-slate-500 mb-8">
-            New here?{" "}
+            {t("auth.newHere")}{" "}
             <Link
               to="/register"
               className="text-emerald-400 hover:text-emerald-300 transition-colors"
             >
-              Create an account
+              {t("auth.createAccount")}
             </Link>
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <label className="block text-sm text-slate-400 mb-2">
-                Email address
+                {t("auth.emailAddress")}
               </label>
               <input
                 {...register("email")}
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder")}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
                   ${errors.email
@@ -186,13 +197,13 @@ const LoginPage = () => {
 
             <div>
               <label className="block text-sm text-slate-400 mb-2">
-                Password
+                {t("auth.password")}
               </label>
               <div className="relative">
                 <input
                   {...register("password")}
                   type={showPass ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t("auth.passwordPlaceholder")}
                   className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-11 text-white placeholder-slate-600 
                     focus:outline-none focus:ring-2 transition-all text-sm
                     ${errors.password
@@ -203,6 +214,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
+                  aria-label={showPass ? t("auth.hidePassword") : t("auth.showPassword")}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -226,7 +238,7 @@ const LoginPage = () => {
                 <span className="w-5 h-5 border-2 border-emerald-900/30 border-t-emerald-900 rounded-full animate-spin" />
               ) : (
                 <>
-                  Sign in
+                  {t("auth.signIn")}
                   <ArrowRight
                     size={16}
                     className="group-hover:translate-x-0.5 transition-transform"
@@ -237,14 +249,14 @@ const LoginPage = () => {
           </form>
 
           <p className="text-center text-slate-600 text-xs mt-8">
-            By signing in you agree to our{" "}
-            <span className="text-slate-500 cursor-pointer hover:text-slate-400">
-              Terms
-            </span>{" "}
-            &{" "}
-            <span className="text-slate-500 cursor-pointer hover:text-slate-400">
-              Privacy Policy
-            </span>
+            {t("auth.termsSignIn")}{" "}
+            <Link to="/privacy-policy" className="text-slate-500 hover:text-slate-400">
+              {t("auth.terms")}
+            </Link>{" "}
+            {t("auth.and")}{" "}
+            <Link to="/privacy-policy" className="text-slate-500 hover:text-slate-400">
+              {t("auth.privacyPolicy")}
+            </Link>
           </p>
         </div>
       </div>
