@@ -13,23 +13,17 @@ import {
 import { toast } from "sonner";
 import {
   invoiceService,
-  monthName,
   type IInvoice,
 } from "../../services/Invoice.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { enumLabel } from "../../i18n/labels";
 
 const C = {
   bg: "var(--bg)",
   card: "var(--surface-1)",
   border: "var(--border)",
 };
-const fmt = (n: number) =>
-  "৳" + n.toLocaleString("en-BD", { maximumFractionDigits: 0 });
-const fmt2 = (n: number) =>
-  "৳" +
-  n.toLocaleString("en-BD", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 const InvoiceDetailPage = () => {
   const { businessId, invoiceId } = useParams<{
@@ -38,6 +32,10 @@ const InvoiceDetailPage = () => {
   }>();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+  const { money, num, date: fmtDate, dateTime, monthName: monthLabel } = useFormat();
+  const fmt = (n: number) => money(n, { decimals: 0 });
+  const fmt2 = (n: number) => money(n, { decimals: 2 });
 
   const [invoice, setInvoice] = useState<IInvoice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,11 +46,11 @@ const InvoiceDetailPage = () => {
       .get(businessId, invoiceId)
       .then(setInvoice)
       .catch(() => {
-        toast.error("Invoice not found");
+        toast.error(t("invoiceDetail.notFound"));
         navigate(-1);
       })
       .finally(() => setLoading(false));
-  }, [businessId, invoiceId]);
+  }, [businessId, invoiceId, navigate, t]);
 
   const handlePrint = () => {
     // Android WebView
@@ -168,14 +166,14 @@ const InvoiceDetailPage = () => {
               color: "var(--text-muted)",
             }}
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> {t("common.back")}
           </button>
           <button
             onClick={handlePrint}
             className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold"
             style={{ background: "#10b981", color: "#022c22" }}
           >
-            <Printer size={14} /> Print / PDF
+            <Printer size={14} /> {t("invoiceDetail.printPdf")}
           </button>
         </div>
       </div>
@@ -220,13 +218,12 @@ const InvoiceDetailPage = () => {
                     {invoice.businessName}
                   </p>
                   <p
-                    className="p-muted text-xs capitalize"
+                    className="p-muted text-xs"
                     style={{ color: "var(--text-faint)" }}
                   >
-                    {invoice.businessType === "mass"
-                      ? "Mess"
-                      : invoice.businessType}{" "}
-                    Account
+                    {t("invoiceDetail.accountSuffix", {
+                      type: enumLabel(t, "businessType", invoice.businessType),
+                    })}
                   </p>
                 </div>
               </div>
@@ -235,7 +232,7 @@ const InvoiceDetailPage = () => {
                   className="p-muted text-xs mb-1"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  Invoice Period
+                  {t("invoiceDetail.invoicePeriod")}
                 </p>
                 <p
                   className="p-white text-2xl font-bold"
@@ -244,18 +241,16 @@ const InvoiceDetailPage = () => {
                     color: "var(--text-primary)",
                   }}
                 >
-                  {monthName(invoice.month)} {invoice.year}
+                  {t("invoices.monthYear", {
+                    month: monthLabel(invoice.month - 1, "long"),
+                    year: num(invoice.year, { useGrouping: false }),
+                  })}
                 </p>
                 <p
                   className="p-muted text-xs mt-1"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Generated{" "}
-                  {new Date(invoice.generatedAt).toLocaleDateString("en-BD", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {t("invoiceDetail.generatedOn", { date: fmtDate(invoice.generatedAt, "long") })}
                 </p>
               </div>
             </div>
@@ -268,26 +263,29 @@ const InvoiceDetailPage = () => {
               <div className="grid grid-cols-3 gap-4">
                 {[
                   {
-                    label: "Total Income",
+                    key: "income",
+                    label: t("invoices.totalIncome"),
                     value: invoice.totalIncome,
                     color: "#10b981",
                     Icon: TrendingUp,
                   },
                   {
-                    label: "Total Expense",
+                    key: "expense",
+                    label: t("invoices.totalExpense"),
                     value: invoice.totalExpense,
                     color: "#ef4444",
                     Icon: TrendingDown,
                   },
                   {
-                    label: "Net Balance",
+                    key: "net",
+                    label: t("invoices.netBalance"),
                     value: invoice.netBalance,
                     color: invoice.netBalance >= 0 ? "#10b981" : "#ef4444",
                     Icon:
                       invoice.netBalance >= 0 ? ArrowUpRight : ArrowDownRight,
                   },
-                ].map(({ label, value, color, Icon }) => (
-                  <div key={label} className="text-center py-2">
+                ].map(({ key, label, value, color, Icon }) => (
+                  <div key={key} className="text-center py-2">
                     <div className="flex items-center justify-center gap-1.5 mb-2">
                       <div
                         className="w-6 h-6 rounded-lg flex items-center justify-center"
@@ -331,7 +329,7 @@ const InvoiceDetailPage = () => {
                     className="p-white text-sm font-bold"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    Mess Member Summary
+                    {t("invoiceDetail.messMemberSummary")}
                   </span>
                 </div>
                 <div
@@ -339,19 +337,19 @@ const InvoiceDetailPage = () => {
                   style={{ color: "var(--text-muted)" }}
                 >
                   <span>
-                    Meal Category:{" "}
+                    {t("invoiceDetail.mealCategoryLabel")}{" "}
                     <strong style={{ color: "#8b5cf6" }}>
                       {invoice.mealCategoryName}
                     </strong>
                   </span>
                   <span>
-                    Total Meals:{" "}
+                    {t("invoiceDetail.totalMealsLabel")}{" "}
                     <strong style={{ color: "var(--text-secondary)" }}>
-                      {invoice.totalMeals}
+                      {num(invoice.totalMeals ?? 0)}
                     </strong>
                   </span>
                   <span>
-                    Meal Rate:{" "}
+                    {t("invoiceDetail.mealRateLabel")}{" "}
                     <strong style={{ color: "#8b5cf6" }}>
                       {fmt2(invoice.mealRate ?? 0)}
                     </strong>
@@ -365,20 +363,20 @@ const InvoiceDetailPage = () => {
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${C.border}` }}>
                       {[
-                        "Member",
-                        "Deposit",
-                        "Meals",
-                        "Meal Cost",
-                        "Other Exp.",
-                        "Total Cost",
-                        "Balance",
+                        "invoiceDetail.memberTable.member",
+                        "invoiceDetail.memberTable.deposit",
+                        "invoiceDetail.memberTable.meals",
+                        "invoiceDetail.memberTable.mealCost",
+                        "invoiceDetail.memberTable.otherExpense",
+                        "invoiceDetail.memberTable.totalCost",
+                        "invoiceDetail.memberTable.balance",
                       ].map((h) => (
                         <th
                           key={h}
                           className="px-4 py-3 text-xs font-semibold text-left p-muted"
                           style={{ color: "var(--text-faint)" }}
                         >
-                          {h}
+                          {t(h)}
                         </th>
                       ))}
                     </tr>
@@ -422,7 +420,7 @@ const InvoiceDetailPage = () => {
                           className="px-4 py-3 text-sm"
                           style={{ color: "var(--text-secondary)" }}
                         >
-                          {m.totalMeals}
+                          {num(m.totalMeals)}
                         </td>
                         <td
                           className="px-4 py-3 text-sm"
@@ -434,7 +432,7 @@ const InvoiceDetailPage = () => {
                           className="px-4 py-3 text-sm"
                           style={{ color: "#ef4444" }}
                         >
-                          {m.otherExpense > 0 ? fmt(m.otherExpense) : "—"}
+                          {m.otherExpense > 0 ? fmt(m.otherExpense) : t("common.dash")}
                         </td>
                         <td
                           className="px-4 py-3 text-sm font-medium"
@@ -453,8 +451,7 @@ const InvoiceDetailPage = () => {
                                   : "rgba(239,68,68,0.12)",
                             }}
                           >
-                            {m.balance >= 0 ? "+" : ""}
-                            {fmt(m.balance)}
+                            {money(m.balance, { decimals: 0, signed: true })}
                           </span>
                         </td>
                       </tr>
@@ -466,7 +463,7 @@ const InvoiceDetailPage = () => {
                         className="px-4 py-3 text-xs font-bold p-white"
                         style={{ color: "var(--text-primary)" }}
                       >
-                        Total
+                        {t("common.total")}
                       </td>
                       <td
                         className="px-4 py-3 text-sm font-bold"
@@ -483,7 +480,7 @@ const InvoiceDetailPage = () => {
                         className="px-4 py-3 text-sm font-bold"
                         style={{ color: "var(--text-secondary)" }}
                       >
-                        {invoice.totalMeals}
+                        {num(invoice.totalMeals ?? 0)}
                       </td>
                       <td
                         className="px-4 py-3 text-sm font-bold"
@@ -525,10 +522,13 @@ const InvoiceDetailPage = () => {
                   color: "#8b5cf6",
                 }}
               >
-                <strong>Formula:</strong> Total {invoice.mealCategoryName}{" "}
-                Expense ({fmt(invoice.totalMealCost ?? 0)}) ÷ Total Meals (
-                {invoice.totalMeals}) = Meal Rate ({fmt2(invoice.mealRate ?? 0)}
-                ) · Balance = Deposit − (Meals × Rate) − Other Expenses
+                <strong>{t("invoiceDetail.formulaLabel")}</strong>{" "}
+                {t("invoiceDetail.formulaBody", {
+                  category: invoice.mealCategoryName ?? "",
+                  cost: fmt(invoice.totalMealCost ?? 0),
+                  meals: num(invoice.totalMeals ?? 0),
+                  rate: fmt2(invoice.mealRate ?? 0),
+                })}
               </div>
             </div>
           )}
@@ -536,23 +536,25 @@ const InvoiceDetailPage = () => {
           {/* ── Transaction Sections ── */}
           {[
             {
-              label: "Income Transactions",
+              key: "income",
+              label: t("invoiceDetail.incomeTransactions"),
               rows: incomeRows,
               color: "#10b981",
             },
             {
-              label: "Expense Transactions",
+              key: "expense",
+              label: t("invoiceDetail.expenseTransactions"),
               rows: expenseRows,
               color: "#ef4444",
             },
             ...(transferRows.length > 0
-              ? [{ label: "Transfers", rows: transferRows, color: "#f59e0b" }]
+              ? [{ key: "transfer", label: t("invoiceDetail.transfers"), rows: transferRows, color: "#f59e0b" }]
               : []),
           ].map(
-            ({ label, rows, color }) =>
+            ({ key, label, rows, color }) =>
               rows.length > 0 && (
                 <div
-                  key={label}
+                  key={key}
                   className="p-card rounded-2xl overflow-hidden"
                   style={{
                     background: C.card,
@@ -574,17 +576,21 @@ const InvoiceDetailPage = () => {
                     <table className="w-full text-sm">
                       <thead>
                         <tr style={{ borderBottom: `1px solid ${C.border}` }}>
-                          {["Date", "Category", "Note", "Member", "Amount"].map(
-                            (h) => (
-                              <th
-                                key={h}
-                                className="px-4 py-2.5 text-left text-xs font-semibold p-muted"
-                                style={{ color: "var(--text-faint)" }}
-                              >
-                                {h}
-                              </th>
-                            ),
-                          )}
+                          {[
+                            "invoices.table.date",
+                            "invoices.table.category",
+                            "invoices.table.note",
+                            "invoices.table.member",
+                            "invoices.table.amount",
+                          ].map((h) => (
+                            <th
+                              key={h}
+                              className="px-4 py-2.5 text-left text-xs font-semibold p-muted"
+                              style={{ color: "var(--text-faint)" }}
+                            >
+                              {t(h)}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
@@ -599,10 +605,7 @@ const InvoiceDetailPage = () => {
                               className="px-4 py-2.5 text-xs p-muted"
                               style={{ color: "var(--text-muted)" }}
                             >
-                              {new Date(tx.date).toLocaleDateString("en-BD", {
-                                day: "2-digit",
-                                month: "short",
-                              })}
+                              {fmtDate(tx.date, "short")}
                             </td>
                             <td
                               className="px-4 py-2.5 text-xs"
@@ -614,7 +617,7 @@ const InvoiceDetailPage = () => {
                               className="px-4 py-2.5 text-xs max-w-[160px] truncate"
                               style={{ color: "var(--text-muted)" }}
                             >
-                              {tx.note ?? "—"}
+                              {tx.note ?? t("common.dash")}
                             </td>
                             <td
                               className="px-4 py-2.5 text-xs"
@@ -660,23 +663,22 @@ const InvoiceDetailPage = () => {
                     className="text-xs font-semibold p-white"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    HisabBoi
+                    {t("app.name")}
                   </p>
                   <p
                     className="text-[10px] p-muted"
                     style={{ color: "var(--text-faint)" }}
                   >
-                    Smart Financial Tracking
+                    {t("invoiceDetail.tagline")}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-[10px] p-muted" style={{ color: "var(--text-faint)" }}>
-                  This is a system-generated invoice.
+                  {t("invoiceDetail.systemGenerated")}
                 </p>
                 <p className="text-[10px] p-muted" style={{ color: "var(--text-faint)" }}>
-                  Generated:{" "}
-                  {new Date(invoice.generatedAt).toLocaleString("en-BD")}
+                  {t("invoiceDetail.generatedAt", { datetime: dateTime(invoice.generatedAt) })}
                 </p>
               </div>
             </div>

@@ -20,6 +20,9 @@ import { useBusinessStore } from "../../store/businessStore";
 import { useAuthStore } from "../../store/authStore";
 import { businessMembersService } from "../../services/businessMembers.service";
 import type { IMember } from "../../services/transaction.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { plural } from "../../i18n/labels";
 // import {
 //   businessMembersService,
 //   type IMember,
@@ -38,19 +41,19 @@ const C = {
 /* ─── Role config ─────────────────────────────────────── */
 const ROLES = {
   owner: {
-    label: "Owner",
+    labelKey: "role.owner",
     icon: Crown,
     color: "#f59e0b",
     bg: "rgba(245,158,11,0.1)",
   },
   admin: {
-    label: "Admin",
+    labelKey: "role.admin",
     icon: Shield,
     color: "#3b82f6",
     bg: "rgba(59,130,246,0.1)",
   },
   member: {
-    label: "Member",
+    labelKey: "role.member",
     icon: User,
     color: "#10b981",
     bg: "rgba(16,185,129,0.1)",
@@ -95,6 +98,7 @@ const InviteModal = ({
   onSuccess: () => void;
   businessId: string;
 }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "member">("member");
   const [submitting, setSubmitting] = useState(false);
@@ -103,12 +107,12 @@ const InviteModal = ({
 
   const handleInvite = async () => {
     if (!email.trim()) {
-      toast.error("Enter an email");
+      toast.error(t("members.enterEmail"));
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Invalid email");
+      toast.error(t("members.invalidEmail"));
       return;
     }
 
@@ -121,12 +125,12 @@ const InviteModal = ({
       );
       setInviteLink(result.inviteLink ?? "");
       setSent(true);
-      toast.success("Invitation sent!");
+      toast.success(t("members.invitationSent"));
       onSuccess();
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to send invitation";
+          ?.message ?? t("members.invitationFailed");
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -174,7 +178,7 @@ const InviteModal = ({
                 color: "var(--text-primary)",
               }}
             >
-              Invite Member
+              {t("members.inviteMember")}
             </h2>
           </div>
           <button
@@ -195,7 +199,7 @@ const InviteModal = ({
                   className="block text-xs mb-1.5"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Email address
+                  {t("auth.emailAddress")}
                 </label>
                 <div className="relative">
                   <Mail
@@ -209,7 +213,7 @@ const InviteModal = ({
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleInvite();
                     }}
-                    placeholder="teammate@example.com"
+                    placeholder={t("members.emailPlaceholder")}
                     type="email"
                     style={{
                       width: "100%",
@@ -231,7 +235,7 @@ const InviteModal = ({
                   className="block text-xs mb-1.5"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  Role
+                  {t("common.type")}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {(["member", "admin"] as const).map((r) => {
@@ -267,13 +271,13 @@ const InviteModal = ({
                             className="text-xs font-medium"
                             style={{ color: isSelected ? "var(--text-primary)" : "var(--text-secondary)" }}
                           >
-                            {rc.label}
+                            {t(rc.labelKey)}
                           </p>
                           <p
                             className="text-[10px]"
                             style={{ color: "var(--text-faint)" }}
                           >
-                            {r === "admin" ? "Full access" : "View & add"}
+                            {r === "admin" ? t("members.adminAccess") : t("members.memberAccess")}
                           </p>
                         </div>
                         {isSelected && (
@@ -303,7 +307,7 @@ const InviteModal = ({
                 ) : (
                   <>
                     <UserPlus size={15} />
-                    Send Invitation
+                    {t("members.sendInvitation")}
                   </>
                 )}
               </button>
@@ -327,17 +331,17 @@ const InviteModal = ({
                   color: "var(--text-primary)",
                 }}
               >
-                Invitation Sent!
+                {t("members.invitationSentTitle")}
               </p>
               <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
-                <span style={{ color: "var(--text-secondary)" }}>{email}</span> will receive
-                an invite email
+                <span style={{ color: "var(--text-secondary)" }}>{email}</span>{" "}
+                {t("members.willReceiveEmail")}
               </p>
 
               {inviteLink && (
                 <div className="mb-5">
                   <p className="text-xs mb-2" style={{ color: "var(--text-faint)" }}>
-                    Or share this link directly
+                    {t("members.orShareLink")}
                   </p>
                   <div
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
@@ -355,7 +359,7 @@ const InviteModal = ({
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(inviteLink);
-                        toast.success("Link copied!");
+                        toast.success(t("members.linkCopied"));
                       }}
                       className="flex-shrink-0"
                       style={{ color: "#10b981" }}
@@ -379,7 +383,7 @@ const InviteModal = ({
                     color: "var(--text-secondary)",
                   }}
                 >
-                  Invite Another
+                  {t("members.inviteAnother")}
                 </button>
                 <button
                   onClick={handleClose}
@@ -390,7 +394,7 @@ const InviteModal = ({
                     border: "1px solid rgba(16,185,129,0.2)",
                   }}
                 >
-                  Done
+                  {t("common.done")}
                 </button>
               </div>
             </div>
@@ -417,6 +421,7 @@ const RoleDropdown = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleChange = async (newRole: "admin" | "member") => {
     if (newRole === currentRole) {
@@ -426,12 +431,12 @@ const RoleDropdown = ({
     setLoading(true);
     try {
       await businessMembersService.updateRole(businessId, memberId, newRole);
-      toast.success("Role updated");
+      toast.success(t("members.roleUpdated"));
       onUpdate();
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to update role";
+          ?.message ?? t("members.roleUpdateFailed");
       toast.error(message);
     } finally {
       setLoading(false);
@@ -448,7 +453,7 @@ const RoleDropdown = ({
       >
         <Crown size={11} style={{ color: rc.color }} />
         <span className="text-xs font-medium" style={{ color: rc.color }}>
-          Owner
+          {t(rc.labelKey)}
         </span>
       </div>
     );
@@ -475,7 +480,7 @@ const RoleDropdown = ({
           <RcIcon size={11} style={{ color: rc.color }} />
         )}
         <span className="text-xs font-medium" style={{ color: rc.color }}>
-          {rc.label}
+          {t(rc.labelKey)}
         </span>
         {!disabled && <ChevronDown size={10} style={{ color: rc.color }} />}
       </button>
@@ -516,7 +521,7 @@ const RoleDropdown = ({
                   }}
                 >
                   <RoIcon size={12} />
-                  {ro.label}
+                  {t(ro.labelKey)}
                   {r === currentRole && <Check size={11} className="ml-auto" />}
                 </button>
               );
@@ -544,6 +549,7 @@ const MemberRow = ({
   onRemove: (m: IMember) => void;
   onUpdate: () => void;
 }) => {
+  const { t } = useTranslation();
   const isSelf = member._id === currentUserId;
   const canEdit = isOwner && !isSelf && member.role !== "owner";
 
@@ -580,7 +586,7 @@ const MemberRow = ({
               className="text-[10px] px-1.5 py-0.5 rounded-md font-medium"
               style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
             >
-              You
+              {t("members.you")}
             </span>
           )}
         </div>
@@ -627,6 +633,8 @@ const MembersPage = () => {
   const { activeBusiness } = useBusinessStore();
   const currentUserId = useAuthStore((s) => s.user?._id ?? "");
   const currentUserRole = useAuthStore((s) => s.user?.role ?? "");
+  const { t } = useTranslation();
+  const { num } = useFormat();
 
   const [members, setMembers] = useState<IMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -647,11 +655,11 @@ const MembersPage = () => {
       const data = await businessMembersService.getMembers(activeBusiness._id);
       setMembers(data);
     } catch {
-      toast.error("Failed to load members");
+      toast.error(t("members.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [activeBusiness]);
+  }, [activeBusiness, t]);
 
   useEffect(() => {
     fetchMembers();
@@ -662,13 +670,13 @@ const MembersPage = () => {
     setRemoveLoading(true);
     try {
       await businessMembersService.remove(activeBusiness._id, removing._id);
-      toast.success(`${removing.firstName} removed`);
+      toast.success(t("members.removed", { name: removing.firstName }));
       setRemoving(null);
       fetchMembers();
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Remove failed";
+          ?.message ?? t("members.removeFailed");
       toast.error(message);
     } finally {
       setRemoveLoading(false);
@@ -678,7 +686,6 @@ const MembersPage = () => {
   const ownerCount = members.filter((m) => m.role === "owner").length;
   const adminCount = members.filter((m) => m.role === "admin").length;
   const memberCount = members.filter((m) => m.role === "member").length;
-  console.log(activeBusiness);
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="max-w-3xl mx-auto px-4 py-6 lg:px-8 lg:py-8 space-y-5">
@@ -692,12 +699,14 @@ const MembersPage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              Members
+              {t("members.title")}
             </h1>
             {activeBusiness && (
               <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                {activeBusiness.name} · {members.length} member
-                {members.length !== 1 ? "s" : ""}
+                {plural(t, "members.subtitle", members.length, {
+                  business: activeBusiness.name,
+                  count: num(members.length),
+                })}
               </p>
             )}
           </div>
@@ -720,7 +729,7 @@ const MembersPage = () => {
                 style={{ background: "#10b981", color: "#022c22" }}
               >
                 <UserPlus size={15} />
-                Invite
+                {t("members.invite")}
               </button>
             )}
           </div>
@@ -733,9 +742,9 @@ const MembersPage = () => {
               { value: ownerCount, ...ROLES.owner },
               { value: adminCount, ...ROLES.admin },
               { value: memberCount, ...ROLES.member },
-            ].map(({ label, value, color, bg, icon: Icon }) => (
+            ].map(({ labelKey, value, color, bg, icon: Icon }) => (
               <div
-                key={label}
+                key={labelKey}
                 className="rounded-2xl p-4 flex items-center gap-3"
                 style={{ background: C.card, border: `1px solid ${C.border}` }}
               >
@@ -750,10 +759,10 @@ const MembersPage = () => {
                     className="text-lg font-bold leading-none"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    {value}
+                    {num(value)}
                   </p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                    {label}
+                    {t(labelKey)}
                   </p>
                 </div>
               </div>
@@ -777,12 +786,12 @@ const MembersPage = () => {
                 className="text-xs font-medium"
                 style={{ color: "var(--text-faint)" }}
               >
-                Team Members
+                {t("members.teamMembers")}
               </span>
             </div>
             {!loading && (
               <span className="text-xs" style={{ color: "var(--text-faint)" }}>
-                {members.length} total
+                {t("members.totalCount", { count: num(members.length) })}
               </span>
             )}
           </div>
@@ -799,7 +808,7 @@ const MembersPage = () => {
           ) : !activeBusiness ? (
             <div className="text-center py-16">
               <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-                Select a business first
+                {t("members.selectBusinessFirst")}
               </p>
             </div>
           ) : members.length === 0 ? (
@@ -814,10 +823,10 @@ const MembersPage = () => {
                 className="text-sm font-medium mb-1"
                 style={{ color: "var(--text-primary)" }}
               >
-                No members yet
+                {t("members.empty")}
               </p>
               <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
-                Invite your team to collaborate
+                {t("members.emptyHint")}
               </p>
               {canInvite && (
                 <button
@@ -829,7 +838,7 @@ const MembersPage = () => {
                     color: "#10b981",
                   }}
                 >
-                  <UserPlus size={13} /> Invite Member
+                  <UserPlus size={13} /> {t("members.inviteMember")}
                 </button>
               )}
             </div>
@@ -858,19 +867,13 @@ const MembersPage = () => {
               className="text-xs font-medium mb-3"
               style={{ color: "var(--text-faint)" }}
             >
-              Role Permissions
+              {t("members.rolePermissions")}
             </p>
             <div className="space-y-2">
               {[
-                {
-                  role: "owner",
-                  desc: "Full control — manage members, settings, and all data",
-                },
-                {
-                  role: "admin",
-                  desc: "Can invite members, manage transactions and categories",
-                },
-                { role: "member", desc: "Can view and add transactions" },
+                { role: "owner", desc: t("members.ownerDesc") },
+                { role: "admin", desc: t("members.adminDesc") },
+                { role: "member", desc: t("members.memberDesc") },
               ].map(({ role, desc }) => {
                 const rc = ROLES[role as Role];
                 const RcIcon = rc.icon;
@@ -887,7 +890,7 @@ const MembersPage = () => {
                         className="text-xs font-medium"
                         style={{ color: rc.color }}
                       >
-                        {rc.label}
+                        {t(rc.labelKey)}
                       </span>
                       <span
                         className="text-xs ml-2"
@@ -938,15 +941,15 @@ const MembersPage = () => {
               className="text-center font-semibold mb-1"
               style={{ color: "var(--text-primary)" }}
             >
-              Remove {removing.firstName}?
+              {t("members.removeQuestion", { name: removing.firstName })}
             </p>
             <p
               className="text-xs text-center mb-5"
               style={{ color: "var(--text-faint)" }}
             >
-              They'll lose access to{" "}
-              <span style={{ color: "var(--text-secondary)" }}>{activeBusiness?.name}</span>.
-              Their transactions will remain.
+              {t("members.removeWarningPrefix")}{" "}
+              <span style={{ color: "var(--text-secondary)" }}>{activeBusiness?.name}</span>
+              {t("members.removeWarningSuffix")}
             </p>
             <div className="flex gap-3">
               <button
@@ -959,7 +962,7 @@ const MembersPage = () => {
                   color: "var(--text-secondary)",
                 }}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleRemove}
@@ -970,7 +973,7 @@ const MembersPage = () => {
                 {removeLoading ? (
                   <Loader2 size={14} className="animate-spin" />
                 ) : (
-                  "Remove"
+                  t("members.remove")
                 )}
               </button>
             </div>

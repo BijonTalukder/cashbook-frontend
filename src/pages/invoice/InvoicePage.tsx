@@ -21,31 +21,17 @@ import {
 } from "../../services/transaction.service";
 import {
   invoiceService,
-  monthName,
   type IInvoiceListItem,
 } from "../../services/Invoice.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 const C = {
   bg: "var(--bg)",
   card: "var(--surface-1)",
   border: "var(--border)",
 };
-const fmt = (n: number) =>
-  "৳" + n.toLocaleString("en-BD", { maximumFractionDigits: 0 });
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+const MONTH_INDEXES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 type FilterType = "all" | "income" | "expense" | "transfer";
 
 interface Tx {
@@ -81,6 +67,8 @@ const CategorySelect = ({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const { t } = useTranslation();
+
   const selCls =
     "w-full rounded-xl px-4 py-2.5 text-sm outline-none bg-[var(--surface-2)] border border-[var(--border-strong)] text-[var(--text-primary)]";
 
@@ -96,7 +84,7 @@ const CategorySelect = ({
             color: selected ? "var(--text-primary)" : "var(--text-faint)",
           }}
         >
-          {selected ? selected.name : "Select meal category..."}
+          {selected ? selected.name : t("invoices.selectMealCategory")}
         </span>
         <ChevronDown size={14} style={{ color: "var(--text-faint)", flexShrink: 0 }} />
       </button>
@@ -167,6 +155,8 @@ const GenerateModal = ({
   const [loading, setLoading] = useState(false);
   const [loadingCats, setLoadingCats] = useState(false);
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
+  const { t } = useTranslation();
+  const { num, monthName: monthLabel } = useFormat();
 
   // ✅ Fixed: use transactionService.getCategories with businessId
   useEffect(() => {
@@ -177,13 +167,13 @@ const GenerateModal = ({
       .then((all) =>
         setCats(all.filter((c) => c.type === "expense" || c.type === "both")),
       )
-      .catch(() => toast.error("Failed to load categories"))
+      .catch(() => toast.error(t("invoices.loadCategoriesFailed")))
       .finally(() => setLoadingCats(false));
-  }, [isMess, businessId]);
+  }, [isMess, businessId, t]);
 
   const handleGenerate = async () => {
     if (isMess && !mealCatId) {
-      toast.error("Please select meal category");
+      toast.error(t("invoices.selectMealCategoryError"));
       return;
     }
     setLoading(true);
@@ -193,12 +183,12 @@ const GenerateModal = ({
         year,
         mealCategoryId: isMess ? mealCatId : undefined,
       });
-      toast.success("Invoice generated!");
+      toast.success(t("invoices.generated"));
       onGenerated(inv._id);
     } catch (err: unknown) {
       toast.error(
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed",
+          ?.message ?? t("invoices.generateFailed"),
       );
     } finally {
       setLoading(false);
@@ -229,10 +219,10 @@ const GenerateModal = ({
               className="font-semibold"
               style={{ color: "var(--text-primary)" }}
             >
-              Generate Invoice
+              {t("invoices.generateInvoice")}
             </h3>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-              {isMess ? "Mess accounting invoice" : "Income & expense summary"}
+              {isMess ? t("invoices.messSubtitle") : t("invoices.regularSubtitle")}
             </p>
           </div>
           <button
@@ -251,7 +241,7 @@ const GenerateModal = ({
               className="block text-xs mb-1.5"
               style={{ color: "var(--text-muted)" }}
             >
-              Month
+              {t("invoices.month")}
             </label>
             <select
               value={month}
@@ -259,9 +249,9 @@ const GenerateModal = ({
               className={selCls}
               style={{ background: "var(--surface-6)" }}
             >
-              {MONTHS.map((m, i) => (
-                <option key={m} value={i + 1}>
-                  {m}
+              {MONTH_INDEXES.map((i) => (
+                <option key={i} value={i + 1}>
+                  {monthLabel(i, "long")}
                 </option>
               ))}
             </select>
@@ -271,7 +261,7 @@ const GenerateModal = ({
               className="block text-xs mb-1.5"
               style={{ color: "var(--text-muted)" }}
             >
-              Year
+              {t("invoices.year")}
             </label>
             <select
               value={year}
@@ -281,7 +271,7 @@ const GenerateModal = ({
             >
               {years.map((y) => (
                 <option key={y} value={y}>
-                  {y}
+                  {num(y, { useGrouping: false })}
                 </option>
               ))}
             </select>
@@ -295,7 +285,7 @@ const GenerateModal = ({
               className="block text-xs mb-1.5"
               style={{ color: "var(--text-muted)" }}
             >
-              Meal Category <span className="text-red-400">*</span>
+              {t("invoices.mealCategory")} <span className="text-red-400">*</span>
             </label>
             {loadingCats ? (
               <div className="flex items-center gap-2 py-2">
@@ -305,7 +295,7 @@ const GenerateModal = ({
                   style={{ color: "#10b981" }}
                 />
                 <span className="text-xs" style={{ color: "var(--text-faint)" }}>
-                  Loading...
+                  {t("common.loading")}
                 </span>
               </div>
             ) : (
@@ -316,7 +306,7 @@ const GenerateModal = ({
               />
             )}
             <p className="text-xs mt-1.5" style={{ color: "var(--text-faint)" }}>
-              এই category র সব expense ÷ total meals = meal rate।
+              {t("invoices.mealRateHint")}
             </p>
           </div>
         )}
@@ -329,7 +319,7 @@ const GenerateModal = ({
           }}
         >
           <p className="text-xs" style={{ color: "#f59e0b" }}>
-            Same month/year এ আগে invoice থাকলে overwrite হবে।
+            {t("invoices.overwriteWarning")}
           </p>
         </div>
 
@@ -341,11 +331,11 @@ const GenerateModal = ({
         >
           {loading ? (
             <>
-              <Loader2 size={15} className="animate-spin" /> Generating...
+              <Loader2 size={15} className="animate-spin" /> {t("invoices.generating")}
             </>
           ) : (
             <>
-              <FileText size={15} /> Generate Invoice
+              <FileText size={15} /> {t("invoices.generateInvoice")}
             </>
           )}
         </button>
@@ -360,6 +350,8 @@ const InvoicePage = () => {
   const { activeBusiness } = useBusinessStore();
   const isMess = activeBusiness?.type === "mass";
   const businessId = activeBusiness?._id ?? "";
+  const { t } = useTranslation();
+  const { money, num, date: fmtDate, monthName: monthLabel } = useFormat();
 
   const [transactions, setTransactions] = useState<Tx[]>([]);
   const [invoices, setInvoices] = useState<IInvoiceListItem[]>([]);
@@ -378,9 +370,9 @@ const InvoicePage = () => {
         setTransactions(txRes.transactions ?? []);
         setInvoices(invRes);
       })
-      .catch(() => toast.error("Failed to load data"))
+      .catch(() => toast.error(t("invoices.loadFailed")))
       .finally(() => setLoading(false));
-  }, [businessId]);
+  }, [businessId, t]);
 
   const filtered = transactions.filter(
     (t) => filter === "all" || t.type === filter,
@@ -394,24 +386,25 @@ const InvoicePage = () => {
   const net = totalIncome - totalExpense;
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this invoice?")) return;
+    if (!confirm(t("invoices.deleteConfirm"))) return;
     try {
       await invoiceService.delete(businessId, id);
       setInvoices((p) => p.filter((i) => i._id !== id));
-      toast.success("Deleted");
+      toast.success(t("invoices.deleted"));
     } catch {
-      toast.error("Failed");
+      toast.error(t("invoices.deleteFailed"));
     }
   };
 
-  const typeColor = (t: string) =>
-    ({ income: "#10b981", expense: "#ef4444", transfer: "#f59e0b" })[t] ??
+  const typeColor = (type: string) =>
+    ({ income: "#10b981", expense: "#ef4444", transfer: "#f59e0b" })[type] ??
     "#94a3b8";
-  const typeLabel = (t: string) =>
-    isMess
-      ? ({ income: "Deposit", expense: "Cost", transfer: "Transfer" }[t] ?? t)
-      : ({ income: "Income", expense: "Expense", transfer: "Transfer" }[t] ??
-        t);
+  const typeLabel = (type: string) => {
+    const key = isMess
+      ? { income: "txn.deposit", expense: "txn.cost", transfer: "txn.transfer" }[type]
+      : { income: "txn.income", expense: "txn.expense", transfer: "txn.transfer" }[type];
+    return key ? t(key) : type;
+  };
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
@@ -425,10 +418,10 @@ const InvoicePage = () => {
               color: "var(--text-primary)",
             }}
           >
-            Invoices
+            {t("invoices.title")}
           </h1>
           <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-            Transactions & generated invoices
+            {t("invoices.subtitle")}
           </p>
         </div>
         <button
@@ -436,7 +429,7 @@ const InvoicePage = () => {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm"
           style={{ background: "#10b981", color: "#022c22" }}
         >
-          <Plus size={15} /> Generate
+          <Plus size={15} /> {t("invoices.generate")}
         </button>
       </div>
 
@@ -444,26 +437,29 @@ const InvoicePage = () => {
       <div className="grid grid-cols-3 gap-3">
         {[
           {
-            label: "Total Income",
+            key: "income",
+            label: t("invoices.totalIncome"),
             v: totalIncome,
             c: "#10b981",
             Icon: TrendingUp,
           },
           {
-            label: "Total Expense",
+            key: "expense",
+            label: t("invoices.totalExpense"),
             v: totalExpense,
             c: "#ef4444",
             Icon: TrendingDown,
           },
           {
-            label: "Net Balance",
+            key: "net",
+            label: t("invoices.netBalance"),
             v: net,
             c: net >= 0 ? "#10b981" : "#ef4444",
             Icon: ArrowLeftRight,
           },
-        ].map(({ label, v, c, Icon }) => (
+        ].map(({ key, label, v, c, Icon }) => (
           <div
-            key={label}
+            key={key}
             className="rounded-xl p-4"
             style={{ background: C.card, border: `1px solid ${C.border}` }}
           >
@@ -474,7 +470,7 @@ const InvoicePage = () => {
               </span>
             </div>
             <p className="text-lg font-bold" style={{ color: c }}>
-              {fmt(v)}
+              {money(v, { decimals: 0 })}
             </p>
           </div>
         ))}
@@ -493,12 +489,7 @@ const InvoicePage = () => {
           <Filter size={13} style={{ color: "var(--text-faint)" }} />
           {(["all", "income", "expense", "transfer"] as FilterType[]).map(
             (f) => {
-              const lbl = {
-                all: "All",
-                income: isMess ? "Deposit" : "Income",
-                expense: isMess ? "Cost" : "Expense",
-                transfer: "Transfer",
-              }[f];
+              const lbl = f === "all" ? t("invoices.filterAll") : typeLabel(f);
               const col = {
                 all: "#94a3b8",
                 income: "#10b981",
@@ -523,7 +514,7 @@ const InvoicePage = () => {
             },
           )}
           <span className="ml-auto text-xs" style={{ color: "var(--text-faint)" }}>
-            {filtered.length} entries
+            {t("invoices.entriesCount", { count: num(filtered.length) })}
           </span>
         </div>
 
@@ -538,7 +529,7 @@ const InvoicePage = () => {
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-              No transactions found
+              {t("invoices.noTransactions")}
             </p>
           </div>
         ) : (
@@ -546,17 +537,22 @@ const InvoicePage = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: `1px solid ${C.border}` }}>
-                  {["Date", "Type", "Category", "Note", "Member", "Amount"].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-3 text-left text-xs font-medium"
-                        style={{ color: "var(--text-faint)" }}
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {[
+                    "invoices.table.date",
+                    "invoices.table.type",
+                    "invoices.table.category",
+                    "invoices.table.note",
+                    "invoices.table.member",
+                    "invoices.table.amount",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-xs font-medium"
+                      style={{ color: "var(--text-faint)" }}
+                    >
+                      {t(h)}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -570,10 +566,7 @@ const InvoicePage = () => {
                       className="px-4 py-3 text-xs"
                       style={{ color: "var(--text-muted)" }}
                     >
-                      {new Date(tx.date).toLocaleDateString("en-BD", {
-                        day: "2-digit",
-                        month: "short",
-                      })}
+                      {fmtDate(tx.date, "short")}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -590,13 +583,13 @@ const InvoicePage = () => {
                       className="px-4 py-3 text-xs"
                       style={{ color: "var(--text-secondary)" }}
                     >
-                      {tx.category?.name ?? "—"}
+                      {tx.category?.name ?? t("common.dash")}
                     </td>
                     <td
                       className="px-4 py-3 text-xs max-w-[140px] truncate"
                       style={{ color: "var(--text-muted)" }}
                     >
-                      {tx.note ?? "—"}
+                      {tx.note ?? t("common.dash")}
                     </td>
                     <td
                       className="px-4 py-3 text-xs"
@@ -604,14 +597,16 @@ const InvoicePage = () => {
                     >
                       {tx.member
                         ? `${tx.member.firstName} ${tx.member.lastName}`
-                        : "—"}
+                        : t("common.dash")}
                     </td>
                     <td
                       className="px-4 py-3 text-sm font-semibold"
                       style={{ color: typeColor(tx.type) }}
                     >
-                      {tx.type === "expense" ? "-" : "+"}
-                      {fmt(tx.amount)}
+                      {money(tx.type === "expense" ? -tx.amount : tx.amount, {
+                        decimals: 0,
+                        signed: true,
+                      })}
                     </td>
                   </tr>
                 ))}
@@ -628,7 +623,7 @@ const InvoicePage = () => {
             className="text-sm font-semibold mb-3"
             style={{ color: "var(--text-primary)" }}
           >
-            Generated Invoices
+            {t("invoices.generatedInvoices")}
           </h2>
           <div className="space-y-2">
             {invoices.map((inv) => (
@@ -648,17 +643,22 @@ const InvoicePage = () => {
                     className="text-sm font-medium"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    {monthName(inv.month)} {inv.year}
+                    {t("invoices.monthYear", {
+                      month: monthLabel(inv.month - 1, "long"),
+                      year: num(inv.year, { useGrouping: false }),
+                    })}
                   </p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                    Income {fmt(inv.totalIncome)} · Expense{" "}
-                    {fmt(inv.totalExpense)} ·{" "}
+                    {t("invoices.invoiceSummary", {
+                      income: money(inv.totalIncome, { decimals: 0 }),
+                      expense: money(inv.totalExpense, { decimals: 0 }),
+                    })}
                     <span
                       style={{
                         color: inv.netBalance >= 0 ? "#10b981" : "#ef4444",
                       }}
                     >
-                      Net {fmt(inv.netBalance)}
+                      {t("invoices.netLabel", { amount: money(inv.netBalance, { decimals: 0 }) })}
                     </span>
                   </p>
                 </div>

@@ -119,9 +119,9 @@ const LoginPage = () => {
 
         <div className="relative z-10 flex gap-8">
           {[
-            { value: "৳2.4M", label: t("auth.statTracked") },
-            { value: "12K+", label: t("auth.statUsers") },
-            { value: "99.9%", label: t("auth.statUptime") },
+            { value: t("auth.statTrackedValue"), label: t("auth.statTracked") },
+            { value: t("auth.statUsersValue"), label: t("auth.statUsers") },
+            { value: t("auth.statUptimeValue"), label: t("auth.statUptime") },
           ].map((stat) => (
             <div key={stat.label}>
               <div

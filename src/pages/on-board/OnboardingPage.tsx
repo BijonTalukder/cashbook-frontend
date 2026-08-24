@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
+import LanguageToggle from "../../components/shared/LanguageToggle";
+import { enumLabel } from "../../i18n/labels";
+import { CURRENCIES, toCurrency } from "../../utils/currency";
 import {
   businessService,
   type IBusinessCategory,
@@ -32,11 +37,12 @@ import {
 } from "../../services/business.service";
 
 /* ─── Types ───────────────────────────────────────────── */
-const businessSchema = z.object({
-  name: z.string().min(2, "Minimum 2 characters").max(60),
-  type: z.enum(["personal", "company", "mass", "business"]),
-});
-type BusinessForm = z.infer<typeof businessSchema>;
+const buildBusinessSchema = (t: TFunction) =>
+  z.object({
+    name: z.string().min(2, t("newBusiness.nameMin")).max(60),
+    type: z.enum(["personal", "company", "mass", "business"]),
+  });
+type BusinessForm = z.infer<ReturnType<typeof buildBusinessSchema>>;
 
 const ONBOARDING_KEY = "onboarding_draft";
 
@@ -79,8 +85,8 @@ const clearDraft = () => localStorage.removeItem(ONBOARDING_KEY);
 const BUSINESS_TYPES = [
   {
     value: "personal" as const,
-    label: "Personal",
-    sub: "Track your own finances",
+    labelKey: "businessType.personal",
+    subKey: "newBusiness.types.personalSub",
     icon: User,
     accent: "#10b981",
     bg: "rgba(16,185,129,0.08)",
@@ -88,8 +94,8 @@ const BUSINESS_TYPES = [
   },
   {
     value: "business" as const,
-    label: "Business",
-    sub: "Shop, sales & inventory",
+    labelKey: "businessType.business",
+    subKey: "newBusiness.types.businessSub",
     icon: Store,
     accent: "#f59e0b",
     bg: "rgba(245,158,11,0.08)",
@@ -97,8 +103,8 @@ const BUSINESS_TYPES = [
   },
   {
     value: "company" as const,
-    label: "Company",
-    sub: "Manage team expenses",
+    labelKey: "businessType.company",
+    subKey: "newBusiness.types.companySub",
     icon: Building2,
     accent: "#3b82f6",
     bg: "rgba(59,130,246,0.08)",
@@ -106,8 +112,8 @@ const BUSINESS_TYPES = [
   },
   {
     value: "mass" as const,
-    label: "Household",
-    sub: "Family budget & meals",
+    labelKey: "onboarding.householdLabel",
+    subKey: "onboarding.householdSub",
     icon: Home,
     accent: "#8b5cf6",
     bg: "rgba(139,92,246,0.08)",
@@ -115,20 +121,19 @@ const BUSINESS_TYPES = [
   },
 ];
 
-const BUSINESS_SUB_TYPES: { value: BusinessSubType; label: string; icon: any }[] = [
-  { value: "retail_shop", label: "Retail Shop", icon: ShoppingBag },
-  { value: "restaurant", label: "Restaurant", icon: UtensilsCrossed },
-  { value: "online_shop", label: "Online Shop", icon: Globe },
-  { value: "service_business", label: "Service Business", icon: Briefcase },
-  { value: "freelancer", label: "Freelancer", icon: Laptop },
-  { value: "wholesale", label: "Wholesale", icon: Package },
-  { value: "other", label: "Other", icon: MoreHorizontal },
+const BUSINESS_SUB_TYPES: { value: BusinessSubType; icon: any }[] = [
+  { value: "retail_shop", icon: ShoppingBag },
+  { value: "restaurant", icon: UtensilsCrossed },
+  { value: "online_shop", icon: Globe },
+  { value: "service_business", icon: Briefcase },
+  { value: "freelancer", icon: Laptop },
+  { value: "wholesale", icon: Package },
+  { value: "other", icon: MoreHorizontal },
 ];
 
-const CURRENCIES = ["BDT", "USD", "EUR", "GBP", "INR"];
 
-const STEP_LABELS_DEFAULT = ["Business", "Category", "Done"];
-const STEP_LABELS_BUSINESS = ["Business", "Details", "Done"];
+const STEP_KEYS_DEFAULT = ["newBusiness.steps.business", "newBusiness.steps.category", "newBusiness.steps.done"];
+const STEP_KEYS_BUSINESS = ["newBusiness.steps.business", "newBusiness.steps.details", "newBusiness.steps.done"];
 
 const DEFAULT_BUSINESS_DETAILS: BusinessDetails = {
   businessType: null,
@@ -140,6 +145,8 @@ const DEFAULT_BUSINESS_DETAILS: BusinessDetails = {
 
 /* ─── Component ───────────────────────────────────────── */
 const OnboardingPage = () => {
+  const { t } = useTranslation();
+  const businessSchema = useMemo(() => buildBusinessSchema(t), [t]);
   const navigate = useNavigate();
 
   // ✅ Fix: primitive selector — object reference পরিবর্তন হলেও loop হবে না
@@ -207,7 +214,7 @@ const OnboardingPage = () => {
         ),
       );
     } catch {
-      toast.error("Failed to load categories");
+      toast.error(t("newBusiness.loadCategoriesFailed"));
     } finally {
       setLoadingCats(false);
     }
@@ -239,11 +246,11 @@ const OnboardingPage = () => {
       setSelectedCatId(cat._id);
       saveDraft({ customCategory: cat, selectedCategoryId: cat._id });
       setNewCatName("");
-      toast.success(`"${name}" created & selected`);
+      toast.success(t("newBusiness.catCreated", { name }));
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to create category";
+          ?.message ?? t("newBusiness.createCategoryFailed");
       toast.error(message);
     } finally {
       setAddingCat(false);
@@ -254,13 +261,13 @@ const OnboardingPage = () => {
   const handleFinish = async () => {
     const savedDraft = getDraft();
     if (!savedDraft.business) {
-      toast.error("Business info missing, please go back");
+      toast.error(t("onboarding.businessInfoMissing"));
       setStep(1);
       return;
     }
     const isBusinessMode = savedDraft.business.type === "business";
     if (isBusinessMode && !bizDetails.businessType) {
-      toast.error("Please choose a business type");
+      toast.error(t("newBusiness.chooseType"));
       return;
     }
 
@@ -288,7 +295,7 @@ const OnboardingPage = () => {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Setup failed, please try again";
+          ?.message ?? t("onboarding.setupFailed");
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -299,7 +306,7 @@ const OnboardingPage = () => {
     ? [...globalCats.filter((c) => c._id !== customCat._id), customCat]
     : globalCats;
 
-  const STEP_LABELS = selectedType === "business" ? STEP_LABELS_BUSINESS : STEP_LABELS_DEFAULT;
+  const STEP_KEYS = selectedType === "business" ? STEP_KEYS_BUSINESS : STEP_KEYS_DEFAULT;
 
   /* ─── Render ───────────────────────────────────────── */
   return (
@@ -314,26 +321,29 @@ const OnboardingPage = () => {
 
       <div className="w-full max-w-lg relative z-10">
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-9 h-9 bg-emerald-400 rounded-lg flex items-center justify-center">
-            <TrendingUp size={18} className="text-emerald-950" />
+        <div className="flex items-center justify-between gap-3 mb-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-emerald-400 rounded-lg flex items-center justify-center">
+              <TrendingUp size={18} className="text-emerald-950" />
+            </div>
+            <span
+              className="font-bold text-xl"
+              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
+            >
+              {t("app.name")}
+            </span>
           </div>
-          <span
-            className="font-bold text-xl"
-            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
-          >
-            HisabBoi
-          </span>
+          <LanguageToggle variant="segmented" />
         </div>
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-8">
-          {STEP_LABELS.map((label, i) => {
+          {STEP_KEYS.map((labelKey, i) => {
             const idx = i + 1;
             const done = step > idx;
             const active = step === idx;
             return (
-              <div key={label} className="flex items-center gap-2">
+              <div key={labelKey} className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all
@@ -351,10 +361,10 @@ const OnboardingPage = () => {
                     className={`text-sm transition-colors ${done && !active ? "text-emerald-400" : ""}`}
                     style={active ? { color: "var(--text-primary)" } : !done ? { color: "var(--text-faint)" } : undefined}
                   >
-                    {label}
+                    {t(labelKey)}
                   </span>
                 </div>
-                {i < STEP_LABELS.length - 1 && (
+                {i < STEP_KEYS.length - 1 && (
                   <div
                     className={`w-8 h-px mx-1 ${done ? "bg-emerald-500/50" : ""}`}
                     style={!done ? { background: "var(--surface-7)" } : undefined}
@@ -376,15 +386,15 @@ const OnboardingPage = () => {
                 className="text-2xl font-bold mb-1"
                 style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                Set up your business
+                {t("onboarding.title")}
               </h2>
               <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
-                Every account starts with one business. You can add more later.
+                {t("onboarding.subtitle")}
               </p>
 
               <div className="mb-6">
                 <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
-                  Business name
+                  {t("newBusiness.nameLabel")}
                 </label>
                 <input
                   {...register("name", {
@@ -398,10 +408,10 @@ const OnboardingPage = () => {
                   })}
                   placeholder={
                     selectedType === "personal"
-                      ? "Rahim's Personal"
+                      ? t("onboarding.namePlaceholderPersonal")
                       : selectedType === "mass"
-                        ? "Our Home"
-                        : "Acme Ltd."
+                        ? t("onboarding.namePlaceholderHousehold")
+                        : t("onboarding.namePlaceholderCompany")
                   }
                   className={`w-full bg-[var(--surface-3)] border rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-faint)]
                     focus:outline-none focus:ring-2 transition-all text-sm
@@ -419,11 +429,11 @@ const OnboardingPage = () => {
 
               <div>
                 <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
-                  Business type
+                  {t("newBusiness.typeLabel")}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {BUSINESS_TYPES.map(
-                    ({ value, label, sub, icon: Icon, accent, bg, border }) => {
+                    ({ value, labelKey, subKey, icon: Icon, accent, bg, border }) => {
                       const isSelected = selectedType === value;
                       return (
                         <button
@@ -458,10 +468,10 @@ const OnboardingPage = () => {
                             <Icon size={15} />
                           </div>
                           <div className="text-sm font-medium mb-0.5" style={{ color: "var(--text-primary)" }}>
-                            {label}
+                            {t(labelKey)}
                           </div>
                           <div className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                            {sub}
+                            {t(subKey)}
                           </div>
                         </button>
                       );
@@ -476,7 +486,7 @@ const OnboardingPage = () => {
               className="w-full mt-5 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-semibold
                 rounded-xl py-3 flex items-center justify-center gap-2 transition-all text-sm group"
             >
-              Continue
+              {t("common.continue")}
               <ArrowRight
                 size={16}
                 className="group-hover:translate-x-0.5 transition-transform"
@@ -496,16 +506,16 @@ const OnboardingPage = () => {
                 className="text-2xl font-bold mb-1"
                 style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                Business details
+                {t("newBusiness.detailsTitle")}
               </h2>
               <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
-                Tell us a bit more about your business.
+                {t("newBusiness.detailsSubtitle")}
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>What kind of business?</label>
+                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.whatKind")}</label>
                 <div className="grid grid-cols-2 gap-2.5">
-                  {BUSINESS_SUB_TYPES.map(({ value, label, icon: Icon }) => {
+                  {BUSINESS_SUB_TYPES.map(({ value, icon: Icon }) => {
                     const isSelected = bizDetails.businessType === value;
                     return (
                       <button
@@ -520,7 +530,7 @@ const OnboardingPage = () => {
                         }}
                       >
                         <Icon size={15} />
-                        {label}
+                        {enumLabel(t, "businessSubType", value)}
                       </button>
                     );
                   })}
@@ -529,53 +539,55 @@ const OnboardingPage = () => {
 
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Phone (optional)</label>
+                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.phoneOptional")}</label>
                   <input
                     value={bizDetails.phone}
                     onChange={(e) => updateBizDetails({ phone: e.target.value })}
-                    placeholder="01XXXXXXXXX"
+                    placeholder={t("customer.phonePlaceholder")}
                     className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                       placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Currency</label>
+                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("settings.currency")}</label>
                   <select
                     value={bizDetails.currency}
-                    onChange={(e) => updateBizDetails({ currency: e.target.value })}
+                    onChange={(e) => updateBizDetails({ currency: toCurrency(e.target.value) })}
                     className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                       focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                   >
                     {CURRENCIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c}>
+                        {t("businessSettings.currencyOption", { code: c, name: t(`currency.${c}`) })}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Address (optional)</label>
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.addressOptional")}</label>
                 <input
                   value={bizDetails.address}
                   onChange={(e) => updateBizDetails({ address: e.target.value })}
-                  placeholder="Shop address"
+                  placeholder={t("newBusiness.addressPlaceholder")}
                   className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                     placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Opening balance (optional)</label>
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.openingBalanceOptional")}</label>
                 <input
                   type="number"
                   min="0"
                   value={bizDetails.openingBalance}
                   onChange={(e) => updateBizDetails({ openingBalance: e.target.value })}
-                  placeholder="0"
+                  placeholder={t("common.zero")}
                   className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                     placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                 />
-                <p className="mt-1.5 text-xs" style={{ color: "var(--text-faint)" }}>Cash you're starting this business with, if any.</p>
+                <p className="mt-1.5 text-xs" style={{ color: "var(--text-faint)" }}>{t("newBusiness.openingBalanceHint")}</p>
               </div>
             </div>
 
@@ -587,7 +599,7 @@ const OnboardingPage = () => {
                   text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all text-sm"
               >
                 <ArrowLeft size={15} />
-                Back
+                {t("common.back")}
               </button>
               <button
                 type="button"
@@ -600,7 +612,7 @@ const OnboardingPage = () => {
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <>
-                    Finish Setup
+                    {t("onboarding.finishSetup")}
                     <ArrowRight
                       size={16}
                       className="group-hover:translate-x-0.5 transition-transform"
@@ -623,11 +635,10 @@ const OnboardingPage = () => {
                 className="text-2xl font-bold mb-1"
                 style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                Choose a category
+                {t("newBusiness.categoryTitle")}
               </h2>
               <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
-                Pick one that fits your business, or create your own. You can
-                skip.
+                {t("onboarding.categorySubtitle")}
               </p>
 
               {loadingCats ? (
@@ -642,7 +653,7 @@ const OnboardingPage = () => {
                   {allCats.length > 0 && (
                     <div className="mb-6">
                       <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                        Available
+                        {t("newBusiness.available")}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {allCats.map((cat) => {
@@ -672,7 +683,7 @@ const OnboardingPage = () => {
                               {cat.name}
                               {isCustom && (
                                 <span className="text-[10px] ml-0.5" style={{ color: "var(--text-faint)" }}>
-                                  (custom)
+                                  {t("newBusiness.custom")}
                                 </span>
                               )}
                             </button>
@@ -685,7 +696,7 @@ const OnboardingPage = () => {
                   {!customCat ? (
                     <div>
                       <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                        Or create your own
+                        {t("newBusiness.orCreateOwn")}
                       </p>
                       <div className="flex gap-2">
                         <input
@@ -697,7 +708,7 @@ const OnboardingPage = () => {
                               handleAddCustomCat();
                             }
                           }}
-                          placeholder="e.g. Retail, NGO, Freelance..."
+                          placeholder={t("newBusiness.newCatPlaceholder")}
                           className="flex-1 bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                             placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20
                             focus:border-emerald-500/40 transition-all text-sm"
@@ -722,11 +733,11 @@ const OnboardingPage = () => {
                     <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
                       <Check size={13} className="text-emerald-400" />
                       <span>
-                        Custom category{" "}
+                        {t("newBusiness.customCreatedPrefix")}{" "}
                         <span className="text-emerald-400">
                           "{customCat.name}"
                         </span>{" "}
-                        created
+                        {t("newBusiness.customCreatedSuffix")}
                       </span>
                     </div>
                   )}
@@ -734,7 +745,7 @@ const OnboardingPage = () => {
                   {selectedCatId && (
                     <div className="mt-5 flex items-center gap-2 text-sm text-emerald-400">
                       <Check size={14} />
-                      <span>1 category selected</span>
+                      <span>{t("newBusiness.oneSelected")}</span>
                     </div>
                   )}
                 </>
@@ -749,7 +760,7 @@ const OnboardingPage = () => {
                   text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all text-sm"
               >
                 <ArrowLeft size={15} />
-                Back
+                {t("common.back")}
               </button>
               <button
                 type="button"
@@ -762,7 +773,7 @@ const OnboardingPage = () => {
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <>
-                    {!selectedCatId ? "Skip & Finish" : "Finish Setup"}
+                    {!selectedCatId ? t("onboarding.skipAndFinish") : t("onboarding.finishSetup")}
                     <ArrowRight
                       size={16}
                       className="group-hover:translate-x-0.5 transition-transform"
@@ -787,10 +798,10 @@ const OnboardingPage = () => {
               className="text-2xl font-bold mb-2"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
-              You're all set!
+              {t("onboarding.allSet")}
             </h2>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Taking you to your dashboard...
+              {t("onboarding.takingYou")}
             </p>
             <div className="mt-6 flex justify-center">
               <div className="w-32 h-1 rounded-full overflow-hidden" style={{ background: "var(--surface-7)" }}>

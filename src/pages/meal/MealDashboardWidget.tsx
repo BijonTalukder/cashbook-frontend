@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UtensilsCrossed, ChevronRight, Loader2 } from "lucide-react";
 import mealService from "../../services/meal.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 interface Props {
   businessId: string;
@@ -13,25 +15,12 @@ interface Props {
 
 const MealDashboardWidget = ({ businessId }: Props) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { num, monthName } = useFormat();
   const [data, setData] = useState<{ total: number; days: number } | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
-
-  const MONTHS = [
-    "জানুয়ারি",
-    "ফেব্রুয়ারি",
-    "মার্চ",
-    "এপ্রিল",
-    "মে",
-    "জুন",
-    "জুলাই",
-    "আগস্ট",
-    "সেপ্টেম্বর",
-    "অক্টোবর",
-    "নভেম্বর",
-    "ডিসেম্বর",
-  ];
 
   useEffect(() => {
     const load = async () => {
@@ -47,9 +36,7 @@ const MealDashboardWidget = ({ businessId }: Props) => {
     load();
   }, [businessId]);
 
-  const now = new Date();
-  const month = MONTHS[now.getMonth()];
-  const fmt = (n: number) => n.toLocaleString("bn-BD");
+  const month = monthName(new Date().getMonth(), "long");
 
   return (
     <button
@@ -81,10 +68,10 @@ const MealDashboardWidget = ({ businessId }: Props) => {
               className="text-sm font-semibold"
               style={{ color: "var(--text-primary)" }}
             >
-              খাবার ট্র্যাকার
+              {t("mealWidget.title")}
             </p>
             <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-              {month} মাস
+              {t("mealWidget.monthLabel", { month })}
             </p>
           </div>
         </div>
@@ -103,7 +90,7 @@ const MealDashboardWidget = ({ businessId }: Props) => {
             style={{ color: "#8b5cf6" }}
           />
           <span className="text-xs" style={{ color: "var(--text-faint)" }}>
-            লোড হচ্ছে...
+            {t("common.loading")}
           </span>
         </div>
       ) : (
@@ -116,10 +103,10 @@ const MealDashboardWidget = ({ businessId }: Props) => {
                 fontFamily: "'DM Serif Display', serif",
               }}
             >
-              {fmt(data?.total ?? 0)}
+              {num(data?.total ?? 0)}
             </p>
             <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
-              মোট খাবার
+              {t("mealWidget.totalMeals")}
             </p>
           </div>
           <div className="mb-1">
@@ -127,10 +114,10 @@ const MealDashboardWidget = ({ businessId }: Props) => {
               className="text-lg font-bold leading-none"
               style={{ color: "var(--text-primary)" }}
             >
-              {fmt(data?.days ?? 0)}
+              {num(data?.days ?? 0)}
             </p>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-              দিন
+              {t("mealWidget.days")}
             </p>
           </div>
           <div className="mb-1 ml-auto">
@@ -138,7 +125,7 @@ const MealDashboardWidget = ({ businessId }: Props) => {
               className="text-[10px] px-2 py-1 rounded-lg font-medium"
               style={{ background: "rgba(139,92,246,0.1)", color: "#8b5cf6" }}
             >
-              বিস্তারিত →
+              {t("mealWidget.details")}
             </div>
           </div>
         </div>

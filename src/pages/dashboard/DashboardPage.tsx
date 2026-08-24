@@ -51,7 +51,6 @@ import {
 import mealService from "../../services/meal.service";
 import BusinessDashboardContent from "./BusinessDashboardContent";
 import { useTranslation } from "../../i18n/useTranslation";
-import type { TFunction } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 
 /* ─── Design tokens ───────────────────────────────────── */

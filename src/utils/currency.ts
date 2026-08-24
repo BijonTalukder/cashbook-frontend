@@ -148,7 +148,7 @@ export const formatCompact = (
 /** Strips grouping separators and Bangla digits so typed input parses back to a number. */
 export const parseAmount = (input: string): number => {
   const latin = input.replace(/[০-৯]/g, (d) => String(BN_DIGITS.indexOf(d)));
-  const cleaned = latin.replace(/[^0-9.\-]/g, "");
+  const cleaned = latin.replace(/[^0-9.-]/g, "");
   const n = parseFloat(cleaned);
   return Number.isFinite(n) ? n : 0;
 };

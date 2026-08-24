@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseService, type IPurchase } from "../../services/purchase.service";
-import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { paymentMethodLabel } from "../../i18n/labels";
@@ -22,7 +21,6 @@ const STATUS_META: Record<string, { labelKey: string; color: string }> = {
 const PurchaseDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { activeBusiness } = useBusinessStore();
   const { t } = useTranslation();
   const { money, num, date: fmtDate } = useFormat();
 

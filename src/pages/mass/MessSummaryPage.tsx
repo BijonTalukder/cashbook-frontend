@@ -17,6 +17,9 @@ import { toast } from "sonner";
 import { useBusinessStore } from "../../store/businessStore";
 import api from "../../services/api";
 import SharedCostsModal from "./SharedCostsModal";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { toCurrency } from "../../utils/currency";
 
 /* ── Tokens ─────────────────────────────────────── */
 const C = {
@@ -24,29 +27,6 @@ const C = {
   card: "var(--surface-1)",
   border: "var(--border)",
 };
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-BD", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
-const fmt0 = (n: number) =>
-  new Intl.NumberFormat("en-BD", { minimumFractionDigits: 0 }).format(n);
 
 /* ── Types ──────────────────────────────────────── */
 interface MessMember {
@@ -79,8 +59,10 @@ interface MessData {
 }
 
 /* ── Member Balance Card ────────────────────────── */
-const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
+const MemberCard = ({ m }: { m: MessMember }) => {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
+  const { money } = useFormat();
   const isCredit = m.balance > 0;
   const isEven = Math.abs(m.balance) < 0.01;
   const color = isEven ? "var(--text-muted)" : isCredit ? "#10b981" : "#ef4444";
@@ -116,9 +98,10 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
             {m.name}
           </p>
           <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-            Paid: {currency}
-            {fmt0(m.totalPaid)} · Share: {currency}
-            {fmt0(m.share)}
+            {t("mess.paidAndShare", {
+              paid: money(m.totalPaid, { decimals: 0 }),
+              share: money(m.share, { decimals: 0 }),
+            })}
           </p>
         </div>
         <div className="text-right flex-shrink-0">
@@ -130,13 +113,13 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
               <Icon size={11} />
             </div>
             <p className="text-sm font-bold" style={{ color }}>
-              {isEven ? "Even" : isCredit ? "+" : "-"}
-              {currency}
-              {fmt0(Math.abs(m.balance))}
+              {isEven
+                ? t("mess.even")
+                : money(m.balance, { decimals: 0, signed: true })}
             </p>
           </div>
           <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-            {isEven ? "settled" : isCredit ? "to receive" : "to pay"}
+            {isEven ? t("mess.settledLabel") : isCredit ? t("mess.toReceive") : t("mess.toPay")}
           </p>
         </div>
       </button>
@@ -150,7 +133,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
             className="text-[10px] uppercase tracking-wider mt-3 mb-2"
             style={{ color: "var(--text-faint)" }}
           >
-            Expense breakdown
+            {t("mess.expenseBreakdown")}
           </p>
           <div className="space-y-1.5 max-h-40 overflow-y-auto">
             {m.expenses.map((e, i) => (
@@ -176,8 +159,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
                   className="font-semibold ml-2 flex-shrink-0"
                   style={{ color: "#ef4444" }}
                 >
-                  {currency}
-                  {fmt0(e.amount)}
+                  {money(e.amount, { decimals: 0 })}
                 </span>
               </div>
             ))}
@@ -191,7 +173,7 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
           style={{ borderTop: `1px solid ${C.border}` }}
         >
           <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-            No expenses recorded
+            {t("mess.noExpenses")}
           </p>
         </div>
       )}
@@ -202,6 +184,8 @@ const MemberCard = ({ m, currency }: { m: MessMember; currency: string }) => {
 /* ── Main Page ──────────────────────────────────── */
 const MessSummaryPage = () => {
   const { activeBusiness } = useBusinessStore();
+  const { t } = useTranslation();
+  const { money, num, monthName } = useFormat(toCurrency(activeBusiness?.currency));
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -209,8 +193,6 @@ const MessSummaryPage = () => {
   const [data, setData] = useState<MessData | null>(null);
   const [loading, setLoading] = useState(false);
   const [showSharedCosts, setShowSharedCosts] = useState(false); // ← NEW
-
-  const currency = activeBusiness?.currency ?? "৳";
 
   const prevMonth = () => {
     if (month === 0) {
@@ -236,11 +218,11 @@ const MessSummaryPage = () => {
       });
       setData(res.data.data);
     } catch {
-      toast.error("Failed to load mess summary");
+      toast.error(t("mess.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [activeBusiness, year, month]);
+  }, [activeBusiness, year, month, t]);
 
   useState(() => {
     load();
@@ -253,7 +235,7 @@ const MessSummaryPage = () => {
         style={{ background: C.bg }}
       >
         <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-          Mess type business select করুন
+          {t("mess.selectMessBusiness")}
         </p>
       </div>
     );
@@ -269,7 +251,7 @@ const MessSummaryPage = () => {
               className="text-2xl font-bold"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
-              Mess Summary
+              {t("mess.title")}
             </h1>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               {activeBusiness.name}
@@ -305,17 +287,17 @@ const MessSummaryPage = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold" style={{ color: "#8b5cf6" }}>
-              Shared Monthly Costs
+              {t("mess.sharedCosts")}
             </p>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-              বাসা ভাড়া, বিল সবার নামে ভাগ করে entry দিন
+              {t("mess.sharedCostsDesc")}
             </p>
           </div>
           <span
             className="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0"
             style={{ background: "rgba(139,92,246,0.15)", color: "#8b5cf6" }}
           >
-            Admin
+            {t("mess.adminBadge")}
           </span>
         </button>
 
@@ -332,7 +314,7 @@ const MessSummaryPage = () => {
             <ChevronLeft size={16} />
           </button>
           <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-            {MONTHS[month]} {year}
+            {monthName(month, "long")} {num(year, { useGrouping: false })}
           </p>
           <button
             onClick={nextMonth}
@@ -358,26 +340,29 @@ const MessSummaryPage = () => {
             <div className="grid grid-cols-3 gap-3">
               {[
                 {
-                  label: "Total Expense",
-                  value: `${currency}${fmt0(data.totalExpense)}`,
+                  key: "expense",
+                  label: t("mess.totalExpense"),
+                  value: money(data.totalExpense, { decimals: 0 }),
                   color: "#ef4444",
-                  sub: `${data.memberCount} members`,
+                  sub: t("mess.memberCountSub", { count: num(data.memberCount) }),
                 },
                 {
-                  label: "Per Person",
-                  value: `${currency}${fmt0(data.perPersonShare)}`,
+                  key: "perPerson",
+                  label: t("mess.perPerson"),
+                  value: money(data.perPersonShare, { decimals: 0 }),
                   color: "#8b5cf6",
-                  sub: "equal share",
+                  sub: t("mess.equalShare"),
                 },
                 {
-                  label: "Members",
-                  value: String(data.memberCount),
+                  key: "members",
+                  label: t("mess.membersLabel"),
+                  value: num(data.memberCount),
                   color: "#3b82f6",
-                  sub: "active",
+                  sub: t("mess.activeSub"),
                 },
-              ].map(({ label, value, color, sub }) => (
+              ].map(({ key, label, value, color, sub }) => (
                 <div
-                  key={label}
+                  key={key}
                   className="rounded-2xl p-4"
                   style={{
                     background: C.card,
@@ -411,21 +396,19 @@ const MessSummaryPage = () => {
                 className="text-xs font-semibold mb-3"
                 style={{ color: "#8b5cf6" }}
               >
-                How it's calculated
+                {t("mess.howCalculated")}
               </p>
               <div className="space-y-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
                 <div className="flex justify-between">
-                  <span>Total expenses this month</span>
+                  <span>{t("mess.totalExpensesThisMonth")}</span>
                   <span className="font-semibold" style={{ color: "var(--text-primary)" }}>
-                    {currency}
-                    {fmt(data.totalExpense)}
+                    {money(data.totalExpense, { decimals: 2 })}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>÷ {data.memberCount} members</span>
+                  <span>{t("mess.dividedBy", { count: num(data.memberCount) })}</span>
                   <span className="font-semibold" style={{ color: "#8b5cf6" }}>
-                    = {currency}
-                    {fmt(data.perPersonShare)} / person
+                    {t("mess.perPersonResult", { amount: money(data.perPersonShare, { decimals: 2 }) })}
                   </span>
                 </div>
                 <div
@@ -433,7 +416,7 @@ const MessSummaryPage = () => {
                   style={{ borderTop: "1px solid var(--border-light)" }}
                 >
                   <span style={{ color: "var(--text-faint)" }}>
-                    Each member's balance = what they paid − their share
+                    {t("mess.balanceExplainer")}
                   </span>
                 </div>
               </div>
@@ -444,11 +427,11 @@ const MessSummaryPage = () => {
                 className="text-xs uppercase tracking-wider mb-3 flex items-center gap-2"
                 style={{ color: "var(--text-faint)" }}
               >
-                <Users size={12} /> Member Breakdown
+                <Users size={12} /> {t("mess.memberBreakdown")}
               </p>
               <div className="space-y-3">
                 {data.members.map((m) => (
-                  <MemberCard key={m.memberId} m={m} currency={currency} />
+                  <MemberCard key={m.memberId} m={m} />
                 ))}
               </div>
             </div>
@@ -459,7 +442,7 @@ const MessSummaryPage = () => {
                   className="text-xs uppercase tracking-wider mb-3 flex items-center gap-2"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  <AlertCircle size={12} /> To Settle Up
+                  <AlertCircle size={12} /> {t("mess.toSettleUp")}
                 </p>
                 <div className="space-y-2">
                   {data.settlements.map((s, i) => (
@@ -487,7 +470,7 @@ const MessSummaryPage = () => {
                         >
                           <span style={{ color: "#fca5a5" }}>{s.from}</span>
                           <span className="mx-2" style={{ color: "var(--text-faint)" }}>
-                            pays
+                            {t("mess.pays")}
                           </span>
                           <span style={{ color: "#86efac" }}>{s.to}</span>
                         </p>
@@ -496,8 +479,7 @@ const MessSummaryPage = () => {
                         className="text-sm font-bold flex-shrink-0"
                         style={{ color: "#10b981" }}
                       >
-                        {currency}
-                        {fmt(s.amount)}
+                        {money(s.amount, { decimals: 2 })}
                       </p>
                     </div>
                   ))}
@@ -522,10 +504,10 @@ const MessSummaryPage = () => {
                     className="text-sm font-semibold"
                     style={{ color: "#10b981" }}
                   >
-                    All settled!
+                    {t("mess.allSettled")}
                   </p>
                   <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                    Everyone has paid their fair share this month.
+                    {t("mess.allSettledDesc")}
                   </p>
                 </div>
               </div>
@@ -547,10 +529,10 @@ const MessSummaryPage = () => {
               className="text-sm font-medium mb-1"
               style={{ color: "var(--text-primary)" }}
             >
-              No data yet
+              {t("mess.noData")}
             </p>
             <p className="text-xs mb-4" style={{ color: "var(--text-faint)" }}>
-              Add expense transactions to see the mess summary
+              {t("mess.noDataHint")}
             </p>
             <button
               onClick={load}
@@ -561,7 +543,7 @@ const MessSummaryPage = () => {
                 color: "#8b5cf6",
               }}
             >
-              Load Summary <ArrowRight size={12} />
+              {t("mess.loadSummary")} <ArrowRight size={12} />
             </button>
           </div>
         )}
@@ -573,7 +555,7 @@ const MessSummaryPage = () => {
           businessId={activeBusiness._id}
           onClose={() => setShowSharedCosts(false)}
           onDone={(count) => {
-            toast.success(`${count}টি entry তৈরি হয়েছে!`);
+            toast.success(t("mess.entriesCreated", { count: num(count) }));
             load();
           }}
         />

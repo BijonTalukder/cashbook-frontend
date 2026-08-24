@@ -16,6 +16,8 @@ import {
 import { toast } from "sonner";
 import { transactionService } from "../../services/transaction.service";
 import { businessService } from "../../services/business.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 /* ── Types ────────────────────────────────────────── */
 interface Member {
@@ -42,18 +44,16 @@ interface Category {
 const ICONS = ["🏠", "⚡", "💧", "🌐", "🍽️", "📦", "🔧", "🧹", "🚿", "🔒"];
 
 const PRESET_COSTS = [
-  { label: "বাসা ভাড়া", icon: "🏠" },
-  { label: "বিদ্যুৎ বিল", icon: "⚡" },
-  { label: "পানির বিল", icon: "💧" },
-  { label: "ইন্টারনেট", icon: "🌐" },
-  { label: "গ্যাস বিল", icon: "🔧" },
-  { label: "অন্যান্য", icon: "📦" },
+  { labelKey: "sharedCosts.presets.rent", icon: "🏠" },
+  { labelKey: "sharedCosts.presets.electricity", icon: "⚡" },
+  { labelKey: "sharedCosts.presets.water", icon: "💧" },
+  { labelKey: "sharedCosts.presets.internet", icon: "🌐" },
+  { labelKey: "sharedCosts.presets.gas", icon: "🔧" },
+  { labelKey: "sharedCosts.presets.other", icon: "📦" },
 ];
 
 /* ── Helpers ──────────────────────────────────────── */
 const uid = () => Math.random().toString(36).slice(2, 9);
-const fmt = (n: number) =>
-  "৳" + n.toLocaleString("en-BD", { maximumFractionDigits: 0 });
 
 /* ════════════════════════════════════════════════════
    SharedCostsModal
@@ -65,6 +65,8 @@ interface Props {
 }
 
 const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
+  const { t } = useTranslation();
+  const { money, num, symbol } = useFormat();
   const [members, setMembers] = useState<Member[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [costs, setCosts] = useState<CostItem[]>([]);
@@ -88,18 +90,18 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
           ),
         );
       })
-      .catch(() => toast.error("Failed to load data"))
+      .catch(() => toast.error(t("sharedCosts.loadFailed")))
       .finally(() => setLoading(false));
-  }, [businessId]);
+  }, [businessId, t]);
 
   /* Add a cost row */
-  const addCost = (preset?: { label: string; icon: string }) => {
+  const addCost = (preset?: { labelKey: string; icon: string }) => {
     const defaultCat = categories[0]?._id ?? "";
     setCosts((prev) => [
       ...prev,
       {
         id: uid(),
-        label: preset?.label ?? "নতুন খরচ",
+        label: preset ? t(preset.labelKey) : t("sharedCosts.newCost"),
         categoryId: defaultCat,
         amount: 0,
         icon: preset?.icon ?? "📦",
@@ -146,7 +148,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
           });
           count++;
         } catch {
-          toast.error(`Failed for ${member.firstName} — ${cost.label}`);
+          toast.error(t("sharedCosts.failedFor", { name: member.firstName, label: cost.label }));
         }
       }
     }
@@ -193,10 +195,10 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
         >
           <div>
             <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
-              Shared Monthly Costs
+              {t("sharedCosts.title")}
             </h3>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-              সবার নামে automatically ভাগ করে entry দেবে
+              {t("sharedCosts.subtitle")}
             </p>
           </div>
           <button
@@ -227,16 +229,19 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
               <CheckCircle2 size={32} style={{ color: "#10b981" }} />
             </div>
             <h4 className="font-semibold text-lg mb-2" style={{ color: "var(--text-primary)" }}>
-              সফলভাবে হয়েছে!
+              {t("sharedCosts.successTitle")}
             </h4>
             <p className="text-sm mb-1" style={{ color: "var(--text-secondary)" }}>
               <span style={{ color: "#10b981", fontWeight: 600 }}>
-                {created}টি
+                {t("sharedCosts.successCount", { count: num(created) })}
               </span>{" "}
-              entry তৈরি হয়েছে
+              {t("sharedCosts.successLine")}
             </p>
             <p className="text-xs mb-6" style={{ color: "var(--text-faint)" }}>
-              {members.length} জন × {validCosts.length}টি খরচ
+              {t("sharedCosts.successBreakdown", {
+                members: num(members.length),
+                costs: num(validCosts.length),
+              })}
             </p>
             <button
               onClick={() => {
@@ -246,7 +251,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
               className="px-8 py-2.5 rounded-xl font-semibold text-sm"
               style={{ background: "#10b981", color: "#022c22" }}
             >
-              Done
+              {t("common.done")}
             </button>
           </div>
         ) : /* ── CONFIRM ── */
@@ -264,7 +269,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   className="text-sm font-semibold mb-3"
                   style={{ color: "#f59e0b" }}
                 >
-                  ✅ নিশ্চিত করুন
+                  {t("sharedCosts.confirmTitle")}
                 </p>
                 <div className="space-y-2">
                   {validCosts.map((c) => {
@@ -283,9 +288,12 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                           </span>
                         </span>
                         <span>
-                          {fmt(c.amount)} ÷ {members.length} ={" "}
+                          {t("sharedCosts.confirmSplit", {
+                            amount: money(c.amount, { decimals: 0 }),
+                            count: num(members.length),
+                          })}{" "}
                           <span style={{ color: "#f59e0b" }}>
-                            {fmt(perMember)}/জন
+                            {t("sharedCosts.perHead", { amount: money(perMember, { decimals: 0 }) })}
                           </span>
                         </span>
                       </div>
@@ -297,15 +305,18 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   style={{ borderTop: "1px solid rgba(245,158,11,0.2)" }}
                 >
                   <div className="flex justify-between text-xs font-semibold">
-                    <span style={{ color: "#f59e0b" }}>প্রতিজনের মোট খরচ</span>
-                    <span style={{ color: "#f59e0b" }}>{fmt(perHead)}</span>
+                    <span style={{ color: "#f59e0b" }}>{t("sharedCosts.perPersonTotal")}</span>
+                    <span style={{ color: "#f59e0b" }}>{money(perHead, { decimals: 0 })}</span>
                   </div>
                   <div className="flex justify-between text-xs mt-1">
                     <span style={{ color: "var(--text-muted)" }}>
-                      মোট entries ({members.length} জন × {validCosts.length}টি)
+                      {t("sharedCosts.entriesFormula", {
+                        members: num(members.length),
+                        costs: num(validCosts.length),
+                      })}
                     </span>
                     <span style={{ color: "var(--text-muted)" }}>
-                      {members.length * validCosts.length}টি entry
+                      {t("sharedCosts.entriesCount", { count: num(members.length * validCosts.length) })}
                     </span>
                   </div>
                 </div>
@@ -313,7 +324,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
 
               {/* Member list preview */}
               <p className="text-xs font-semibold" style={{ color: "var(--text-faint)" }}>
-                যাদের নামে entry হবে ({members.length} জন)
+                {t("sharedCosts.whoGetsEntries", { count: num(members.length) })}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {members.map((m) => (
@@ -356,7 +367,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   color: "var(--text-muted)",
                 }}
               >
-                Back
+                {t("common.back")}
               </button>
               <button
                 onClick={handleApply}
@@ -366,11 +377,11 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
               >
                 {applying ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" /> Creating...
+                    <Loader2 size={15} className="animate-spin" /> {t("sharedCosts.applying")}
                   </>
                 ) : (
                   <>
-                    ✅ Apply করো ({members.length * validCosts.length}টি entry)
+                    {t("sharedCosts.apply", { count: num(members.length * validCosts.length) })}
                   </>
                 )}
               </button>
@@ -386,12 +397,12 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   className="text-xs font-semibold mb-2"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  Quick Add
+                  {t("sharedCosts.quickAdd")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {PRESET_COSTS.map((p) => (
                     <button
-                      key={p.label}
+                      key={p.labelKey}
                       onClick={() => addCost(p)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
                       style={{
@@ -400,7 +411,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                         color: "var(--text-secondary)",
                       }}
                     >
-                      {p.icon} {p.label}
+                      {p.icon} {t(p.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -416,7 +427,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   }}
                 >
                   <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-                    উপরে Quick Add থেকে খরচ যোগ করুন
+                    {t("sharedCosts.emptyHint")}
                   </p>
                 </div>
               ) : (
@@ -425,7 +436,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                     className="text-xs font-semibold"
                     style={{ color: "var(--text-faint)" }}
                   >
-                    খরচের তালিকা
+                    {t("sharedCosts.costList")}
                   </p>
                   {costs.map((cost) => (
                     <div
@@ -464,7 +475,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                             updateCost(cost.id, "label", e.target.value)
                           }
                           className={inputCls + " flex-1"}
-                          placeholder="খরচের নাম"
+                          placeholder={t("sharedCosts.costNamePlaceholder")}
                         />
                         <button
                           onClick={() => removeCost(cost.id)}
@@ -485,7 +496,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                             className="block text-[10px] mb-1"
                             style={{ color: "var(--text-faint)" }}
                           >
-                            Category
+                            {t("sharedCosts.categoryLabel")}
                           </label>
                           <select
                             value={cost.categoryId}
@@ -499,7 +510,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                               color: "var(--text-primary)",
                             }}
                           >
-                            <option value="">Select...</option>
+                            <option value="">{t("sharedCosts.selectPlaceholder")}</option>
                             {categories.map((c) => (
                               <option key={c._id} value={c._id}>
                                 {c.name}
@@ -513,7 +524,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                             className="block text-[10px] mb-1"
                             style={{ color: "var(--text-faint)" }}
                           >
-                            মোট পরিমাণ (৳)
+                            {t("sharedCosts.totalAmount", { symbol })}
                           </label>
                           <input
                             type="number"
@@ -525,7 +536,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                                 Number(e.target.value),
                               )
                             }
-                            placeholder="যেমন: ৫০০০"
+                            placeholder={t("sharedCosts.amountPlaceholder")}
                             className={inputCls}
                           />
                         </div>
@@ -544,13 +555,18 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                             className="text-xs"
                             style={{ color: "var(--text-faint)" }}
                           >
-                            {fmt(cost.amount)} ÷ {members.length} জন =
+                            {t("sharedCosts.perHeadPreview", {
+                              amount: money(cost.amount, { decimals: 0 }),
+                              count: num(members.length),
+                            })}
                           </span>
                           <span
                             className="text-xs font-bold"
                             style={{ color: "#10b981" }}
                           >
-                            {fmt(Math.round(cost.amount / members.length))}/জন
+                            {t("sharedCosts.perHead", {
+                              amount: money(Math.round(cost.amount / members.length), { decimals: 0 }),
+                            })}
                           </span>
                         </div>
                       )}
@@ -569,7 +585,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   color: "var(--text-faint)",
                 }}
               >
-                <Plus size={14} /> Custom খরচ যোগ করুন
+                <Plus size={14} /> {t("sharedCosts.addCustom")}
               </button>
 
               {/* Members count */}
@@ -602,13 +618,13 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                         style={{ background: "var(--surface-6)", borderColor: C.bg }}
                       >
                         <span className="text-[9px]" style={{ color: "var(--text-primary)" }}>
-                          +{members.length - 4}
+                          +{num(members.length - 4)}
                         </span>
                       </div>
                     )}
                   </div>
                   <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    {members.length} জন সদস্যের নামে entry হবে
+                    {t("sharedCosts.membersLine", { count: num(members.length) })}
                   </span>
                 </div>
               )}
@@ -623,15 +639,15 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                   }}
                 >
                   <div className="flex justify-between text-xs">
-                    <span style={{ color: "var(--text-faint)" }}>প্রতিজনের মোট খরচ</span>
+                    <span style={{ color: "var(--text-faint)" }}>{t("sharedCosts.perPersonTotal")}</span>
                     <span className="font-bold" style={{ color: "#10b981" }}>
-                      {fmt(perHead)}
+                      {money(perHead, { decimals: 0 })}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs mt-1">
-                    <span style={{ color: "var(--text-faint)" }}>মোট entries</span>
+                    <span style={{ color: "var(--text-faint)" }}>{t("sharedCosts.totalEntries")}</span>
                     <span style={{ color: "var(--text-faint)" }}>
-                      {members.length * validCosts.length}টি
+                      {t("sharedCosts.entriesCount", { count: num(members.length * validCosts.length) })}
                     </span>
                   </div>
                 </div>
@@ -649,14 +665,14 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                 className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-40 transition-all"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
-                পরবর্তী — নিশ্চিত করুন →
+                {t("sharedCosts.next")}
               </button>
               {!canApply && costs.length > 0 && (
                 <p
                   className="text-center text-xs mt-2"
                   style={{ color: "var(--text-faint)" }}
                 >
-                  amount এবং category দিন
+                  {t("sharedCosts.needAmountCategory")}
                 </p>
               )}
             </div>

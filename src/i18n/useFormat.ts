@@ -68,6 +68,11 @@ export const useFormat = (currencyOverride?: Currency) => {
     const monthName = (index: number, style: "short" | "long" = "short") =>
       new Date(2000, ((index % 12) + 12) % 12, 1).toLocaleDateString(locale, { month: style });
 
+    /** Localised weekday name by index, 0 = Sunday — for calendar headers. */
+    const weekdayName = (index: number, style: "short" | "long" | "narrow" = "short") =>
+      // 2024-01-07 was a Sunday, so adding the index lands on the right weekday.
+      new Date(2024, 0, 7 + (((index % 7) + 7) % 7)).toLocaleDateString(locale, { weekday: style });
+
     const dateTime = (value: string | number | Date | null | undefined) => {
       const dd = date(value, "medium");
       return dd ? `${dd}, ${time(value)}` : "";
@@ -85,6 +90,7 @@ export const useFormat = (currencyOverride?: Currency) => {
       time,
       dateTime,
       monthName,
+      weekdayName,
     };
   }, [language, currency]);
 };

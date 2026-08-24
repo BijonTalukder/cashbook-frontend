@@ -19,21 +19,23 @@ import {
   type IInvitationDetail,
 } from "../../services/invitation.service";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import { enumLabel } from "../../i18n/labels";
 
 const ROLE_META = {
   admin: {
-    label: "Admin",
+    labelKey: "role.admin",
     icon: Shield,
     color: "#3b82f6",
     bg: "rgba(59,130,246,0.1)",
-    desc: "Can manage members, transactions & categories",
+    descKey: "invite.adminDesc",
   },
   member: {
-    label: "Member",
+    labelKey: "role.member",
     icon: User,
     color: "#10b981",
     bg: "rgba(16,185,129,0.1)",
-    desc: "Can view and add transactions",
+    descKey: "invite.memberDesc",
   },
 };
 
@@ -52,6 +54,7 @@ const InvitePage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const { setActiveBusiness } = useBusinessStore();
+  const { t } = useTranslation();
 
   const [state, setState] = useState<ViewState>("loading");
   const [invitation, setInvitation] = useState<IInvitationDetail | null>(null);
@@ -98,13 +101,13 @@ const InvitePage = () => {
     try {
       const result = await invitationService.accept(token);
       setState("accepted");
-      toast.success(`Welcome to ${result.businessName}!`);
+      toast.success(t("invite.welcomeToast", { business: result.businessName }));
       // after 2s go to dashboard
       setTimeout(() => navigate("/dashboard", { replace: true }), 2000);
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed";
+          ?.message ?? t("invite.acceptFailed");
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -119,7 +122,7 @@ const InvitePage = () => {
       await invitationService.decline(token);
       setState("declined");
     } catch {
-      toast.error("Failed to decline");
+      toast.error(t("invite.declineFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +164,7 @@ const InvitePage = () => {
               color: "var(--text-primary)",
             }}
           >
-            HisabBoi
+            {t("app.name")}
           </span>
         </div>
 
@@ -174,7 +177,7 @@ const InvitePage = () => {
               style={{ color: "#10b981" }}
             />
             <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-              Loading invitation...
+              {t("invite.loading")}
             </p>
           </div>
         )}
@@ -194,13 +197,13 @@ const InvitePage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              Invitation Not Found
+              {t("invite.notFound")}
             </h2>
             <p
               className="text-xs text-center mb-6"
               style={{ color: "var(--text-faint)" }}
             >
-              This invitation link is invalid or doesn't exist.
+              {t("invite.notFoundDesc")}
             </p>
             <Link
               to="/login"
@@ -211,7 +214,7 @@ const InvitePage = () => {
                 border: "1px solid var(--border)",
               }}
             >
-              Back to Login
+              {t("invite.backToLogin")}
             </Link>
           </Card>
         )}
@@ -231,14 +234,13 @@ const InvitePage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              Invitation Expired
+              {t("invite.expired")}
             </h2>
             <p
               className="text-xs text-center mb-6"
               style={{ color: "var(--text-faint)" }}
             >
-              This invitation link has expired. Ask your team admin to send a
-              new one.
+              {t("invite.expiredDesc")}
             </p>
           </Card>
         )}
@@ -258,20 +260,20 @@ const InvitePage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              Already Responded
+              {t("invite.alreadyResponded")}
             </h2>
             <p
               className="text-xs text-center mb-6"
               style={{ color: "var(--text-faint)" }}
             >
-              This invitation has already been accepted or declined.
+              {t("invite.alreadyRespondedDesc")}
             </p>
             <Link
               to="/dashboard"
               className="block w-full py-3 rounded-xl text-sm font-semibold text-center"
               style={{ background: "#10b981", color: "#022c22" }}
             >
-              Go to Dashboard
+              {t("invite.goToDashboard")}
             </Link>
           </Card>
         )}
@@ -291,7 +293,7 @@ const InvitePage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              You're Invited!
+              {t("invite.youreInvited")}
             </h2>
             <p
               className="text-sm text-center mb-1"
@@ -300,7 +302,7 @@ const InvitePage = () => {
               <strong style={{ color: "var(--text-primary)" }}>
                 {inviter?.firstName} {inviter?.lastName}
               </strong>{" "}
-              invited you to
+              {t("invite.invitedYouTo")}
             </p>
             <p
               className="text-lg font-bold text-center mb-6"
@@ -316,12 +318,11 @@ const InvitePage = () => {
               }}
             >
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                You need to{" "}
+                {t("invite.needLoginPrefix")}{" "}
                 <strong style={{ color: "var(--text-secondary)" }}>
-                  log in or create an account
+                  {t("invite.needLoginBold")}
                 </strong>{" "}
-                to accept this invitation. Make sure to use the email this
-                invite was sent to.
+                {t("invite.needLoginSuffix")}
               </p>
             </div>
             <div className="flex gap-3">
@@ -334,14 +335,14 @@ const InvitePage = () => {
                   color: "var(--text-primary)",
                 }}
               >
-                Log In
+                {t("invite.logIn")}
               </Link>
               <Link
                 to={`/register?redirect=/invite/${token}`}
                 className="flex-1 py-3 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-1.5"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
-                Register <ArrowRight size={14} />
+                {t("invite.register")} <ArrowRight size={14} />
               </Link>
             </div>
           </Card>
@@ -365,7 +366,7 @@ const InvitePage = () => {
                 <strong style={{ color: "var(--text-secondary)" }}>
                   {inviter?.firstName} {inviter?.lastName}
                 </strong>{" "}
-                invited you to join
+                {t("invite.invitedYouToJoin")}
               </p>
               <h2
                 className="text-2xl font-bold mb-1"
@@ -377,13 +378,13 @@ const InvitePage = () => {
                 {business?.name}
               </h2>
               <span
-                className="inline-block text-xs px-2.5 py-1 rounded-lg capitalize"
+                className="inline-block text-xs px-2.5 py-1 rounded-lg"
                 style={{
                   background: "var(--surface-3)",
                   color: "var(--text-muted)",
                 }}
               >
-                {business?.type}
+                {enumLabel(t, "businessType", business?.type)}
               </span>
             </div>
 
@@ -407,10 +408,10 @@ const InvitePage = () => {
                     className="text-sm font-semibold"
                     style={{ color: roleMeta.color }}
                   >
-                    Role: {roleMeta.label}
+                    {t("invite.roleLine", { role: t(roleMeta.labelKey) })}
                   </p>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    {roleMeta.desc}
+                    {t(roleMeta.descKey)}
                   </p>
                 </div>
               </div>
@@ -436,7 +437,7 @@ const InvitePage = () => {
                 </span>
               </div>
               <p className="text-xs flex-1" style={{ color: "var(--text-muted)" }}>
-                Accepting as{" "}
+                {t("invite.acceptingAs")}{" "}
                 <span style={{ color: "var(--text-secondary)" }}>{user?.email}</span>
               </p>
             </div>
@@ -454,7 +455,7 @@ const InvitePage = () => {
                   opacity: submitting ? 0.6 : 1,
                 }}
               >
-                <X size={15} /> Decline
+                <X size={15} /> {t("invite.decline")}
               </button>
               <button
                 onClick={handleAccept}
@@ -470,7 +471,7 @@ const InvitePage = () => {
                   <Loader2 size={15} className="animate-spin" />
                 ) : (
                   <>
-                    <Check size={15} /> Accept & Join
+                    <Check size={15} /> {t("invite.acceptAndJoin")}
                   </>
                 )}
               </button>
@@ -493,17 +494,17 @@ const InvitePage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              Welcome Aboard!
+              {t("invite.welcomeAboard")}
             </h2>
             <p
               className="text-xs text-center mb-2"
               style={{ color: "var(--text-faint)" }}
             >
-              You've joined{" "}
+              {t("invite.youveJoined")}{" "}
               <strong style={{ color: "#10b981" }}>{business?.name}</strong>
             </p>
             <p className="text-xs text-center" style={{ color: "var(--text-faint)" }}>
-              Redirecting to dashboard...
+              {t("invite.redirecting")}
             </p>
             <div
               className="mt-5 h-1 w-full rounded-full overflow-hidden"
@@ -525,13 +526,13 @@ const InvitePage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              Invitation Declined
+              {t("invite.declined")}
             </h2>
             <p
               className="text-xs text-center mb-6"
               style={{ color: "var(--text-faint)" }}
             >
-              You've declined the invitation to join{" "}
+              {t("invite.declinedDescPrefix")}{" "}
               <strong style={{ color: "var(--text-secondary)" }}>{business?.name}</strong>.
             </p>
             <Link
@@ -543,7 +544,7 @@ const InvitePage = () => {
                 border: "1px solid var(--border)",
               }}
             >
-              Go to Dashboard
+              {t("invite.goToDashboard")}
             </Link>
           </Card>
         )}

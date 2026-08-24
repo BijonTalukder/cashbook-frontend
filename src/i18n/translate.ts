@@ -2,7 +2,10 @@ import en from "./locales/en.json";
 import bn from "./locales/bn.json";
 import { DEFAULT_LANGUAGE, type Language } from "./config";
 
-export type TranslationNode = string | { [key: string]: TranslationNode };
+export type TranslationNode =
+  | string
+  | TranslationNode[]
+  | { [key: string]: TranslationNode };
 export type TranslationTree = Record<string, TranslationNode>;
 
 /** English is the source of truth; any key missing from bn.json falls back to it. */
@@ -16,13 +19,14 @@ export type TranslationVars = Record<string, string | number>;
 const lookup = (tree: TranslationTree, key: string): TranslationNode | undefined => {
   let node: TranslationNode | undefined = tree;
   for (const part of key.split(".")) {
-    if (typeof node !== "object" || node === null) return undefined;
-    node = node[part];
+    if (node === null || typeof node !== "object") return undefined;
+    node = (node as Record<string, TranslationNode>)[part];
   }
   return node;
 };
 
-const interpolate = (template: string, vars?: TranslationVars): string => {
+/** Fill `{{var}}` placeholders — also used for strings already pulled from a list. */
+export const interpolate = (template: string, vars?: TranslationVars): string => {
   if (!vars) return template;
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name: string) =>
     name in vars ? String(vars[name]) : match,
@@ -40,18 +44,44 @@ export const translate = (
   key: string,
   vars?: TranslationVars,
 ): string => {
-  const value =
-    lookup(RESOURCES[language], key) ?? lookup(RESOURCES[DEFAULT_LANGUAGE], key);
+  const value = lookupBoth(language, key);
 
   if (typeof value !== "string") {
-    if (import.meta.env.DEV && !missing.has(key)) {
-      missing.add(key);
-      console.warn(`[i18n] missing translation: ${key}`);
-    }
+    warnMissing(key, "translation");
     return key;
   }
 
   return interpolate(value, vars);
+};
+
+const lookupBoth = (language: Language, key: string): TranslationNode | undefined =>
+  lookup(RESOURCES[language], key) ?? lookup(RESOURCES[DEFAULT_LANGUAGE], key);
+
+const warnMissing = (key: string, what: string) => {
+  if (import.meta.env.DEV && !missing.has(key)) {
+    missing.add(key);
+    console.warn(`[i18n] missing ${what}: ${key}`);
+  }
+};
+
+/** Resolve a key whose value is a JSON array of strings — bullet lists, tags. */
+export const translateList = (language: Language, key: string): string[] => {
+  const value = lookupBoth(language, key);
+  if (!Array.isArray(value) || !value.every((v) => typeof v === "string")) {
+    warnMissing(key, "string list");
+    return [];
+  }
+  return value as string[];
+};
+
+/** Resolve a key whose value is a JSON array of string arrays — table rows. */
+export const translateMatrix = (language: Language, key: string): string[][] => {
+  const value = lookupBoth(language, key);
+  if (!Array.isArray(value)) {
+    warnMissing(key, "table rows");
+    return [];
+  }
+  return value.filter(Array.isArray).map((row) => (row as string[]).map(String));
 };
 
 /** Pick a value from an object keyed by language — for data that ships both forms. */

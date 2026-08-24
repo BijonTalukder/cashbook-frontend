@@ -20,6 +20,8 @@ import { useAuthStore } from "../../store/authStore";
 import { useBusinessStore } from "../../store/businessStore";
 import mealService, { type IMealDay } from "../../services/meal.service";
 import { businessService } from "../../services/business.service";
+import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
 
 /* ── Design tokens ─────────────────────────────── */
 const C = {
@@ -30,25 +32,6 @@ const C = {
 };
 
 /* ── Helpers ────────────────────────────────────── */
-const fmt = (n: number) => n.toLocaleString("bn-BD");
-
-const MONTHS = [
-  "জানুয়ারি",
-  "ফেব্রুয়ারি",
-  "মার্চ",
-  "এপ্রিল",
-  "মে",
-  "জুন",
-  "জুলাই",
-  "আগস্ট",
-  "সেপ্টেম্বর",
-  "অক্টোবর",
-  "নভেম্বর",
-  "ডিসেম্বর",
-];
-
-const DAYS_BN = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি"];
-
 const isTodayDate = (d: Date) => {
   const t = new Date();
   return (
@@ -82,6 +65,8 @@ const MealModal = ({
   onClose,
   onSaved,
 }: MealModalProps) => {
+  const { t } = useTranslation();
+  const { num, date: fmtDate } = useFormat();
   const userEntry = day?.members.find((m) => m.member._id === currentUserId);
   const [count, setCount] = useState(userEntry?.count ?? 1);
   const [note, setNote] = useState(userEntry?.note ?? "");
@@ -99,7 +84,7 @@ const MealModal = ({
 
   const handleSave = async () => {
     if (count < 0) {
-      toast.error("Count must be 0 or more");
+      toast.error(t("meals.modal.countInvalid"));
       return;
     }
     setSaving(true);
@@ -115,11 +100,11 @@ const MealModal = ({
           note,
         });
       }
-      toast.success("Meal saved");
+      toast.success(t("meals.modal.saved"));
       onSaved();
       onClose();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to save");
+      toast.error(err?.response?.data?.message ?? t("meals.modal.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -130,21 +115,17 @@ const MealModal = ({
     setSaving(true);
     try {
       await mealService.deleteMeal(memberEntry.mealId);
-      toast.success("Meal deleted");
+      toast.success(t("meals.modal.deleted"));
       onSaved();
       onClose();
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t("meals.modal.deleteFailed"));
     } finally {
       setSaving(false);
     }
   };
 
-  const dateStr = date.toLocaleDateString("bn-BD", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const dateStr = fmtDate(date, "long");
   const isToday = isTodayDate(date);
   const isPast = !isToday && date < new Date();
   const canEdit = isAdmin || isToday;
@@ -181,7 +162,11 @@ const MealModal = ({
                 {dateStr}
               </p>
               <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                {isToday ? "আজকের খাবার" : isPast ? "আগের দিন" : "ভবিষ্যৎ"}
+                {isToday
+                  ? t("meals.modal.todayLabel")
+                  : isPast
+                    ? t("meals.modal.pastLabel")
+                    : t("meals.modal.futureLabel")}
               </p>
             </div>
           </div>
@@ -195,7 +180,7 @@ const MealModal = ({
           {isAdmin && members.length > 0 && (
             <div className="mb-4">
               <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>
-                Member select করুন
+                {t("meals.modal.selectMember")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {members.map((m) => {
@@ -238,7 +223,7 @@ const MealModal = ({
               }}
             >
               <p className="text-xs mb-2" style={{ color: "#8b5cf6" }}>
-                এই দিনের মোট: {fmt(day.total)} টি
+                {t("meals.modal.dayTotal", { count: num(day.total) })}
               </p>
               <div className="space-y-1">
                 {day.members.map((dm) => (
@@ -253,7 +238,7 @@ const MealModal = ({
                       className="font-semibold"
                       style={{ color: "var(--text-primary)" }}
                     >
-                      {fmt(dm.count)} টি
+                      {t("meals.modal.memberCount", { count: num(dm.count) })}
                     </span>
                   </div>
                 ))}
@@ -266,7 +251,7 @@ const MealModal = ({
             <>
               <div className="mb-4">
                 <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>
-                  কতটি খাবার?
+                  {t("meals.modal.countQuestion")}
                 </p>
                 <div className="flex items-center justify-center gap-5">
                   <button
@@ -289,10 +274,10 @@ const MealModal = ({
                         color: "var(--text-primary)",
                       }}
                     >
-                      {count}
+                      {num(count)}
                     </p>
                     <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
-                      টি খাবার
+                      {t("meals.modal.countUnit")}
                     </p>
                   </div>
                   <button
@@ -314,7 +299,7 @@ const MealModal = ({
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="নোট (ঐচ্ছিক)"
+                  placeholder={t("meals.modal.notePlaceholder")}
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
                   style={{
                     background: C.card,
@@ -350,16 +335,14 @@ const MealModal = ({
                   ) : (
                     <Check size={14} />
                   )}
-                  {memberEntry?.mealId ? "আপডেট করুন" : "যোগ করুন"}
+                  {memberEntry?.mealId ? t("meals.modal.update") : t("meals.modal.add")}
                 </button>
               </div>
             </>
           ) : (
             <div className="text-center py-4">
               <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-                {isPast
-                  ? "এই দিনের খাবার শুধু Admin এডিট করতে পারবেন।"
-                  : "এই দিনের খাবার এখনো যোগ করা যাবে না।"}
+                {isPast ? t("meals.modal.pastLocked") : t("meals.modal.futureLocked")}
               </p>
             </div>
           )}
@@ -383,6 +366,8 @@ const DayCell = ({
   isSelected: boolean;
   onClick: () => void;
 }) => {
+  const { t } = useTranslation();
+  const { num } = useFormat();
   const today = isTodayDate(date);
   const hasMeal = !!day && day.total > 0;
   const isPast = !today && date < new Date() && isCurrentMonth;
@@ -428,17 +413,17 @@ const DayCell = ({
           fontWeight: today ? 700 : 500,
         }}
       >
-        {date.getDate()}
+        {num(date.getDate())}
       </span>
 
       {/* Meal count badge */}
       {hasMeal ? (
         <span className="text-[10px] font-bold leading-none" style={{ color: "#10b981" }}>
-          {fmt(day!.total)}
+          {num(day!.total)}
         </span>
       ) : today ? (
         <span className="text-[9px]" style={{ color: "rgba(139,92,246,0.6)" }}>
-          আজ
+          {t("meals.today")}
         </span>
       ) : null}
 
@@ -457,6 +442,8 @@ const DayCell = ({
 const MealsPage = () => {
   const { user } = useAuthStore();
   const { activeBusiness } = useBusinessStore();
+  const { t } = useTranslation();
+  const { num, date: fmtDate, monthName, weekdayName } = useFormat();
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -489,11 +476,11 @@ const MealsPage = () => {
       setMealData(res.days);
       setSummary(res.summary as any);
     } catch {
-      toast.error("Meals লোড করা যায়নি");
+      toast.error(t("meals.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [activeBusiness, year, month]);
+  }, [activeBusiness, year, month, t]);
 
   useEffect(() => {
     fetchMeals();
@@ -566,7 +553,7 @@ const MealsPage = () => {
         style={{ background: C.bg }}
       >
         <p className="text-sm" style={{ color: "var(--text-faint)" }}>
-          কোনো business সিলেক্ট করুন
+          {t("meals.selectBusiness")}
         </p>
       </div>
     );
@@ -585,14 +572,14 @@ const MealsPage = () => {
                 color: "var(--text-primary)",
               }}
             >
-              খাবার ট্র্যাকার
+              {t("meals.title")}
             </h1>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
               {activeBusiness.name} ·{" "}
               {isAdmin && (
                 <span style={{ color: "#8b5cf6" }}>
                   <ShieldCheck size={10} className="inline mr-0.5" />
-                  Admin
+                  {t("meals.adminBadge")}
                 </span>
               )}
             </p>
@@ -609,7 +596,7 @@ const MealsPage = () => {
                 color: C.purple,
               }}
             >
-              <Plus size={13} /> আজকের খাবার
+              <Plus size={13} /> {t("meals.todaysMeal")}
             </button>
           )}
         </div>
@@ -618,35 +605,39 @@ const MealsPage = () => {
         <div className="grid grid-cols-3 gap-3 mb-5">
           {[
             {
-              label: "এই মাসে মোট",
-              value: fmt(summary?.totalMeals ?? 0),
-              sub: "টি খাবার",
+              key: "total",
+              label: t("meals.monthTotal"),
+              value: num(summary?.totalMeals ?? 0),
+              sub: t("meals.mealsUnit"),
               icon: UtensilsCrossed,
               color: "#8b5cf6",
             },
             {
-              label: "কত দিন",
-              value: fmt(summary?.daysWithMeals ?? 0),
-              sub: "দিন এন্ট্রি",
+              key: "days",
+              label: t("meals.daysCount"),
+              value: num(summary?.daysWithMeals ?? 0),
+              sub: t("meals.daysWithEntry"),
               icon: Calendar,
               color: "#10b981",
             },
             {
-              label: "গড় / দিন",
-              value: fmt(
+              key: "avg",
+              label: t("meals.avgPerDay"),
+              value: num(
                 summary?.daysWithMeals
                   ? Math.round(
                       (summary.totalMeals / summary.daysWithMeals) * 10,
                     ) / 10
                   : 0,
+                { maximumFractionDigits: 1 },
               ),
-              sub: "গড় খাবার",
+              sub: t("meals.avgMeals"),
               icon: TrendingUp,
               color: "#f59e0b",
             },
-          ].map(({ label, value, sub, icon: Icon, color }) => (
+          ].map(({ key, label, value, sub, icon: Icon, color }) => (
             <div
-              key={label}
+              key={key}
               className="rounded-2xl p-3.5"
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
@@ -700,7 +691,7 @@ const MealsPage = () => {
                 className="text-base font-semibold"
                 style={{ color: "var(--text-primary)" }}
               >
-                {MONTHS[month]} {year}
+                {monthName(month, "long")} {num(year, { useGrouping: false })}
               </p>
               {!isCurrentMonth && (
                 <button
@@ -708,7 +699,7 @@ const MealsPage = () => {
                   className="text-[10px] mt-0.5"
                   style={{ color: C.purple }}
                 >
-                  এই মাসে ফিরে যান
+                  {t("meals.backToThisMonth")}
                 </button>
               )}
             </div>
@@ -724,13 +715,13 @@ const MealsPage = () => {
 
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1 px-3 pt-3">
-            {DAYS_BN.map((d) => (
+            {[0, 1, 2, 3, 4, 5, 6].map((d) => (
               <div
                 key={d}
                 className="text-center text-[10px] pb-1 font-medium"
                 style={{ color: "var(--text-faint)" }}
               >
-                {d}
+                {weekdayName(d)}
               </div>
             ))}
           </div>
@@ -770,10 +761,10 @@ const MealsPage = () => {
             style={{ borderTop: `1px solid ${C.border}` }}
           >
             {[
-              { color: "#10b981", label: "খাবার যোগ আছে" },
-              { color: C.purple, label: "আজকের দিন" },
-            ].map(({ color, label }) => (
-              <div key={label} className="flex items-center gap-1.5">
+              { key: "hasMeal", color: "#10b981", label: t("meals.legendHasMeal") },
+              { key: "today", color: C.purple, label: t("meals.legendToday") },
+            ].map(({ key, color, label }) => (
+              <div key={key} className="flex items-center gap-1.5">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ background: color }}
@@ -785,7 +776,7 @@ const MealsPage = () => {
             ))}
             <div className="flex-1" />
             <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
-              ক্লিক করুন দেখতে বা এডিট করতে
+              {t("meals.clickHint")}
             </span>
           </div>
         </div>
@@ -801,11 +792,10 @@ const MealsPage = () => {
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold" style={{ color: C.purple }}>
-                {selectedDate.toLocaleDateString("bn-BD", {
-                  day: "numeric",
-                  month: "long",
-                })}{" "}
-                — মোট {fmt(selDay.total)} টি
+                {t("meals.dayTotal", {
+                  date: fmtDate(selectedDate, "short"),
+                  count: num(selDay.total),
+                })}
               </p>
               {isAdmin && (
                 <button
@@ -816,7 +806,7 @@ const MealsPage = () => {
                   style={{ color: "var(--text-faint)" }}
                 >
                   <Edit2 size={12} className="inline mr-1" />
-                  এডিট
+                  {t("meals.edit")}
                 </button>
               )}
             </div>
@@ -856,7 +846,7 @@ const MealsPage = () => {
                       className="text-sm font-bold"
                       style={{ color: C.purple }}
                     >
-                      {fmt(dm.count)} টি
+                      {t("meals.modal.memberCount", { count: num(dm.count) })}
                     </span>
                   </div>
                 </div>
@@ -882,10 +872,11 @@ const MealsPage = () => {
               className="text-xs leading-relaxed"
               style={{ color: "var(--text-faint)" }}
             >
-              আপনি শুধু{" "}
-              <strong style={{ color: "var(--text-secondary)" }}>আজকের</strong>{" "}
-              খাবার যোগ বা এডিট করতে পারবেন। আগের বা পরের দিনের এন্ট্রি শুধু
-              Admin করতে পারবেন।
+              {t("meals.nonAdminHintPrefix")}{" "}
+              <strong style={{ color: "var(--text-secondary)" }}>
+                {t("meals.nonAdminHintBold")}
+              </strong>{" "}
+              {t("meals.nonAdminHintSuffix")}
             </p>
           </div>
         )}

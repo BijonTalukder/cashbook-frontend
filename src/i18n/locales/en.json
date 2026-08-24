@@ -1,4 +1,37 @@
 {
+  "ai": {
+    "analysing": "Analysing...",
+    "assistant": "HisabBoi AI",
+    "capabilities": {
+      "addTransaction": "Add transaction",
+      "dueTracking": "Due tracking",
+      "expenseAnalysis": "Expense analysis",
+      "savingsAdvice": "Savings advice"
+    },
+    "connectFailed": "Could not connect to the AI",
+    "disclaimer": "AI can make mistakes — double-check important figures",
+    "greetingPrompt": "Give me a short financial summary of this month for the business {{business}}.",
+    "inputPlaceholder": "Ask a question...",
+    "loadBusinessesFailed": "Could not load businesses",
+    "noBusinesses": "No businesses found",
+    "noReply": "No answer received.",
+    "openLabel": "Ask HisabBoi AI",
+    "replyFailed": "Sorry, the answer could not be fetched. Check your connection and try again.",
+    "selectSubtitle": "Once you pick one, the AI analyses that business's books",
+    "selectTitle": "Which business do you want to ask about?",
+    "suggestions": {
+      "companyBiggestExpense": "What is the biggest expense?",
+      "companyProfitLoss": "What is this month's profit/loss?",
+      "companyVsLastMonth": "How does it compare to last month?",
+      "massTopCategory": "Which category has the highest spend?",
+      "massTotalSpend": "How much was spent in total this month?",
+      "massWhoOwes": "Who owes how much?",
+      "personalCutBack": "Where can I cut back?",
+      "personalSavings": "How do my savings look?",
+      "personalSummary": "Give me this month's income and expense summary"
+    },
+    "tryAgain": "Try again"
+  },
   "app": {
     "name": "HisabBoi",
     "tagline": "Your pocket accounting book"
@@ -30,8 +63,11 @@
     "signIn": "Sign in",
     "signingIn": "Signing in...",
     "statTracked": "Tracked monthly",
+    "statTrackedValue": "৳2.4M",
     "statUptime": "Uptime",
+    "statUptimeValue": "99.9%",
     "statUsers": "Active users",
+    "statUsersValue": "12K+",
     "terms": "Terms",
     "termsRegister": "By registering you agree to our",
     "termsSignIn": "By signing in you agree to our",
@@ -308,6 +344,47 @@
     "tooltipRow": "{{name}}: {{amount}}",
     "yearOverview": "{{year}} Overview"
   },
+  "dataDeletion": {
+    "deletedList": [
+      "Your profile, name, and email address",
+      "All businesses you own and their transaction records",
+      "Meal records, invoices, and mess summaries",
+      "Your membership in other users' businesses",
+      "All settings and preferences",
+      "Account backups (within 30 days)"
+    ],
+    "emailHint": "Use the email address associated with your HisabBoi account.",
+    "emailInvalid": "Please enter a valid email address.",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "emailRequired": "Email address is required.",
+    "fasterBodyPath": "Settings → Delete Account",
+    "fasterBodyPrefix": "If you have access to your account, go to",
+    "fasterBodySuffix": "for immediate deletion.",
+    "fasterTitle": "Faster: Delete from the app",
+    "heroBodyDays": "30 days",
+    "heroBodyPrefix": "Submit your email below to request permanent deletion of your HisabBoi account and all associated data. We will process your request within",
+    "heroTitle": "Request Account Deletion",
+    "navTitle": "Delete Account",
+    "nextSteps": [
+      "We will verify your email within 1–2 business days",
+      "You will receive a confirmation email with next steps",
+      "Your account and all data will be permanently deleted within 30 days",
+      "Backups will be purged within 30 days of deletion"
+    ],
+    "orEmailUs": "Or email us directly",
+    "processing": "Processing...",
+    "questionsPrefix": "Questions? Email us at",
+    "reasonLabel": "Reason",
+    "reasonOptional": "(optional)",
+    "reasonPlaceholder": "Tell us why you're leaving...",
+    "receivedBody": "We received your deletion request for:",
+    "receivedTitle": "Request Received",
+    "submit": "Submit Deletion Request",
+    "submitError": "Something went wrong. Please email us directly at",
+    "whatDeleted": "Data that will be permanently deleted",
+    "whatNext": "What happens next"
+  },
   "docStatus": {
     "cancelled": "Cancelled",
     "draft": "Draft",
@@ -366,6 +443,39 @@
     "totalRecent": "Total (recent)",
     "totalThisList": "Total"
   },
+  "invite": {
+    "acceptAndJoin": "Accept & Join",
+    "acceptFailed": "Failed",
+    "acceptingAs": "Accepting as",
+    "adminDesc": "Can manage members, transactions & categories",
+    "alreadyResponded": "Already Responded",
+    "alreadyRespondedDesc": "This invitation has already been accepted or declined.",
+    "backToLogin": "Back to Login",
+    "decline": "Decline",
+    "declineFailed": "Failed to decline",
+    "declined": "Invitation Declined",
+    "declinedDescPrefix": "You've declined the invitation to join",
+    "expired": "Invitation Expired",
+    "expiredDesc": "This invitation link has expired. Ask your team admin to send a new one.",
+    "goToDashboard": "Go to Dashboard",
+    "invitedYouTo": "invited you to",
+    "invitedYouToJoin": "invited you to join",
+    "loading": "Loading invitation...",
+    "logIn": "Log In",
+    "memberDesc": "Can view and add transactions",
+    "needLoginBold": "log in or create an account",
+    "needLoginPrefix": "You need to",
+    "needLoginSuffix": "to accept this invitation. Make sure to use the email this invite was sent to.",
+    "notFound": "Invitation Not Found",
+    "notFoundDesc": "This invitation link is invalid or doesn't exist.",
+    "redirecting": "Redirecting to dashboard...",
+    "register": "Register",
+    "roleLine": "Role: {{role}}",
+    "welcomeAboard": "Welcome Aboard!",
+    "welcomeToast": "Welcome to {{business}}!",
+    "youreInvited": "You're Invited!",
+    "youveJoined": "You've joined"
+  },
   "invoice": {
     "billedTo": "Billed to",
     "heading": "INVOICE",
@@ -378,6 +488,75 @@
     "qty": "Qty",
     "shareTitle": "Invoice {{number}}",
     "thankYou": "Thank you for your business"
+  },
+  "invoiceDetail": {
+    "accountSuffix": "{{type}} Account",
+    "expenseTransactions": "Expense Transactions",
+    "formulaBody": "Total {{category}} expense ({{cost}}) ÷ total meals ({{meals}}) = meal rate ({{rate}}) · Balance = deposit − (meals × rate) − other expenses",
+    "formulaLabel": "Formula:",
+    "generatedAt": "Generated: {{datetime}}",
+    "generatedOn": "Generated {{date}}",
+    "incomeTransactions": "Income Transactions",
+    "invoicePeriod": "Invoice Period",
+    "mealCategoryLabel": "Meal Category:",
+    "mealRateLabel": "Meal Rate:",
+    "memberTable": {
+      "balance": "Balance",
+      "deposit": "Deposit",
+      "mealCost": "Meal Cost",
+      "meals": "Meals",
+      "member": "Member",
+      "otherExpense": "Other Exp.",
+      "totalCost": "Total Cost"
+    },
+    "messMemberSummary": "Mess Member Summary",
+    "notFound": "Invoice not found",
+    "printPdf": "Print / PDF",
+    "systemGenerated": "This is a system-generated invoice.",
+    "tagline": "Smart Financial Tracking",
+    "totalMealsLabel": "Total Meals:",
+    "transfers": "Transfers"
+  },
+  "invoices": {
+    "deleteConfirm": "Delete this invoice?",
+    "deleteFailed": "Failed to delete",
+    "deleted": "Deleted",
+    "entriesCount": "{{count}} entries",
+    "filterAll": "All",
+    "generate": "Generate",
+    "generateFailed": "Failed to generate invoice",
+    "generateInvoice": "Generate Invoice",
+    "generated": "Invoice generated!",
+    "generatedInvoices": "Generated Invoices",
+    "generating": "Generating...",
+    "invoiceSummary": "Income {{income}} · Expense {{expense}} · ",
+    "loadCategoriesFailed": "Failed to load categories",
+    "loadFailed": "Failed to load data",
+    "mealCategory": "Meal Category",
+    "mealRateHint": "All expenses in this category ÷ total meals = meal rate.",
+    "messSubtitle": "Mess accounting invoice",
+    "month": "Month",
+    "monthYear": "{{month}} {{year}}",
+    "netBalance": "Net Balance",
+    "netLabel": "Net {{amount}}",
+    "noTransactions": "No transactions found",
+    "overwriteWarning": "An existing invoice for the same month/year will be overwritten.",
+    "regularSubtitle": "Income & expense summary",
+    "selectMealCategory": "Select meal category...",
+    "selectMealCategoryError": "Please select a meal category",
+    "subtitle": "Transactions & generated invoices",
+    "table": {
+      "amount": "Amount",
+      "category": "Category",
+      "date": "Date",
+      "member": "Member",
+      "note": "Note",
+      "type": "Type"
+    },
+    "title": "Invoices",
+    "totalExpense": "Total Expense",
+    "totalIncome": "Total Income",
+    "year": "Year"
   },
   "ledger": {
     "allCustomers": "All customers",
@@ -420,6 +599,123 @@
     "title": "Meal tracker",
     "totalMeals": "Total meals"
   },
+  "meals": {
+    "adminBadge": "Admin",
+    "avgMeals": "avg meals",
+    "avgPerDay": "Avg / day",
+    "backToThisMonth": "Back to this month",
+    "clickHint": "Click a day to view or edit",
+    "dayTotal": "{{date}} — total {{count}}",
+    "daysCount": "Days",
+    "daysWithEntry": "days with entries",
+    "edit": "Edit",
+    "legendHasMeal": "Meal recorded",
+    "legendToday": "Today",
+    "loadFailed": "Could not load meals",
+    "mealsUnit": "meals",
+    "modal": {
+      "add": "Add",
+      "countInvalid": "Count must be 0 or more",
+      "countQuestion": "How many meals?",
+      "countUnit": "meals",
+      "dayTotal": "Total this day: {{count}}",
+      "deleteFailed": "Failed to delete",
+      "deleted": "Meal deleted",
+      "futureLabel": "Future",
+      "futureLocked": "Meals for this day cannot be added yet.",
+      "memberCount": "{{count}}",
+      "notePlaceholder": "Note (optional)",
+      "pastLabel": "Past day",
+      "pastLocked": "Only an Admin can edit meals for a past day.",
+      "saveFailed": "Failed to save",
+      "saved": "Meal saved",
+      "selectMember": "Select member",
+      "todayLabel": "Today's meal",
+      "update": "Update"
+    },
+    "monthTotal": "Total this month",
+    "nonAdminHintBold": "today's",
+    "nonAdminHintPrefix": "You can only add or edit",
+    "nonAdminHintSuffix": "meals. Entries for other days can only be made by an Admin.",
+    "selectBusiness": "Select a business",
+    "title": "Meal tracker",
+    "today": "Today",
+    "todaysMeal": "Today's meal"
+  },
+  "members": {
+    "adminAccess": "Full access",
+    "adminDesc": "Can invite members, manage transactions and categories",
+    "emailPlaceholder": "teammate@example.com",
+    "empty": "No members yet",
+    "emptyHint": "Invite your team to collaborate",
+    "enterEmail": "Enter an email",
+    "invalidEmail": "Invalid email",
+    "invitationFailed": "Failed to send invitation",
+    "invitationSent": "Invitation sent!",
+    "invitationSentTitle": "Invitation Sent!",
+    "invite": "Invite",
+    "inviteAnother": "Invite Another",
+    "inviteMember": "Invite Member",
+    "linkCopied": "Link copied!",
+    "loadFailed": "Failed to load members",
+    "memberAccess": "View & add",
+    "memberDesc": "Can view and add transactions",
+    "orShareLink": "Or share this link directly",
+    "ownerDesc": "Full control — manage members, settings, and all data",
+    "remove": "Remove",
+    "removeFailed": "Remove failed",
+    "removeQuestion": "Remove {{name}}?",
+    "removeWarningPrefix": "They'll lose access to",
+    "removeWarningSuffix": ". Their transactions will remain.",
+    "removed": "{{name}} removed",
+    "rolePermissions": "Role Permissions",
+    "roleUpdateFailed": "Failed to update role",
+    "roleUpdated": "Role updated",
+    "selectBusinessFirst": "Select a business first",
+    "sendInvitation": "Send Invitation",
+    "subtitleOne": "{{business}} · {{count}} member",
+    "subtitleOther": "{{business}} · {{count}} members",
+    "teamMembers": "Team Members",
+    "title": "Members",
+    "totalCount": "{{count}} total",
+    "willReceiveEmail": "will receive an invite email",
+    "you": "You"
+  },
+  "mess": {
+    "activeSub": "active",
+    "adminBadge": "Admin",
+    "allSettled": "All settled!",
+    "allSettledDesc": "Everyone has paid their fair share this month.",
+    "balanceExplainer": "Each member's balance = what they paid − their share",
+    "dividedBy": "÷ {{count}} members",
+    "entriesCreated": "{{count}} entries created!",
+    "equalShare": "equal share",
+    "even": "Even",
+    "expenseBreakdown": "Expense breakdown",
+    "howCalculated": "How it's calculated",
+    "loadFailed": "Failed to load mess summary",
+    "loadSummary": "Load Summary",
+    "memberBreakdown": "Member Breakdown",
+    "memberCountSub": "{{count}} members",
+    "membersLabel": "Members",
+    "noData": "No data yet",
+    "noDataHint": "Add expense transactions to see the mess summary",
+    "noExpenses": "No expenses recorded",
+    "paidAndShare": "Paid: {{paid}} · Share: {{share}}",
+    "pays": "pays",
+    "perPerson": "Per Person",
+    "perPersonResult": "= {{amount}} / person",
+    "selectMessBusiness": "Select a mess-type business",
+    "settledLabel": "settled",
+    "sharedCosts": "Shared Monthly Costs",
+    "sharedCostsDesc": "Split house rent and bills across everyone in one entry",
+    "title": "Mess Summary",
+    "toPay": "to pay",
+    "toReceive": "to receive",
+    "toSettleUp": "To Settle Up",
+    "totalExpense": "Total Expense",
+    "totalExpensesThisMonth": "Total expenses this month"
+  },
   "nav": {
     "baki": "Baki",
     "businessSettings": "Business Settings",
@@ -454,6 +750,73 @@
     "suppliers": "Suppliers",
     "transactions": "Transactions"
   },
+  "newBusiness": {
+    "addressOptional": "Address (optional)",
+    "addressPlaceholder": "Shop address",
+    "available": "Available",
+    "catCreated": "\"{{name}}\" created & selected",
+    "categorySubtitle": "Pick one that fits, or create your own. You can skip.",
+    "categoryTitle": "Choose a category",
+    "chooseType": "Please choose a business type",
+    "createBusiness": "Create Business",
+    "createCategoryFailed": "Failed to create category",
+    "createFailed": "Failed to create business",
+    "createdReady": "is ready.",
+    "createdTitle": "Business Created!",
+    "custom": "(custom)",
+    "customCreatedPrefix": "Custom category",
+    "customCreatedSuffix": "created",
+    "detailsSubtitle": "Tell us a bit more about your business.",
+    "detailsTitle": "Business details",
+    "goingToDashboard": "Going to dashboard...",
+    "loadCategoriesFailed": "Failed to load categories",
+    "nameLabel": "Business name",
+    "nameMin": "Minimum 2 characters",
+    "nameMissing": "Business name missing",
+    "namePlaceholderBusiness": "Bijon Electronics",
+    "namePlaceholderCompany": "Acme Ltd.",
+    "namePlaceholderMass": "Our Mess",
+    "namePlaceholderPersonal": "Rahim's Personal",
+    "newCatPlaceholder": "e.g. Retail, NGO, Freelance...",
+    "oneSelected": "1 category selected",
+    "openingBalanceHint": "Cash you're starting this business with, if any.",
+    "openingBalanceOptional": "Opening balance (optional)",
+    "orCreateOwn": "Or create your own",
+    "phoneOptional": "Phone (optional)",
+    "skipAndCreate": "Skip & Create",
+    "steps": {
+      "business": "Business",
+      "category": "Category",
+      "details": "Details",
+      "done": "Done"
+    },
+    "subtitle": "Add another business to your account.",
+    "title": "New Business",
+    "typeLabel": "Business type",
+    "types": {
+      "businessSub": "Shop, sales & inventory",
+      "companySub": "Manage team expenses",
+      "massSub": "Shared mess accounting",
+      "personalSub": "Track your own finances"
+    },
+    "whatKind": "What kind of business?"
+  },
+  "onboarding": {
+    "allSet": "You're all set!",
+    "businessInfoMissing": "Business info missing, please go back",
+    "categorySubtitle": "Pick one that fits your business, or create your own. You can skip.",
+    "finishSetup": "Finish Setup",
+    "householdLabel": "Household",
+    "householdSub": "Family budget & meals",
+    "namePlaceholderCompany": "Acme Ltd.",
+    "namePlaceholderHousehold": "Our Home",
+    "namePlaceholderPersonal": "Rahim's Personal",
+    "setupFailed": "Setup failed, please try again",
+    "skipAndFinish": "Skip & Finish",
+    "subtitle": "Every account starts with one business. You can add more later.",
+    "takingYou": "Taking you to your dashboard...",
+    "title": "Set up your business"
+  },
   "payment": {
     "customer": "Customer",
     "duePrefix": "Due: {{amount}}",
@@ -481,6 +844,237 @@
     "nagad": "Nagad",
     "other": "Other",
     "rocket": "Rocket"
+  },
+  "privacy": {
+    "badge": "📄 Legal Document",
+    "contactBody": "Have questions about your privacy? We're here to help.",
+    "contactTitle": "Contact Us",
+    "copyright": "© 2025 HisabBoi. All rights reserved.",
+    "effectiveDateLabel": "Effective Date:",
+    "heroBody": "This Privacy Policy explains how HisabBoi collects, uses, and protects your personal information when you use our app and services. By using HisabBoi, you agree to the terms described below.",
+    "heroTitle": "Privacy Policy",
+    "lastUpdatedLabel": "Last Updated:",
+    "location": "HisabBoi · Dhaka, Bangladesh",
+    "navTitle": "Privacy Policy",
+    "s1": {
+      "accountInfo": "Account Information",
+      "accountRows": [
+        [
+          "Full name",
+          "To identify your account and personalize your experience"
+        ],
+        [
+          "Email address",
+          "For account login, password reset, and notifications"
+        ],
+        [
+          "Password (hashed)",
+          "To authenticate your account securely"
+        ],
+        [
+          "Profile information",
+          "To display in the app and to other business members"
+        ]
+      ],
+      "deviceList": [
+        "Device type, OS version (for crash reporting and compatibility)",
+        "App usage patterns (to improve features)",
+        "IP address (for security and fraud prevention)",
+        "Push notification tokens (to send you alerts)"
+      ],
+      "deviceUsage": "Device & Usage Data",
+      "financialData": "Financial Data",
+      "financialRows": [
+        [
+          "Income & expense records",
+          "Core app functionality — bookkeeping"
+        ],
+        [
+          "Transaction categories",
+          "To organize and analyze your finances"
+        ],
+        [
+          "Business names & types",
+          "To manage multiple accounts (personal, company, mess)"
+        ],
+        [
+          "Mess meal records",
+          "To calculate mess member costs and settlements"
+        ],
+        [
+          "Member balances & dues",
+          "To track who owes what in shared accounts"
+        ]
+      ],
+      "notCollectBody": "payment card numbers, bank credentials, government ID, precise GPS location, contacts, photos, or microphone/camera data.",
+      "notCollectLabel": "We do NOT collect:",
+      "title": "1. Information We Collect"
+    },
+    "s10": {
+      "body1": "HisabBoi is primarily designed for users in Bangladesh. Your data may be processed and stored on servers located outside your country. By using our app, you consent to such transfers.",
+      "body2": "We ensure that all data transfers comply with applicable data protection laws and that your data receives the same level of protection regardless of where it is processed.",
+      "title": "10. International Data Transfers"
+    },
+    "s11": {
+      "intro": "We may update this Privacy Policy from time to time. When we make material changes, we will:",
+      "list": [
+        "Update the \"Last Updated\" date at the top of this page",
+        "Send a notification through the app",
+        "For significant changes, ask for your consent before continuing"
+      ],
+      "outro": "Your continued use of HisabBoi after changes constitutes acceptance of the updated policy.",
+      "title": "11. Changes to This Policy"
+    },
+    "s2": {
+      "highlight": "We process your financial data only to provide the services you request. We never use your financial data for advertising purposes.",
+      "intro": "We use the information we collect for the following purposes:",
+      "list": [
+        "Provide core services — manage your books, calculate mess summaries, generate invoices",
+        "Account management — create and manage your account and business profiles",
+        "Collaboration — share relevant data with members you invite to your business",
+        "AI-powered insights — analyze financial data to provide personalized suggestions",
+        "Security — detect fraud, prevent abuse, and maintain account safety",
+        "Improvements — understand usage patterns to improve features and fix bugs",
+        "Communication — send transactional emails and important notifications",
+        "Legal compliance — meet our obligations under applicable laws"
+      ],
+      "title": "2. How We Use Your Information"
+    },
+    "s3": {
+      "intro": "We do not sell, rent, or trade your personal data. We share data only in limited cases:",
+      "legal": "Legal Requirements",
+      "legalBody": "We may disclose your information if required by law, court order, or to protect our legal rights or the safety of our users.",
+      "providerRows": [
+        [
+          "MongoDB Atlas",
+          "Database hosting",
+          "All app data (encrypted at rest)"
+        ],
+        [
+          "Google Cloud",
+          "Push notifications",
+          "Device tokens, anonymized usage"
+        ],
+        [
+          "Google Gemini AI",
+          "AI financial assistant",
+          "Anonymized business summary only"
+        ],
+        [
+          "Hosting provider",
+          "Server infrastructure",
+          "Encrypted user data"
+        ]
+      ],
+      "providers": "Service Providers",
+      "title": "3. Data Sharing & Third Parties",
+      "warn": "We never share your personal financial data with advertisers, data brokers, or marketing companies.",
+      "withinApp": "Within the App",
+      "withinAppList": [
+        "Business members you invite can see shared transaction data and balances",
+        "Mess members can see their own meal counts and dues",
+        "You control who is invited to your businesses"
+      ]
+    },
+    "s4": {
+      "intro": "We implement industry-standard security measures to protect your data:",
+      "list": [
+        "Encryption in transit — all data transmitted over HTTPS/TLS",
+        "Encryption at rest — your data is encrypted in our database",
+        "Password hashing — passwords hashed using bcrypt; we never store plaintext",
+        "JWT authentication — secure token-based authentication with expiry",
+        "Access controls — only authorized users can access their own business data",
+        "Regular reviews — we regularly review and update our security practices"
+      ],
+      "outro": "While we take strong measures to protect your data, no system is 100% secure. Please keep your credentials confidential and log out on shared devices.",
+      "title": "4. Data Security"
+    },
+    "s5": {
+      "outro": "When you delete your account, we will permanently delete your personal data within 30 days, except where required by law.",
+      "rows": [
+        [
+          "Account data",
+          "Until account is deleted by user"
+        ],
+        [
+          "Transaction records",
+          "Until business or account is deleted"
+        ],
+        [
+          "Meal & mess data",
+          "Until business or account is deleted"
+        ],
+        [
+          "Backups",
+          "Up to 30 days after deletion request"
+        ],
+        [
+          "Anonymized analytics",
+          "Up to 2 years"
+        ],
+        [
+          "Legal/compliance data",
+          "As required by applicable law"
+        ]
+      ],
+      "title": "5. Data Retention"
+    },
+    "s6": {
+      "highlight": "Account Deletion: Go to Settings → Delete Account, or visit our data deletion page. All your data will be permanently removed within 30 days.",
+      "list": [
+        "Access — view all data we hold about you in the app",
+        "Correction — update your profile information anytime in Settings",
+        "Deletion — delete your account and all data from Settings → Delete Account",
+        "Data export — contact us to request a copy of your data",
+        "Opt-out — disable push notifications in your device settings",
+        "Object — object to certain data processing by contacting us"
+      ],
+      "title": "6. Your Rights & Choices"
+    },
+    "s7": {
+      "howList": [
+        "In the app: Settings → Delete Account",
+        "Via web: visit our data deletion request page at {{appUrl}}/data-deletion",
+        "Via email: send a request to {{email}}"
+      ],
+      "howTitle": "How to delete your account",
+      "intro": "You may request full deletion of your account and data at any time. Upon deletion:",
+      "list": [
+        "Your profile, email, and account credentials are permanently removed",
+        "All businesses you own and their transactions are deleted",
+        "Meal records, invoices, and mess data are deleted",
+        "Your membership in other users' businesses is removed",
+        "Backups are purged within 30 days"
+      ],
+      "title": "7. Account & Data Deletion",
+      "warn": "Account deletion is permanent and irreversible. Please export any data you need before deleting."
+    },
+    "s8": {
+      "body1": "HisabBoi is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13.",
+      "contact": "If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at {{email}}. We will promptly delete such information.",
+      "title": "8. Children's Privacy"
+    },
+    "s9": {
+      "intro": "The HisabBoi mobile app does not use browser cookies. We may use the following technologies:",
+      "list": [
+        "JWT tokens — stored securely on your device for authentication",
+        "Local storage — to cache your data for offline access",
+        "Push notification tokens — to deliver notifications to your device",
+        "Anonymized analytics — to understand app usage and improve performance"
+      ],
+      "outro": "We do not use cross-site tracking, advertising trackers, or fingerprinting technologies.",
+      "title": "9. Cookies & Tracking Technologies"
+    },
+    "th": {
+      "data": "Data",
+      "dataType": "Data Type",
+      "provider": "Provider",
+      "purpose": "Purpose",
+      "retention": "Retention Period",
+      "shared": "Data Shared",
+      "why": "Why We Collect It"
+    },
+    "translationNote": "This policy is maintained in English. The Bangla version is provided for convenience; if the two differ, the English text applies."
   },
   "product": {
     "add": "Add Product",
@@ -727,6 +1321,48 @@
     },
     "subtitle": "{{category}} · {{amount}}",
     "title": "Settlement"
+  },
+  "sharedCosts": {
+    "addCustom": "Add a custom cost",
+    "amountPlaceholder": "e.g. 5000",
+    "apply": "✅ Apply ({{count}} entries)",
+    "applying": "Creating...",
+    "categoryLabel": "Category",
+    "confirmSplit": "{{amount}} ÷ {{count}} =",
+    "confirmTitle": "✅ Please confirm",
+    "costList": "Cost list",
+    "costNamePlaceholder": "Cost name",
+    "emptyHint": "Add a cost from Quick Add above",
+    "entriesCount": "{{count}} entries",
+    "entriesFormula": "Total entries ({{members}} people × {{costs}} costs)",
+    "failedFor": "Failed for {{name}} — {{label}}",
+    "loadFailed": "Failed to load data",
+    "membersLine": "Entries will be created for {{count}} members",
+    "needAmountCategory": "Enter an amount and category",
+    "newCost": "New cost",
+    "next": "Next — confirm →",
+    "perHead": "{{amount}}/person",
+    "perHeadPreview": "{{amount}} ÷ {{count}} people =",
+    "perPersonTotal": "Total per person",
+    "presets": {
+      "electricity": "Electricity bill",
+      "gas": "Gas bill",
+      "internet": "Internet",
+      "other": "Other",
+      "rent": "House rent",
+      "water": "Water bill"
+    },
+    "quickAdd": "Quick Add",
+    "selectPlaceholder": "Select...",
+    "subtitle": "Splits the amount across everyone and creates the entries automatically",
+    "successBreakdown": "{{members}} people × {{costs}} costs",
+    "successCount": "{{count}}",
+    "successLine": "entries created",
+    "successTitle": "Done!",
+    "title": "Shared Monthly Costs",
+    "totalAmount": "Total amount ({{symbol}})",
+    "totalEntries": "Total entries",
+    "whoGetsEntries": "Who gets an entry ({{count}} people)"
   },
   "source": {
     "expense": "Expense",

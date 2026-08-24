@@ -7,7 +7,6 @@ import {
 import { toast } from "sonner";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import type { ITransaction } from "../../services/transaction.service";
-import { useBusinessStore } from "../../store/businessStore";
 import CustomerModal from "../../components/shared/CustomerModal";
 import PaymentModal from "../../components/shared/PaymentModal";
 import { useTranslation } from "../../i18n/useTranslation";
@@ -21,7 +20,6 @@ const C = {
 const CustomerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { activeBusiness } = useBusinessStore();
   const { t } = useTranslation();
   const { money, date: fmtDate } = useFormat();
 

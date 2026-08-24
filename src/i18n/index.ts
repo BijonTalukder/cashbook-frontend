@@ -1,6 +1,6 @@
 export { LANGUAGES, LANGUAGE_META, DEFAULT_LANGUAGE, detectLanguage, isLanguage } from "./config";
 export type { Language, LanguageMeta } from "./config";
-export { translate, pickLocalized } from "./translate";
+export { translate, translateList, translateMatrix, interpolate, pickLocalized } from "./translate";
 export type { TranslationVars } from "./translate";
 export { useTranslation } from "./useTranslation";
 export type { TFunction } from "./useTranslation";

@@ -20,6 +20,9 @@ import {
   type IBusiness,
 } from "../../services/business.service";
 import api from "../../services/api";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
+import { enumLabel } from "../../i18n/labels";
 
 /* ── Types ────────────────────────────────────────── */
 type Step = "select" | "chat";
@@ -49,44 +52,39 @@ const TYPE_COLOR: Record<string, string> = {
   company: "#3b82f6",
   mass: "#8b5cf6",
 };
-const TYPE_LABEL: Record<string, string> = {
-  personal: "Personal",
-  company: "Company",
-  mass: "Mess",
-};
-
-const SUGGESTIONS: Record<string, string[]> = {
+const SUGGESTION_KEYS: Record<string, string[]> = {
   mass: [
-    "এই মাসে মোট কত খরচ হয়েছে?",
-    "কার কাছে কত টাকা বাকি?",
-    "কোন category তে সবচেয়ে বেশি খরচ?",
+    "ai.suggestions.massTotalSpend",
+    "ai.suggestions.massWhoOwes",
+    "ai.suggestions.massTopCategory",
   ],
   personal: [
-    "এই মাসের আয়-ব্যয়ের সারসংক্ষেপ দাও",
-    "সঞ্চয় পরিস্থিতি কেমন?",
-    "কোথায় খরচ কমানো যায়?",
+    "ai.suggestions.personalSummary",
+    "ai.suggestions.personalSavings",
+    "ai.suggestions.personalCutBack",
   ],
   company: [
-    "এই মাসে profit/loss কত?",
-    "সবচেয়ে বড় expense কোনটি?",
-    "গত মাসের তুলনায় কেমন?",
+    "ai.suggestions.companyProfitLoss",
+    "ai.suggestions.companyBiggestExpense",
+    "ai.suggestions.companyVsLastMonth",
   ],
 };
 
-const CAPABILITIES = [
-  "খরচ বিশ্লেষণ",
-  "বাকির হিসাব",
-  "সঞ্চয়ের পরামর্শ",
-  "লেনদেন যোগ",
+const CAPABILITY_KEYS = [
+  "ai.capabilities.expenseAnalysis",
+  "ai.capabilities.dueTracking",
+  "ai.capabilities.savingsAdvice",
+  "ai.capabilities.addTransaction",
 ];
 
 /* ── API call ─────────────────────────────────────── */
 const callAI = async (
   businessId: string,
   messages: Message[],
+  t: TFunction,
 ): Promise<string> => {
   const { data } = await api.post("/ai/chat", { businessId, messages });
-  return data.data?.reply ?? "উত্তর পাওয়া যায়নি।";
+  return data.data?.reply ?? t("ai.noReply");
 };
 
 /* ── Message Bubble ───────────────────────────────── */
@@ -122,6 +120,7 @@ const RichText = ({ text }: { text: string }): React.ReactNode => {
 };
 
 const Bubble = ({ msg, onRetry }: { msg: Message; onRetry?: () => void }) => {
+  const { t } = useTranslation();
   const isUser = msg.role === "user";
   const isError = !!msg.error;
   return (
@@ -171,7 +170,7 @@ const Bubble = ({ msg, onRetry }: { msg: Message; onRetry?: () => void }) => {
               className="flex items-center gap-1 text-[10px] font-medium"
               style={{ color: "#10b981" }}
             >
-              <RotateCcw size={10} /> আবার চেষ্টা করুন
+              <RotateCcw size={10} /> {t("ai.tryAgain")}
             </button>
           )}
         </div>
@@ -184,6 +183,7 @@ const Bubble = ({ msg, onRetry }: { msg: Message; onRetry?: () => void }) => {
    FloatingAI
 ════════════════════════════════════════════════════ */
 const FloatingAI = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("select");
   const [businesses, setBusinesses] = useState<IBusiness[]>([]);
@@ -218,7 +218,7 @@ const FloatingAI = () => {
           }),
         ),
       )
-      .catch(() => toast.error("Businesses load করতে সমস্যা হয়েছে"))
+      .catch(() => toast.error(t("ai.loadBusinessesFailed")))
       .finally(() => setLoadingBiz(false));
   }, [open]);
 
@@ -230,12 +230,12 @@ const FloatingAI = () => {
     try {
       const firstMsg: Message = {
         role: "user",
-        content: `${biz.name} business এর এই মাসের একটি সংক্ষিপ্ত financial সারসংক্ষেপ দাও।`,
+        content: t("ai.greetingPrompt", { business: biz.name }),
       };
-      const reply = await callAI(biz._id, [firstMsg]);
+      const reply = await callAI(biz._id, [firstMsg], t);
       setMessages([{ role: "assistant", content: reply, timestamp: Date.now() }]);
     } catch {
-      toast.error("AI connect করতে সমস্যা হয়েছে");
+      toast.error(t("ai.connectFailed"));
       handleReset();
     } finally {
       setGreeting(false);
@@ -255,7 +255,7 @@ const FloatingAI = () => {
     lastPayloadRef.current = newMsgs;
     setThinking(true);
     try {
-      const reply = await callAI(selected._id, newMsgs);
+      const reply = await callAI(selected._id, newMsgs, t);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: reply, timestamp: Date.now() },
@@ -266,7 +266,7 @@ const FloatingAI = () => {
         ...prev,
         {
           role: "assistant",
-          content: "দুঃখিত, উত্তর আনতে সমস্যা হয়েছে। ইন্টারনেট চেক করে আবার চেষ্টা করুন।",
+          content: t("ai.replyFailed"),
           error: true,
           timestamp: Date.now(),
         },
@@ -285,7 +285,7 @@ const FloatingAI = () => {
     });
     setThinking(true);
     try {
-      const reply = await callAI(selected._id, lastPayloadRef.current);
+      const reply = await callAI(selected._id, lastPayloadRef.current, t);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: reply, timestamp: Date.now() },
@@ -296,7 +296,7 @@ const FloatingAI = () => {
         ...prev,
         {
           role: "assistant",
-          content: "দুঃখিত, উত্তর আনতে সমস্যা হয়েছে। ইন্টারনেট চেক করে আবার চেষ্টা করুন।",
+          content: t("ai.replyFailed"),
           error: true,
           timestamp: Date.now(),
         },
@@ -318,7 +318,7 @@ const FloatingAI = () => {
     setTimeout(handleReset, 300);
   };
 
-  const suggestions = SUGGESTIONS[selected?.type ?? "personal"];
+  const suggestionKeys = SUGGESTION_KEYS[selected?.type ?? "personal"] ?? SUGGESTION_KEYS.personal;
 
   return (
     <>
@@ -374,7 +374,7 @@ const FloatingAI = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-                    HisabBoi AI
+                    {t("ai.assistant")}
                   </p>
                   {selected && (
                     <p
@@ -417,13 +417,13 @@ const FloatingAI = () => {
               <div className="flex flex-col overflow-hidden">
                 <div className="px-5 pt-4 pb-3">
                   <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-                    কোন business নিয়ে জানতে চাও?
+                    {t("ai.selectTitle")}
                   </p>
                   <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                    Select করলে AI সেই business এর হিসাব বিশ্লেষণ করবে
+                    {t("ai.selectSubtitle")}
                   </p>
                   <div className="flex flex-wrap gap-1.5 mt-2.5">
-                    {CAPABILITIES.map((c) => (
+                    {CAPABILITY_KEYS.map((c) => (
                       <span
                         key={c}
                         className="text-[10px] px-2 py-1 rounded-lg"
@@ -432,7 +432,7 @@ const FloatingAI = () => {
                           color: "#10b981",
                         }}
                       >
-                        {c}
+                        {t(c)}
                       </span>
                     ))}
                   </div>
@@ -446,7 +446,7 @@ const FloatingAI = () => {
                         style={{ color: "#10b981" }}
                       />
                       <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                        লোড হচ্ছে...
+                        {t("common.loading")}
                       </p>
                     </div>
                   ) : businesses.length === 0 ? (
@@ -454,7 +454,7 @@ const FloatingAI = () => {
                       className="text-center py-12 text-sm"
                       style={{ color: "var(--text-faint)" }}
                     >
-                      কোনো business পাওয়া যায়নি
+                      {t("ai.noBusinesses")}
                     </p>
                   ) : (
                     businesses.map((biz) => {
@@ -492,7 +492,9 @@ const FloatingAI = () => {
                               className="text-xs mt-0.5"
                               style={{ color: "var(--text-faint)" }}
                             >
-                              {TYPE_LABEL[biz.type] ?? biz.type} account
+                              {t("invoiceDetail.accountSuffix", {
+                                type: enumLabel(t, "businessType", biz.type),
+                              })}
                             </p>
                           </div>
                           <ChevronRight
@@ -535,7 +537,7 @@ const FloatingAI = () => {
                           style={{ color: "#10b981" }}
                         />
                         <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                          বিশ্লেষণ করছি...
+                          {t("ai.analysing")}
                         </span>
                       </div>
                     </div>
@@ -588,10 +590,10 @@ const FloatingAI = () => {
                 {/* Suggestions */}
                 {!greeting && messages.length === 1 && !thinking && (
                   <div className="px-4 pb-3 flex gap-2 flex-wrap">
-                    {suggestions.map((q) => (
+                    {suggestionKeys.map((key) => (
                       <button
-                        key={q}
-                        onClick={() => handleSend(q)}
+                        key={key}
+                        onClick={() => handleSend(t(key))}
                         className="px-3 py-1.5 rounded-xl text-xs transition-all"
                         style={{
                           background: "rgba(16,185,129,0.08)",
@@ -599,7 +601,7 @@ const FloatingAI = () => {
                           color: "#10b981",
                         }}
                       >
-                        {q}
+                        {t(key)}
                       </button>
                     ))}
                   </div>
@@ -621,7 +623,7 @@ const FloatingAI = () => {
                         handleSend();
                       }
                     }}
-                    placeholder="জিজ্ঞেস করুন..."
+                    placeholder={t("ai.inputPlaceholder")}
                     disabled={greeting}
                     className="flex-1 rounded-xl px-4 py-2.5 text-sm outline-none disabled:opacity-50"
                     style={{
@@ -652,7 +654,7 @@ const FloatingAI = () => {
                     style={{ color: "var(--text-faint)" }}
                   >
                     <ShieldAlert size={10} className="flex-shrink-0" />
-                    AI ভুল করতে পারে — গুরুত্বপূর্ণ হিসাব যাচাই করে নিন
+                    {t("ai.disclaimer")}
                   </p>
                 </div>
               </>

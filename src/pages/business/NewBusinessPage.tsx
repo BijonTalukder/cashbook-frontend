@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,23 +12,28 @@ import {
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
 import { useBusinessStore } from "../../store/businessStore";
+import { useTranslation } from "../../i18n/useTranslation";
+import type { TFunction } from "../../i18n/useTranslation";
+import { enumLabel } from "../../i18n/labels";
+import { CURRENCIES, toCurrency } from "../../utils/currency";
 import {
   businessService,
   type IBusinessCategory,
   type BusinessSubType,
 } from "../../services/business.service";
 
-const schema = z.object({
-  name: z.string().min(2, "Minimum 2 characters").max(60),
-  type: z.enum(["personal", "company", "mass", "business"]),
-});
-type FormData = z.infer<typeof schema>;
+const buildSchema = (t: TFunction) =>
+  z.object({
+    name: z.string().min(2, t("newBusiness.nameMin")).max(60),
+    type: z.enum(["personal", "company", "mass", "business"]),
+  });
+type FormData = z.infer<ReturnType<typeof buildSchema>>;
 
 const BUSINESS_TYPES = [
   {
     value: "personal" as const,
-    label: "Personal",
-    sub: "Track your own finances",
+    labelKey: "businessType.personal",
+    subKey: "newBusiness.types.personalSub",
     icon: User,
     accent: "#10b981",
     bg: "rgba(16,185,129,0.08)",
@@ -36,8 +41,8 @@ const BUSINESS_TYPES = [
   },
   {
     value: "business" as const,
-    label: "Business",
-    sub: "Shop, sales & inventory",
+    labelKey: "businessType.business",
+    subKey: "newBusiness.types.businessSub",
     icon: Store,
     accent: "#f59e0b",
     bg: "rgba(245,158,11,0.08)",
@@ -45,8 +50,8 @@ const BUSINESS_TYPES = [
   },
   {
     value: "company" as const,
-    label: "Company",
-    sub: "Manage team expenses",
+    labelKey: "businessType.company",
+    subKey: "newBusiness.types.companySub",
     icon: Building2,
     accent: "#3b82f6",
     bg: "rgba(59,130,246,0.08)",
@@ -54,8 +59,8 @@ const BUSINESS_TYPES = [
   },
   {
     value: "mass" as const,
-    label: "Mess",
-    sub: "Shared mess accounting",
+    labelKey: "businessType.mass",
+    subKey: "newBusiness.types.massSub",
     icon: Home,
     accent: "#8b5cf6",
     bg: "rgba(139,92,246,0.08)",
@@ -63,25 +68,25 @@ const BUSINESS_TYPES = [
   },
 ];
 
-const BUSINESS_SUB_TYPES: { value: BusinessSubType; label: string; icon: any }[] = [
-  { value: "retail_shop", label: "Retail Shop", icon: ShoppingBag },
-  { value: "restaurant", label: "Restaurant", icon: UtensilsCrossed },
-  { value: "online_shop", label: "Online Shop", icon: Globe },
-  { value: "service_business", label: "Service Business", icon: Briefcase },
-  { value: "freelancer", label: "Freelancer", icon: Laptop },
-  { value: "wholesale", label: "Wholesale", icon: Package },
-  { value: "other", label: "Other", icon: MoreHorizontal },
+const BUSINESS_SUB_TYPES: { value: BusinessSubType; icon: any }[] = [
+  { value: "retail_shop", icon: ShoppingBag },
+  { value: "restaurant", icon: UtensilsCrossed },
+  { value: "online_shop", icon: Globe },
+  { value: "service_business", icon: Briefcase },
+  { value: "freelancer", icon: Laptop },
+  { value: "wholesale", icon: Package },
+  { value: "other", icon: MoreHorizontal },
 ];
 
-const CURRENCIES = ["BDT", "USD", "EUR", "GBP", "INR"];
-
-const STEP_LABELS_DEFAULT = ["Business", "Category", "Done"];
-const STEP_LABELS_BUSINESS = ["Business", "Details", "Done"];
+const STEP_KEYS_DEFAULT = ["newBusiness.steps.business", "newBusiness.steps.category", "newBusiness.steps.done"];
+const STEP_KEYS_BUSINESS = ["newBusiness.steps.business", "newBusiness.steps.details", "newBusiness.steps.done"];
 
 const NewBusinessPage = () => {
   const navigate = useNavigate();
   const { user, token, setAuth } = useAuthStore();
   const { setActiveBusiness } = useBusinessStore();
+  const { t } = useTranslation();
+  const schema = useMemo(() => buildSchema(t), [t]);
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
@@ -97,7 +102,7 @@ const NewBusinessPage = () => {
   const [bizSubType, setBizSubType] = useState<BusinessSubType | null>(null);
   const [bizPhone, setBizPhone] = useState("");
   const [bizAddress, setBizAddress] = useState("");
-  const [bizCurrency, setBizCurrency] = useState("BDT");
+  const [bizCurrency, setBizCurrency] = useState(toCurrency("BDT"));
   const [bizOpeningBalance, setBizOpeningBalance] = useState("");
 
   const {
@@ -125,7 +130,7 @@ const NewBusinessPage = () => {
         cats.filter((c: IBusinessCategory & { isGlobal?: boolean }) => c.isGlobal),
       );
     } catch {
-      toast.error("Failed to load categories");
+      toast.error(t("newBusiness.loadCategoriesFailed"));
     } finally {
       setLoadingCats(false);
     }
@@ -144,9 +149,9 @@ const NewBusinessPage = () => {
       setCustomCat(cat);
       setSelectedCatId(cat._id);
       setNewCatName("");
-      toast.success(`"${name}" created & selected`);
+      toast.success(t("newBusiness.catCreated", { name }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to create category");
+      toast.error(err?.response?.data?.message ?? t("newBusiness.createCategoryFailed"));
     } finally {
       setAddingCat(false);
     }
@@ -154,9 +159,9 @@ const NewBusinessPage = () => {
 
   const handleFinish = async () => {
     const formData = watch();
-    if (!formData.name) { toast.error("Business name missing"); setStep(1); return; }
+    if (!formData.name) { toast.error(t("newBusiness.nameMissing")); setStep(1); return; }
     if (formData.type === "business" && !bizSubType) {
-      toast.error("Please choose a business type");
+      toast.error(t("newBusiness.chooseType"));
       return;
     }
 
@@ -185,7 +190,7 @@ const NewBusinessPage = () => {
       setStep(3);
       setTimeout(() => navigate("/dashboard"), 1600);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to create business");
+      toast.error(err?.response?.data?.message ?? t("newBusiness.createFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -195,7 +200,7 @@ const NewBusinessPage = () => {
     ? [...globalCats.filter((c) => c._id !== customCat._id), customCat]
     : globalCats;
 
-  const STEP_LABELS = selectedType === "business" ? STEP_LABELS_BUSINESS : STEP_LABELS_DEFAULT;
+  const STEP_KEYS = selectedType === "business" ? STEP_KEYS_BUSINESS : STEP_KEYS_DEFAULT;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: "var(--bg)" }}>
@@ -218,7 +223,7 @@ const NewBusinessPage = () => {
               className="font-bold text-xl"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
-              HisabBoi
+              {t("app.name")}
             </span>
           </div>
           {step !== 3 && (
@@ -238,12 +243,12 @@ const NewBusinessPage = () => {
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-8">
-          {STEP_LABELS.map((label, i) => {
+          {STEP_KEYS.map((labelKey, i) => {
             const idx = i + 1;
             const done = step > idx;
             const active = step === idx;
             return (
-              <div key={label} className="flex items-center gap-2">
+              <div key={labelKey} className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all
@@ -261,10 +266,10 @@ const NewBusinessPage = () => {
                     className={`text-sm transition-colors ${done && !active ? "text-emerald-400" : ""}`}
                     style={active ? { color: "var(--text-primary)" } : !done ? { color: "var(--text-faint)" } : undefined}
                   >
-                    {label}
+                    {t(labelKey)}
                   </span>
                 </div>
-                {i < STEP_LABELS.length - 1 && (
+                {i < STEP_KEYS.length - 1 && (
                   <div
                     className={`w-8 h-px mx-1 ${done ? "bg-emerald-500/50" : ""}`}
                     style={!done ? { background: "var(--surface-7)" } : undefined}
@@ -286,21 +291,21 @@ const NewBusinessPage = () => {
                 className="text-2xl font-bold mb-1"
                 style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                New Business
+                {t("newBusiness.title")}
               </h2>
               <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
-                Add another business to your account.
+                {t("newBusiness.subtitle")}
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Business name</label>
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.nameLabel")}</label>
                 <input
                   {...register("name")}
                   placeholder={
-                    selectedType === "personal" ? "Rahim's Personal"
-                      : selectedType === "mass" ? "Our Mess"
-                        : selectedType === "business" ? "Bijon Electronics"
-                          : "Acme Ltd."
+                    selectedType === "personal" ? t("newBusiness.namePlaceholderPersonal")
+                      : selectedType === "mass" ? t("newBusiness.namePlaceholderMass")
+                        : selectedType === "business" ? t("newBusiness.namePlaceholderBusiness")
+                          : t("newBusiness.namePlaceholderCompany")
                   }
                   className={`w-full bg-[var(--surface-3)] border rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-faint)]
                     focus:outline-none focus:ring-2 transition-all text-sm
@@ -315,9 +320,9 @@ const NewBusinessPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>Business type</label>
+                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.typeLabel")}</label>
                 <div className="grid grid-cols-2 gap-3">
-                  {BUSINESS_TYPES.map(({ value, label, sub, icon: Icon, accent, bg, border }) => {
+                  {BUSINESS_TYPES.map(({ value, labelKey, subKey, icon: Icon, accent, bg, border }) => {
                     const isSelected = selectedType === value;
                     return (
                       <button
@@ -345,8 +350,8 @@ const NewBusinessPage = () => {
                         >
                           <Icon size={15} />
                         </div>
-                        <div className="text-sm font-medium mb-0.5" style={{ color: "var(--text-primary)" }}>{label}</div>
-                        <div className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{sub}</div>
+                        <div className="text-sm font-medium mb-0.5" style={{ color: "var(--text-primary)" }}>{t(labelKey)}</div>
+                        <div className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{t(subKey)}</div>
                       </button>
                     );
                   })}
@@ -359,7 +364,7 @@ const NewBusinessPage = () => {
               className="w-full mt-5 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-semibold
                 rounded-xl py-3 flex items-center justify-center gap-2 transition-all text-sm group"
             >
-              Continue
+              {t("common.continue")}
               <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
           </form>
@@ -376,16 +381,16 @@ const NewBusinessPage = () => {
                 className="text-2xl font-bold mb-1"
                 style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                Business details
+                {t("newBusiness.detailsTitle")}
               </h2>
               <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
-                Tell us a bit more about your business.
+                {t("newBusiness.detailsSubtitle")}
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>What kind of business?</label>
+                <label className="block text-sm mb-3" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.whatKind")}</label>
                 <div className="grid grid-cols-2 gap-2.5">
-                  {BUSINESS_SUB_TYPES.map(({ value, label, icon: Icon }) => {
+                  {BUSINESS_SUB_TYPES.map(({ value, icon: Icon }) => {
                     const isSelected = bizSubType === value;
                     return (
                       <button
@@ -400,7 +405,7 @@ const NewBusinessPage = () => {
                         }}
                       >
                         <Icon size={15} />
-                        {label}
+                        {enumLabel(t, "businessSubType", value)}
                       </button>
                     );
                   })}
@@ -409,53 +414,55 @@ const NewBusinessPage = () => {
 
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Phone (optional)</label>
+                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.phoneOptional")}</label>
                   <input
                     value={bizPhone}
                     onChange={(e) => setBizPhone(e.target.value)}
-                    placeholder="01XXXXXXXXX"
+                    placeholder={t("customer.phonePlaceholder")}
                     className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                       placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Currency</label>
+                  <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("settings.currency")}</label>
                   <select
                     value={bizCurrency}
-                    onChange={(e) => setBizCurrency(e.target.value)}
+                    onChange={(e) => setBizCurrency(toCurrency(e.target.value))}
                     className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                       focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                   >
                     {CURRENCIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c}>
+                        {t("businessSettings.currencyOption", { code: c, name: t(`currency.${c}`) })}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Address (optional)</label>
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.addressOptional")}</label>
                 <input
                   value={bizAddress}
                   onChange={(e) => setBizAddress(e.target.value)}
-                  placeholder="Shop address"
+                  placeholder={t("newBusiness.addressPlaceholder")}
                   className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                     placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Opening balance (optional)</label>
+                <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.openingBalanceOptional")}</label>
                 <input
                   type="number"
                   min="0"
                   value={bizOpeningBalance}
                   onChange={(e) => setBizOpeningBalance(e.target.value)}
-                  placeholder="0"
+                  placeholder={t("common.zero")}
                   className="w-full bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                     placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all text-sm"
                 />
-                <p className="mt-1.5 text-xs" style={{ color: "var(--text-faint)" }}>Cash you're starting this business with, if any.</p>
+                <p className="mt-1.5 text-xs" style={{ color: "var(--text-faint)" }}>{t("newBusiness.openingBalanceHint")}</p>
               </div>
             </div>
 
@@ -466,7 +473,7 @@ const NewBusinessPage = () => {
                 className="flex items-center gap-2 px-5 py-3 rounded-xl border border-[var(--border-strong)]
                   text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all text-sm"
               >
-                <ArrowLeft size={15} /> Back
+                <ArrowLeft size={15} /> {t("common.back")}
               </button>
               <button
                 type="button"
@@ -479,7 +486,7 @@ const NewBusinessPage = () => {
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <>
-                    Create Business
+                    {t("newBusiness.createBusiness")}
                     <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
                   </>
                 )}
@@ -498,10 +505,10 @@ const NewBusinessPage = () => {
                 className="text-2xl font-bold mb-1"
                 style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                Choose a category
+                {t("newBusiness.categoryTitle")}
               </h2>
               <p className="text-sm mb-7" style={{ color: "var(--text-muted)" }}>
-                Pick one that fits, or create your own. You can skip.
+                {t("newBusiness.categorySubtitle")}
               </p>
 
               {loadingCats ? (
@@ -512,7 +519,7 @@ const NewBusinessPage = () => {
                 <>
                   {allCats.length > 0 && (
                     <div className="mb-6">
-                      <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Available</p>
+                      <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{t("newBusiness.available")}</p>
                       <div className="flex flex-wrap gap-2">
                         {allCats.map((cat) => {
                           const isSelected = selectedCatId === cat._id;
@@ -532,7 +539,7 @@ const NewBusinessPage = () => {
                               {isSelected ? <Check size={13} /> : <Tag size={13} />}
                               {cat.name}
                               {isCustom && (
-                                <span className="text-[10px] ml-0.5" style={{ color: "var(--text-faint)" }}>(custom)</span>
+                                <span className="text-[10px] ml-0.5" style={{ color: "var(--text-faint)" }}>{t("newBusiness.custom")}</span>
                               )}
                             </button>
                           );
@@ -544,7 +551,7 @@ const NewBusinessPage = () => {
                   {!customCat ? (
                     <div>
                       <p className="text-xs mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                        Or create your own
+                        {t("newBusiness.orCreateOwn")}
                       </p>
                       <div className="flex gap-2">
                         <input
@@ -553,7 +560,7 @@ const NewBusinessPage = () => {
                           onKeyDown={(e) => {
                             if (e.key === "Enter") { e.preventDefault(); handleAddCustomCat(); }
                           }}
-                          placeholder="e.g. Retail, NGO, Freelance..."
+                          placeholder={t("newBusiness.newCatPlaceholder")}
                           className="flex-1 bg-[var(--surface-3)] border border-[var(--border-strong)] rounded-xl px-4 py-2.5 text-[var(--text-primary)]
                             placeholder-[var(--text-faint)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20
                             focus:border-emerald-500/40 transition-all text-sm"
@@ -574,9 +581,9 @@ const NewBusinessPage = () => {
                     <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
                       <Check size={13} className="text-emerald-400" />
                       <span>
-                        Custom category{" "}
+                        {t("newBusiness.customCreatedPrefix")}{" "}
                         <span className="text-emerald-400">"{customCat.name}"</span>{" "}
-                        created
+                        {t("newBusiness.customCreatedSuffix")}
                       </span>
                     </div>
                   )}
@@ -584,7 +591,7 @@ const NewBusinessPage = () => {
                   {selectedCatId && (
                     <div className="mt-5 flex items-center gap-2 text-sm text-emerald-400">
                       <Check size={14} />
-                      <span>1 category selected</span>
+                      <span>{t("newBusiness.oneSelected")}</span>
                     </div>
                   )}
                 </>
@@ -598,7 +605,7 @@ const NewBusinessPage = () => {
                 className="flex items-center gap-2 px-5 py-3 rounded-xl border border-[var(--border-strong)]
                   text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all text-sm"
               >
-                <ArrowLeft size={15} /> Back
+                <ArrowLeft size={15} /> {t("common.back")}
               </button>
               <button
                 type="button"
@@ -611,7 +618,7 @@ const NewBusinessPage = () => {
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <>
-                    {!selectedCatId ? "Skip & Create" : "Create Business"}
+                    {!selectedCatId ? t("newBusiness.skipAndCreate") : t("newBusiness.createBusiness")}
                     <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
                   </>
                 )}
@@ -633,12 +640,13 @@ const NewBusinessPage = () => {
               className="text-2xl font-bold mb-2"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
-              Business Created!
+              {t("newBusiness.createdTitle")}
             </h2>
             <p className="text-sm mb-1" style={{ color: "var(--text-secondary)" }}>
-              <span className="font-medium" style={{ color: "var(--text-primary)" }}>{createdBiz?.name}</span> is ready.
+              <span className="font-medium" style={{ color: "var(--text-primary)" }}>{createdBiz?.name}</span>{" "}
+              {t("newBusiness.createdReady")}
             </p>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Going to dashboard...</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>{t("newBusiness.goingToDashboard")}</p>
             <div className="mt-6 flex justify-center">
               <div className="w-32 h-1 rounded-full overflow-hidden" style={{ background: "var(--surface-7)" }}>
                 <div className="h-full bg-emerald-500 rounded-full animate-[progress_1.6s_linear_forwards]" />
