@@ -14,15 +14,29 @@ import {
   Copy,
   RefreshCw,
   AlertCircle,
+  MessageCircle,
+  Share2,
+  Clock,
+  Link2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useBusinessStore } from "../../store/businessStore";
 import { useAuthStore } from "../../store/authStore";
 import { businessMembersService } from "../../services/businessMembers.service";
+import {
+  invitationService,
+  type IInvitationDetail,
+} from "../../services/invitation.service";
 import type { IMember } from "../../services/transaction.service";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { plural } from "../../i18n/labels";
+import {
+  canShareNative,
+  copyToClipboard,
+  shareNative,
+  shareViaWhatsApp,
+} from "../../utils/share";
 // import {
 //   businessMembersService,
 //   type IMember,
@@ -86,17 +100,166 @@ const Avatar = ({
   </div>
 );
 
+/* ─── Invite link sharing ─────────────────────────────── */
+/**
+ * Invite emails don't always arrive (SMTP outages, spam filters), so every
+ * invite link is also copyable / shareable straight from the app.
+ */
+const useShareInvite = (link: string, businessName: string) => {
+  const { t } = useTranslation();
+
+  const message = t("members.shareMessage", {
+    business: businessName,
+    link,
+  });
+
+  const copy = async () => {
+    if (!link) return;
+    const ok = await copyToClipboard(link);
+    if (ok) toast.success(t("members.linkCopied"));
+    else toast.error(t("members.copyFailed"));
+  };
+
+  const whatsapp = () => {
+    if (!link) return;
+    shareViaWhatsApp(message);
+  };
+
+  const share = async () => {
+    if (!link) return;
+    const shared = await shareNative({
+      title: t("members.shareSubject", { business: businessName }),
+      text: message,
+    });
+    if (!shared && !canShareNative()) await copy();
+  };
+
+  return { copy, whatsapp, share, message };
+};
+
+const ShareInviteLink = ({
+  link,
+  businessName,
+  compact = false,
+}: {
+  link: string;
+  businessName: string;
+  compact?: boolean;
+}) => {
+  const { t } = useTranslation();
+  const { copy, whatsapp, share } = useShareInvite(link, businessName);
+
+  const actionStyle = {
+    background: C.input,
+    border: `1px solid ${C.inputBorder}`,
+    color: "var(--text-secondary)",
+  };
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={copy}
+          title={t("members.copyLink")}
+          className="w-7 h-7 flex items-center justify-center rounded-lg transition-all active:scale-95"
+          style={actionStyle}
+        >
+          <Copy size={12} />
+        </button>
+        <button
+          onClick={whatsapp}
+          title={t("members.shareWhatsApp")}
+          className="w-7 h-7 flex items-center justify-center rounded-lg transition-all active:scale-95"
+          style={{
+            background: "rgba(37,211,102,0.1)",
+            border: "1px solid rgba(37,211,102,0.25)",
+            color: "#25d366",
+          }}
+        >
+          <MessageCircle size={12} />
+        </button>
+        {canShareNative() && (
+          <button
+            onClick={share}
+            title={t("members.share")}
+            className="w-7 h-7 flex items-center justify-center rounded-lg transition-all active:scale-95"
+            style={actionStyle}
+          >
+            <Share2 size={12} />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div
+        className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-2"
+        style={{ background: C.input, border: `1px solid ${C.inputBorder}` }}
+      >
+        <Link2
+          size={13}
+          className="flex-shrink-0"
+          style={{ color: "var(--text-faint)" }}
+        />
+        <p
+          className="flex-1 text-xs truncate text-left"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {link}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={copy}
+          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all active:scale-[0.98]"
+          style={actionStyle}
+        >
+          <Copy size={13} />
+          {t("members.copyLink")}
+        </button>
+        <button
+          onClick={whatsapp}
+          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all active:scale-[0.98]"
+          style={{
+            background: "rgba(37,211,102,0.12)",
+            border: "1px solid rgba(37,211,102,0.3)",
+            color: "#25d366",
+          }}
+        >
+          <MessageCircle size={13} />
+          {t("members.shareWhatsApp")}
+        </button>
+        {canShareNative() && (
+          <button
+            onClick={share}
+            className="col-span-2 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all active:scale-[0.98]"
+            style={actionStyle}
+          >
+            <Share2 size={13} />
+            {t("members.shareOther")}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ─── Invite Modal ────────────────────────────────────── */
 const InviteModal = ({
   open,
   onClose,
   onSuccess,
   businessId,
+  businessName,
 }: {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
   businessId: string;
+  businessName: string;
 }) => {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
@@ -104,6 +267,7 @@ const InviteModal = ({
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const [emailSent, setEmailSent] = useState(true);
 
   const handleInvite = async () => {
     if (!email.trim()) {
@@ -123,9 +287,12 @@ const InviteModal = ({
         email.trim(),
         role,
       );
+      const delivered = result.emailSent !== false;
       setInviteLink(result.inviteLink ?? "");
+      setEmailSent(delivered);
       setSent(true);
-      toast.success(t("members.invitationSent"));
+      if (delivered) toast.success(t("members.invitationSent"));
+      else toast.warning(t("members.emailFailedToast"));
       onSuccess();
     } catch (err: unknown) {
       const message =
@@ -142,6 +309,7 @@ const InviteModal = ({
     setRole("member");
     setSent(false);
     setInviteLink("");
+    setEmailSent(true);
     onClose();
   };
 
@@ -318,11 +486,21 @@ const InviteModal = ({
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
                 style={{
-                  background: "rgba(16,185,129,0.1)",
-                  border: "1px solid rgba(16,185,129,0.2)",
+                  background: emailSent
+                    ? "rgba(16,185,129,0.1)"
+                    : "rgba(245,158,11,0.1)",
+                  border: `1px solid ${
+                    emailSent
+                      ? "rgba(16,185,129,0.2)"
+                      : "rgba(245,158,11,0.25)"
+                  }`,
                 }}
               >
-                <Check size={24} style={{ color: "#10b981" }} />
+                {emailSent ? (
+                  <Check size={24} style={{ color: "#10b981" }} />
+                ) : (
+                  <AlertCircle size={24} style={{ color: "#f59e0b" }} />
+                )}
               </div>
               <p
                 className="text-lg font-bold mb-1"
@@ -331,42 +509,37 @@ const InviteModal = ({
                   color: "var(--text-primary)",
                 }}
               >
-                {t("members.invitationSentTitle")}
+                {emailSent
+                  ? t("members.invitationSentTitle")
+                  : t("members.emailFailedTitle")}
               </p>
               <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
-                <span style={{ color: "var(--text-secondary)" }}>{email}</span>{" "}
-                {t("members.willReceiveEmail")}
+                {emailSent ? (
+                  <>
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {email}
+                    </span>{" "}
+                    {t("members.willReceiveEmail")}
+                  </>
+                ) : (
+                  t("members.emailFailedHint")
+                )}
               </p>
 
               {inviteLink && (
                 <div className="mb-5">
-                  <p className="text-xs mb-2" style={{ color: "var(--text-faint)" }}>
-                    {t("members.orShareLink")}
-                  </p>
-                  <div
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-                    style={{
-                      background: C.input,
-                      border: `1px solid ${C.inputBorder}`,
-                    }}
+                  <p
+                    className="text-xs mb-2 text-left"
+                    style={{ color: "var(--text-faint)" }}
                   >
-                    <p
-                      className="flex-1 text-xs truncate text-left"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      {inviteLink}
-                    </p>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(inviteLink);
-                        toast.success(t("members.linkCopied"));
-                      }}
-                      className="flex-shrink-0"
-                      style={{ color: "#10b981" }}
-                    >
-                      <Copy size={13} />
-                    </button>
-                  </div>
+                    {emailSent
+                      ? t("members.orShareLink")
+                      : t("members.shareLinkInstead")}
+                  </p>
+                  <ShareInviteLink
+                    link={inviteLink}
+                    businessName={businessName}
+                  />
                 </div>
               )}
 
@@ -375,6 +548,8 @@ const InviteModal = ({
                   onClick={() => {
                     setSent(false);
                     setEmail("");
+                    setInviteLink("");
+                    setEmailSent(true);
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm transition-all"
                   style={{
@@ -628,6 +803,88 @@ const MemberRow = ({
   );
 };
 
+/* ─── Pending invitation row ──────────────────────────── */
+const PendingInviteRow = ({
+  invite,
+  businessName,
+  canManage,
+  onCancel,
+}: {
+  invite: IInvitationDetail;
+  businessName: string;
+  canManage: boolean;
+  onCancel: (invite: IInvitationDetail) => void;
+}) => {
+  const { t } = useTranslation();
+  const { date: fmtDate } = useFormat();
+  const rc = ROLES[invite.role as Role] ?? ROLES.member;
+  const RcIcon = rc.icon;
+
+  return (
+    <div
+      className="flex items-center gap-3 px-5 py-3"
+      style={{ borderTop: `1px solid ${C.border}` }}
+    >
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: "var(--surface-3)" }}
+      >
+        <Mail size={14} style={{ color: "var(--text-faint)" }} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p
+          className="text-sm truncate"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {invite.email}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span
+            className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded"
+            style={{ background: rc.bg, color: rc.color }}
+          >
+            <RcIcon size={9} />
+            {t(rc.labelKey)}
+          </span>
+          <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
+            {t("members.expiresOn", { date: fmtDate(invite.expiresAt) })}
+          </span>
+        </div>
+      </div>
+
+      {invite.inviteLink && (
+        <ShareInviteLink
+          link={invite.inviteLink}
+          businessName={businessName}
+          compact
+        />
+      )}
+
+      {canManage && (
+        <button
+          onClick={() => onCancel(invite)}
+          title={t("members.cancelInvite")}
+          className="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 transition-all"
+          style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.color = "#ef4444";
+            (e.currentTarget as HTMLElement).style.background =
+              "rgba(239,68,68,0.08)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.color = "var(--text-muted)";
+            (e.currentTarget as HTMLElement).style.background =
+              "var(--surface-3)";
+          }}
+        >
+          <X size={13} />
+        </button>
+      )}
+    </div>
+  );
+};
+
 /* ─── Members Page ────────────────────────────────────── */
 const MembersPage = () => {
   const { activeBusiness } = useBusinessStore();
@@ -641,6 +898,7 @@ const MembersPage = () => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [removing, setRemoving] = useState<IMember | null>(null);
   const [removeLoading, setRemoveLoading] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<IInvitationDetail[]>([]);
 
   // check if current user is owner or admin
   const myMember = members.find((m) => m._id === currentUserId);
@@ -661,9 +919,41 @@ const MembersPage = () => {
     }
   }, [activeBusiness, t]);
 
+  /** Pending invites carry the shareable link, so a failed email is recoverable. */
+  const fetchPendingInvites = useCallback(async () => {
+    if (!activeBusiness || !canInvite) {
+      setPendingInvites([]);
+      return;
+    }
+    try {
+      const data = await invitationService.getSent(activeBusiness._id);
+      setPendingInvites(data.filter((i) => i.status === "pending"));
+    } catch {
+      // non-fatal — the members list is still usable without it
+      setPendingInvites([]);
+    }
+  }, [activeBusiness, canInvite]);
+
   useEffect(() => {
     fetchMembers();
   }, [fetchMembers]);
+
+  useEffect(() => {
+    fetchPendingInvites();
+  }, [fetchPendingInvites]);
+
+  const handleCancelInvite = async (invite: IInvitationDetail) => {
+    try {
+      await invitationService.cancel(invite._id);
+      toast.success(t("members.inviteCancelled"));
+      fetchPendingInvites();
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? t("members.cancelFailed");
+      toast.error(message);
+    }
+  };
 
   const handleRemove = async () => {
     if (!removing || !activeBusiness) return;
@@ -712,7 +1002,10 @@ const MembersPage = () => {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={fetchMembers}
+              onClick={() => {
+                fetchMembers();
+                fetchPendingInvites();
+              }}
               className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
               style={{
                 background: C.card,
@@ -857,6 +1150,48 @@ const MembersPage = () => {
           )}
         </div>
 
+        {/* ── Pending invitations ─────────────────── */}
+        {canInvite && pendingInvites.length > 0 && activeBusiness && (
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ background: C.card, border: `1px solid ${C.border}` }}
+          >
+            <div className="flex items-center justify-between px-5 py-3">
+              <div className="flex items-center gap-2">
+                <Clock size={14} style={{ color: "var(--text-faint)" }} />
+                <span
+                  className="text-xs font-medium"
+                  style={{ color: "var(--text-faint)" }}
+                >
+                  {t("members.pendingInvites")}
+                </span>
+              </div>
+              <span className="text-xs" style={{ color: "var(--text-faint)" }}>
+                {t("members.pendingCount", {
+                  count: num(pendingInvites.length),
+                })}
+              </span>
+            </div>
+
+            <p
+              className="px-5 pb-3 text-[11px]"
+              style={{ color: "var(--text-faint)" }}
+            >
+              {t("members.pendingHint")}
+            </p>
+
+            {pendingInvites.map((invite) => (
+              <PendingInviteRow
+                key={invite._id}
+                invite={invite}
+                businessName={activeBusiness.name}
+                canManage={canInvite}
+                onCancel={handleCancelInvite}
+              />
+            ))}
+          </div>
+        )}
+
         {/* ── Role legend ─────────────────────────── */}
         {!loading && members.length > 0 && (
           <div
@@ -911,8 +1246,12 @@ const MembersPage = () => {
       <InviteModal
         open={inviteOpen}
         onClose={() => setInviteOpen(false)}
-        onSuccess={fetchMembers}
+        onSuccess={() => {
+          fetchMembers();
+          fetchPendingInvites();
+        }}
         businessId={activeBusiness?._id ?? ""}
+        businessName={activeBusiness?.name ?? ""}
       />
 
       {/* ── Remove confirm ───────────────────────── */}

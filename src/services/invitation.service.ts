@@ -14,6 +14,8 @@ export interface IInvitationDetail {
   status: "pending" | "accepted" | "declined" | "expired";
   expiresAt: string;
   createdAt: string;
+  /** present only for invites that are still pending & unexpired */
+  inviteLink?: string;
 }
 
 export const invitationService = {
