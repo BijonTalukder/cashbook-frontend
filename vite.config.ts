@@ -65,6 +65,13 @@ export default defineConfig({
 
         runtimeCaching: [
           {
+            // The connectivity probe must never be answered from cache — a
+            // cached 200 would tell the offline layer the API is up when it is
+            // not. Listed first so it wins over the /api/ rule below.
+            urlPattern: /\/api\/health$/i,
+            handler: "NetworkOnly",
+          },
+          {
             // API: try network first, fall back to cache
             urlPattern: /\/api\/.*/i,
             handler: "NetworkFirst",

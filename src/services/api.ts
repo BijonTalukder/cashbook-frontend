@@ -1,9 +1,9 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
+import { reportRequestOutcome } from "../offline/network";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ??
-    "https://backend-1-theta-sepia.vercel.app/api/",
+  baseURL: API_BASE_URL,
 
   // "https://backend-1-theta-sepia.vercel.app/api/", http://localhost:5000/api/
   withCredentials: true,
@@ -21,8 +21,18 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // A successful GET may have come from the service worker's cache, so it is
+    // not on its own proof that the API is up — see reportRequestOutcome.
+    reportRequestOutcome(true, res.config.method?.toLowerCase() !== "get");
+    return res;
+  },
   (error) => {
+    // A response of any status proves the API answered; only a transport
+    // failure means it is unreachable. This is the third connectivity signal
+    // the offline layer folds in, alongside the browser link and the probe.
+    reportRequestOutcome(!!error.response);
+
     if (error.response?.status === 401) {
       localStorage.removeItem("auth-storage");
       window.location.href = "/login";

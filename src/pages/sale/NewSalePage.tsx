@@ -8,7 +8,9 @@ import { useFormat } from "../../i18n/useFormat";
 import { paymentMethodLabel } from "../../i18n/labels";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { productService, type IProduct } from "../../services/product.service";
-import { saleService } from "../../services/sale.service";
+import { saleService, isLocalInvoice } from "../../services/sale.service";
+import { cartRepo } from "../../offline/repositories/cart.repo";
+import { useDataVersion } from "../../store/offlineStore";
 
 const C = {
   card: "var(--surface-1)",
@@ -48,12 +50,59 @@ const NewSalePage = () => {
   const [paymentMethod, setPaymentMethod] = useState(paymentMethods[0] ?? "cash");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cartLoaded, setCartLoaded] = useState(false);
+  const dataVersion = useDataVersion();
 
   useEffect(() => {
     if (!activeBusiness) return;
     customerService.getAll(activeBusiness._id).then(setCustomers).catch(() => toast.error(t("sale.loadCustomersFailed")));
     productService.getAll(activeBusiness._id).then(setProducts).catch(() => toast.error(t("sale.loadProductsFailed")));
-  }, [activeBusiness?._id, t]);
+  }, [activeBusiness?._id, t, dataVersion]);
+
+  /* ── Cart persistence ─────────────────────────────────
+     The basket being keyed in is the one thing here that exists nowhere else
+     yet. It is written to IndexedDB on every change so a reload, a crash or a
+     dead battery mid-transaction does not cost the shopkeeper the sale.
+  ─────────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (!activeBusiness) return;
+    let cancelled = false;
+    cartRepo
+      .get(activeBusiness._id)
+      .then((draft) => {
+        if (cancelled || !draft) return;
+        const hasContent = draft.rows.some((r) => r.productId);
+        if (!hasContent) return;
+        setCustomerId(draft.customerId);
+        setRows(draft.rows);
+        setDiscount(draft.discount);
+        setTax(draft.tax);
+        setPaidAmount(draft.paidAmount);
+        setPaidTouched(draft.paidTouched);
+        setPaymentMethod(draft.paymentMethod);
+        setNote(draft.note);
+        toast.info(t("offline.cartRestored"));
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setCartLoaded(true);
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeBusiness?._id]);
+
+  useEffect(() => {
+    if (!activeBusiness || !cartLoaded) return;
+    const draft = {
+      businessId: activeBusiness._id,
+      customerId, rows, discount, tax, paidAmount, paidTouched, paymentMethod, note,
+    };
+    const hasContent = rows.some((r) => r.productId);
+    const timer = setTimeout(() => {
+      void (hasContent ? cartRepo.save(draft) : cartRepo.clear(activeBusiness._id));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [activeBusiness, cartLoaded, customerId, rows, discount, tax, paidAmount, paidTouched, paymentMethod, note]);
 
   const productMap = new Map(products.map((p) => [p._id, p]));
 
@@ -110,7 +159,14 @@ const NewSalePage = () => {
         paymentMethod,
         note: note || undefined,
       });
-      toast.success(t("sale.recorded", { invoice: sale.invoiceNumber }));
+      await cartRepo.clear(activeBusiness._id);
+      // A local invoice number means the sale is recorded on this device and
+      // still queued — say so, rather than implying the backend has it.
+      if (isLocalInvoice(sale.invoiceNumber)) {
+        toast.success(t("offline.saleSavedOffline", { invoice: sale.invoiceNumber }));
+      } else {
+        toast.success(t("sale.recorded", { invoice: sale.invoiceNumber }));
+      }
       navigate("/sales");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })

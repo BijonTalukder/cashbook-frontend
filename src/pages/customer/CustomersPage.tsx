@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { useBusinessStore } from "../../store/businessStore";
 import CustomerModal from "../../components/shared/CustomerModal";
+import SyncBadge from "../../components/shared/SyncBadge";
+import { useDataVersion } from "../../store/offlineStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 
@@ -19,6 +21,7 @@ const CustomersPage = () => {
   const { activeBusiness } = useBusinessStore();
   const { t } = useTranslation();
   const { money } = useFormat();
+  const dataVersion = useDataVersion();
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +54,7 @@ const CustomersPage = () => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeBusiness?._id, search]);
+  }, [activeBusiness?._id, search, dataVersion]);
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -114,7 +117,10 @@ const CustomersPage = () => {
                   {c.name[0]?.toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{c.name}</p>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{c.name}</p>
+                    <SyncBadge status={c.syncStatus} />
+                  </div>
                   {c.phone && (
                     <p className="text-[11px] flex items-center gap-1" style={{ color: "var(--text-faint)" }}>
                       <Phone size={9} /> {c.phone}

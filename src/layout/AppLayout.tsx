@@ -12,6 +12,7 @@ import BusinessSwitcher from "../components/shared/BusinessSwitcher";
 import FloatingAI from "../pages/Ai/FloatingAI";
 import ThemeToggle from "../components/shared/ThemeToggle";
 import LanguageToggle from "../components/shared/LanguageToggle";
+import SyncStatusIndicator from "../components/shared/SyncStatusIndicator";
 import { useTranslation } from "../i18n/useTranslation";
 
 const C = {
@@ -234,8 +235,9 @@ const AppLayout = () => {
           })}
         </nav>
 
-        {/* Appearance & language */}
+        {/* Connection, appearance & language */}
         <div className="px-3 mt-3 space-y-2">
+          <SyncStatusIndicator variant="row" />
           <ThemeToggle variant="row" />
           <LanguageToggle variant="row" />
         </div>
@@ -320,6 +322,7 @@ const AppLayout = () => {
 
           {/* Right: theme toggle + avatar with dropdown */}
           <div className="flex items-center gap-1.5 flex-shrink-0 relative">
+            <SyncStatusIndicator />
             <LanguageToggle />
             <ThemeToggle />
             <button

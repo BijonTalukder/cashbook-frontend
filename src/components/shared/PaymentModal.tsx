@@ -94,6 +94,13 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
       onSuccess();
       onClose();
     } catch (err: unknown) {
+      // Supplier payments are the one money flow that still needs the network —
+      // supplier balances are not mirrored locally, so there is nothing safe to
+      // queue against.
+      if ((err as Error)?.message === "OFFLINE_UNSUPPORTED") {
+        toast.error(t("offline.needsConnection"));
+        return;
+      }
       const msg = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message ?? t("payment.failed");
       toast.error(msg);

@@ -1,5 +1,10 @@
 import api from "./api";
+import type { SyncStatus } from "../offline/schema";
 import type { ITransaction } from "./transaction.service";
+import { customerRepo } from "../offline/repositories";
+import { withMeta } from "../offline/repositories/base";
+import { enqueueAndFlush } from "../offline/localWrite";
+import { newObjectId } from "../offline/ids";
 
 export interface ICustomer {
   _id: string;
@@ -15,6 +20,8 @@ export interface ICustomer {
   totalDue: number;
   status: boolean;
   createdAt: string;
+  /** Present on rows read from the offline cache — absent on plain API reads. */
+  syncStatus?: SyncStatus;
 }
 
 export interface ICustomerPayload {
@@ -27,30 +34,133 @@ export interface ICustomerPayload {
   notes?: string;
 }
 
+/** Searched locally so the counter can look a customer up with no network. */
+const applyFilters = (customers: ICustomer[], search?: string): ICustomer[] => {
+  let rows = customers.filter((c) => c.status !== false);
+  if (search) {
+    const needle = search.toLowerCase();
+    rows = rows.filter(
+      (c) =>
+        c.name.toLowerCase().includes(needle) || (c.phone ?? "").toLowerCase().includes(needle),
+    );
+  }
+  return rows.sort((a, b) => a.name.localeCompare(b.name));
+};
+
+const refresh = async (businessId: string): Promise<ICustomer[] | null> => {
+  try {
+    const { data } = await api.get(`/customers/business/${businessId}`);
+    return await customerRepo.mergeFromServer(businessId, data.data as ICustomer[], true);
+  } catch {
+    return null;
+  }
+};
+
 export const customerService = {
   getAll: async (businessId: string, search?: string): Promise<ICustomer[]> => {
-    const { data } = await api.get(`/customers/business/${businessId}`, {
-      params: search ? { search } : undefined,
-    });
-    return data.data;
+    const cached = await customerRepo.list(businessId);
+    if (cached.length === 0) {
+      const fresh = await refresh(businessId);
+      return applyFilters(fresh ?? cached, search);
+    }
+    void refresh(businessId);
+    return applyFilters(cached, search);
   },
 
-  getOne: async (id: string): Promise<{ customer: ICustomer; transactions: ITransaction[] }> => {
-    const { data } = await api.get(`/customers/${id}`);
-    return data.data;
+  /**
+   * The customer is served from cache offline; the ledger alongside it is not
+   * mirrored locally, so it comes back empty until the network returns.
+   */
+  getOne: async (
+    id: string,
+  ): Promise<{ customer: ICustomer; transactions: ITransaction[] }> => {
+    try {
+      const { data } = await api.get(`/customers/${id}`);
+      const result = data.data as { customer: ICustomer; transactions: ITransaction[] };
+      const local = await customerRepo.get(id);
+      if (!local || local.syncStatus === "synced") {
+        await customerRepo.put(withMeta(result.customer));
+      }
+      return result;
+    } catch (error) {
+      const cached = await customerRepo.get(id);
+      if (!cached) throw error;
+      return { customer: cached, transactions: [] };
+    }
   },
 
   create: async (payload: ICustomerPayload): Promise<ICustomer> => {
-    const { data } = await api.post("/customers", payload);
-    return data.data;
+    const _id = newObjectId();
+    const openingBalance = Number(payload.openingBalance) || 0;
+    const local = withMeta<ICustomer>(
+      {
+        _id,
+        business: payload.businessId,
+        name: payload.name,
+        phone: payload.phone,
+        email: payload.email,
+        address: payload.address,
+        openingBalance,
+        notes: payload.notes,
+        totalSales: 0,
+        totalPaid: 0,
+        // Mirrors the server: the opening balance starts life as the due.
+        totalDue: openingBalance,
+        status: true,
+        createdAt: new Date().toISOString(),
+      },
+      "pending",
+    );
+    await customerRepo.put(local);
+
+    await enqueueAndFlush({
+      businessId: payload.businessId,
+      entityType: "customer",
+      entityId: _id,
+      operationType: "CREATE",
+      payload: { ...payload },
+    });
+
+    return (await customerRepo.get(_id)) ?? local;
   },
 
   update: async (id: string, payload: Partial<ICustomerPayload>): Promise<ICustomer> => {
-    const { data } = await api.patch(`/customers/${id}`, payload);
-    return data.data;
+    const current = await customerRepo.get(id);
+    if (!current) {
+      const { data } = await api.patch(`/customers/${id}`, payload);
+      return customerRepo.put(withMeta(data.data as ICustomer));
+    }
+
+    const updated = await customerRepo.update(id, (record) => ({
+      ...record,
+      ...payload,
+      syncStatus: "pending",
+    }));
+
+    await enqueueAndFlush({
+      businessId: current.business,
+      entityType: "customer",
+      entityId: id,
+      operationType: "UPDATE",
+      payload: { ...payload },
+    });
+
+    return (await customerRepo.get(id)) ?? updated ?? current;
   },
 
   remove: async (id: string): Promise<void> => {
-    await api.delete(`/customers/${id}`);
+    const current = await customerRepo.get(id);
+    if (!current) {
+      await api.delete(`/customers/${id}`);
+      return;
+    }
+    await customerRepo.remove(id);
+    await enqueueAndFlush({
+      businessId: current.business,
+      entityType: "customer",
+      entityId: id,
+      operationType: "DELETE",
+      payload: {},
+    });
   },
 };

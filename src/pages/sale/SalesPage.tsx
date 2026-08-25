@@ -4,6 +4,8 @@ import { Plus, ShoppingCart, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { saleService, type ISale } from "../../services/sale.service";
 import { useBusinessStore } from "../../store/businessStore";
+import SyncBadge from "../../components/shared/SyncBadge";
+import { useDataVersion } from "../../store/offlineStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { plural } from "../../i18n/labels";
@@ -24,6 +26,7 @@ const SalesPage = () => {
   const { activeBusiness } = useBusinessStore();
   const { t } = useTranslation();
   const { money, num, date: fmtDate } = useFormat();
+  const dataVersion = useDataVersion();
 
   const [sales, setSales] = useState<ISale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +44,7 @@ const SalesPage = () => {
     }
   };
 
-  useEffect(() => { load(); }, [activeBusiness?._id]);
+  useEffect(() => { load(); }, [activeBusiness?._id, dataVersion]);
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -85,12 +88,15 @@ const SalesPage = () => {
                   style={{ borderBottom: "1px solid var(--border-light)" }}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                      {t("sale.headline", {
-                        invoice: s.invoiceNumber,
-                        customer: s.customer?.name ?? t("sale.walkIn"),
-                      })}
-                    </p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {t("sale.headline", {
+                          invoice: s.invoiceNumber,
+                          customer: s.customer?.name ?? t("sale.walkIn"),
+                        })}
+                      </p>
+                      <SyncBadge status={s.syncStatus} />
+                    </div>
                     <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
                       {t("common.dateAndItems", {
                         date: fmtDate(s.date, "short"),

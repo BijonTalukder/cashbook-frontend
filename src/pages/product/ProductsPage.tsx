@@ -6,6 +6,8 @@ import { productService, type IProduct } from "../../services/product.service";
 import { useBusinessStore } from "../../store/businessStore";
 import ProductModal from "../../components/shared/ProductModal";
 import StockAdjustModal from "../../components/shared/StockAdjustModal";
+import SyncBadge from "../../components/shared/SyncBadge";
+import { useDataVersion } from "../../store/offlineStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 
@@ -19,6 +21,8 @@ const ProductsPage = () => {
   const { activeBusiness } = useBusinessStore();
   const { t } = useTranslation();
   const { money, num } = useFormat();
+  // Re-runs the loader whenever a background sync changes the local cache.
+  const dataVersion = useDataVersion();
 
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +58,7 @@ const ProductsPage = () => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeBusiness?._id, search, lowStockOnly]);
+  }, [activeBusiness?._id, search, lowStockOnly, dataVersion]);
 
   const handleDelete = async (p: IProduct) => {
     if (!confirm(t("common.confirmDelete", { name: p.name }))) return;
@@ -151,7 +155,10 @@ const ProductsPage = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
+                      <SyncBadge status={p.syncStatus} />
+                    </div>
                     <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
                       {t("product.categoryAndPrice", {
                         category: p.category || t("product.uncategorized"),
