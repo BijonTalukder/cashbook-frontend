@@ -454,7 +454,7 @@ const NewBusinessPage = () => {
               <div>
                 <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.openingBalanceOptional")}</label>
                 <input
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="0"
                   value={bizOpeningBalance}
                   onChange={(e) => setBizOpeningBalance(e.target.value)}

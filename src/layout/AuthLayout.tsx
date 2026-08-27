@@ -238,7 +238,7 @@ const AppLayout = () => {
           {showBack ? (
             <button
               onClick={() => navigate(-1)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 transition-all active:scale-90"
+              className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 press"
               style={{ background: "rgba(255,255,255,0.05)", color: "#94a3b8" }}
             >
               <ChevronLeft size={20} />

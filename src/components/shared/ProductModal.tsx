@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { productService, type IProduct } from "../../services/product.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
+import Sheet from "../ui/Sheet";
 
 const buildSchema = (t: TFunction) =>
   z.object({
@@ -115,29 +116,9 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: C.overlay, backdropFilter: "blur(8px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: C.card, border: `1px solid ${C.border}`, maxHeight: "90dvh", overflowY: "auto" }}
-      >
-        <div className="flex items-center justify-between px-5 py-4 sticky top-0 z-10"
-          style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-semibold"
-            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {editing ? t("product.edit") : t("product.add")}
-          </h2>
-          <button onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-lg"
-            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
-            <X size={15} />
-          </button>
-        </div>
+    <Sheet open={open} onClose={onClose} size="md" title={editing ? t("product.edit") : t("product.add")}>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Field label={t("product.name")} error={errors.name?.message}>
             <input {...register("name")} placeholder={t("product.namePlaceholder")} style={inputCss(!!errors.name)} />
           </Field>
@@ -153,11 +134,11 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label={t("product.purchasePrice")} error={errors.purchasePrice?.message}>
-              <input type="number" min="0" step="0.01" {...register("purchasePrice", { valueAsNumber: true })}
+              <input type="number" inputMode="decimal" min="0" step="0.01" {...register("purchasePrice", { valueAsNumber: true })}
                 placeholder={t("common.zero")} style={inputCss(!!errors.purchasePrice)} />
             </Field>
             <Field label={t("product.sellingPrice")} error={errors.sellingPrice?.message}>
-              <input type="number" min="0" step="0.01" {...register("sellingPrice", { valueAsNumber: true })}
+              <input type="number" inputMode="decimal" min="0" step="0.01" {...register("sellingPrice", { valueAsNumber: true })}
                 placeholder={t("common.zero")} style={inputCss(!!errors.sellingPrice)} />
             </Field>
           </div>
@@ -165,12 +146,12 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
           <div className="grid grid-cols-3 gap-3">
             {!editing && (
               <Field label={t("product.stock")} error={errors.stock?.message}>
-                <input type="number" min="0" {...register("stock", { valueAsNumber: true })}
+                <input type="number" inputMode="decimal" min="0" {...register("stock", { valueAsNumber: true })}
                   placeholder={t("common.zero")} style={inputCss(!!errors.stock)} />
               </Field>
             )}
             <Field label={t("product.minStock")} error={errors.minStock?.message}>
-              <input type="number" min="0" {...register("minStock", { valueAsNumber: true })}
+              <input type="number" inputMode="decimal" min="0" {...register("minStock", { valueAsNumber: true })}
                 placeholder={t("common.zero")} style={inputCss(!!errors.minStock)} />
             </Field>
             <Field label={t("product.unit")} error={errors.unit?.message}>
@@ -185,15 +166,14 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
             {editing ? t("common.saveChanges") : t("product.add")}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 };
 

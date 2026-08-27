@@ -423,6 +423,12 @@
     "youWillReceive": "You'll receive",
     "youreOwed": "You're owed"
   },
+  "error": {
+    "body": "This screen ran into a problem. Your saved data is safe — try again, or head back to the dashboard.",
+    "goHome": "Dashboard",
+    "retry": "Try again",
+    "title": "Something went wrong"
+  },
   "expense": {
     "add": "Add Expense",
     "amount": "Amount",
@@ -759,6 +765,7 @@
     "messSummary": "Mess Summary",
     "more": "More",
     "newBusiness": "New Business",
+    "pressBackAgain": "Press back again to exit",
     "products": "Products",
     "profileSettings": "Profile & Settings",
     "purchases": "Purchases",
@@ -827,6 +834,8 @@
     "conflictBadge": "Sync failed",
     "conflictOne": "{{count}} change needs your attention",
     "conflictOther": "{{count}} changes need your attention",
+    "couldNotLoad": "Couldn't load this screen",
+    "couldNotLoadHint": "The server did not answer. Your saved data is untouched — try again in a moment.",
     "failedOne": "{{count}} change failed to sync",
     "failedOther": "{{count}} changes failed to sync",
     "lastSynced": "Last synced {{time}}",
@@ -842,6 +851,8 @@
     "pendingOther": "{{count}} changes waiting to sync",
     "saleSavedOffline": "Sale saved offline ({{invoice}}) — it will sync automatically",
     "savedLocally": "Saved on this device — will sync when you are back online",
+    "screenNeedsConnection": "This screen needs a connection",
+    "screenNeedsConnectionHint": "Sales, products and customers keep working offline. This one loads from the server, so it will fill in once you are back online.",
     "syncComplete": "All changes synced",
     "syncConflict": "{{count}} change was rejected by the server and needs review.",
     "syncFailed": "Some changes could not be synced. They will be retried.",

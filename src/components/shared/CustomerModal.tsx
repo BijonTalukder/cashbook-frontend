@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
+import Sheet from "../ui/Sheet";
 
 const buildSchema = (t: TFunction) =>
   z.object({
@@ -96,36 +97,23 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: C.overlay, backdropFilter: "blur(8px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: C.card, border: `1px solid ${C.border}`, maxHeight: "90dvh", overflowY: "auto" }}
-      >
-        <div className="flex items-center justify-between px-5 py-4 sticky top-0 z-10"
-          style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-semibold"
-            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {editing ? t("customer.edit") : t("customer.add")}
-          </h2>
-          <button onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-lg"
-            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
-            <X size={15} />
-          </button>
-        </div>
+    <Sheet open={open} onClose={onClose} size="md" title={editing ? t("customer.edit") : t("customer.add")}>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Field label={t("common.name")} error={errors.name?.message}>
             <input {...register("name")} placeholder={t("customer.namePlaceholder")} style={inputCss(!!errors.name)} />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
             <Field label={t("common.phone")} error={errors.phone?.message}>
-              <input {...register("phone")} placeholder={t("customer.phonePlaceholder")} style={inputCss()} />
+              <input
+                {...register("phone")}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder={t("customer.phonePlaceholder")}
+                style={inputCss()}
+              />
             </Field>
             <Field label={t("common.email")} error={errors.email?.message}>
               <input {...register("email")} placeholder={t("customer.emailPlaceholder")} style={inputCss(!!errors.email)} />
@@ -139,7 +127,7 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
           {!editing && (
             <Field label={t("customer.openingBalance")} error={errors.openingBalance?.message}>
               <input
-                type="number" min="0" step="0.01"
+                type="number" inputMode="decimal" min="0" step="0.01"
                 {...register("openingBalance", { valueAsNumber: true })}
                 placeholder={t("common.zero")}
                 style={inputCss(!!errors.openingBalance)}
@@ -154,15 +142,14 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
             {editing ? t("common.saveChanges") : t("customer.add")}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 };
 

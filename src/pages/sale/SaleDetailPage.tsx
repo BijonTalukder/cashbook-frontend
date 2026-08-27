@@ -54,7 +54,7 @@ const SaleDetailPage = () => {
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-2xl mx-auto space-y-5">
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate("/sales")} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-faint)" }}>
+          <button onClick={() => navigate("/sales")} className="hidden lg:flex items-center gap-1.5 text-xs press" style={{ color: "var(--text-faint)" }}>
             <ArrowLeft size={13} /> {t("sale.backToSales")}
           </button>
           <button

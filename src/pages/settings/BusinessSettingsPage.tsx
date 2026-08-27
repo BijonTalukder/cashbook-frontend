@@ -90,7 +90,7 @@ const BusinessSettingsPage = () => {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-2xl mx-auto space-y-5">
-        <button onClick={() => navigate("/settings")} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-faint)" }}>
+        <button onClick={() => navigate("/settings")} className="hidden lg:flex items-center gap-1.5 text-xs press" style={{ color: "var(--text-faint)" }}>
           <ArrowLeft size={13} /> {t("businessSettings.backToSettings")}
         </button>
 
@@ -164,7 +164,7 @@ const BusinessSettingsPage = () => {
                     key={m}
                     type="button"
                     onClick={() => toggleMethod(m)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all"
+                    className="flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium border flex-shrink-0 whitespace-nowrap press"
                     style={{
                       background: active ? "rgba(16,185,129,0.1)" : "var(--surface-2)",
                       borderColor: active ? "rgba(16,185,129,0.4)" : C.border,
@@ -182,7 +182,7 @@ const BusinessSettingsPage = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {saving && <Loader2 size={14} className="animate-spin" />}

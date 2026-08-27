@@ -137,7 +137,13 @@ const LoginPage = () => {
       </div>
 
       {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      <div
+        className="flex-1 flex items-center justify-center p-6 lg:p-12"
+        style={{
+          paddingTop: "calc(1.5rem + var(--safe-top))",
+          paddingBottom: "calc(1.5rem + var(--safe-bottom))",
+        }}
+      >
         <div className="w-full max-w-md">
           <div className="flex items-center justify-between gap-3 mb-10">
             <div className="flex items-center gap-3 lg:hidden">
@@ -180,6 +186,12 @@ const LoginPage = () => {
               <input
                 {...register("email")}
                 type="email"
+                inputMode="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="next"
                 placeholder={t("auth.emailPlaceholder")}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
@@ -203,8 +215,10 @@ const LoginPage = () => {
                 <input
                   {...register("password")}
                   type={showPass ? "text" : "password"}
+                  autoComplete="current-password"
+                  enterKeyHint="go"
                   placeholder={t("auth.passwordPlaceholder")}
-                  className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-11 text-white placeholder-slate-600 
+                  className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-14 text-white placeholder-slate-600 
                     focus:outline-none focus:ring-2 transition-all text-sm
                     ${errors.password
                       ? "border-red-500/50 focus:ring-red-500/20"
@@ -215,7 +229,7 @@ const LoginPage = () => {
                   type="button"
                   onClick={() => setShowPass(!showPass)}
                   aria-label={showPass ? t("auth.hidePassword") : t("auth.showPassword")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 press"
                 >
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -231,8 +245,8 @@ const LoginPage = () => {
               type="submit"
               disabled={loading}
               className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed 
-                text-emerald-950 font-semibold rounded-xl py-3 flex items-center justify-center gap-2 
-                transition-all duration-200 text-sm mt-2 group"
+                text-emerald-950 font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 
+                text-sm mt-2 group press"
             >
               {loading ? (
                 <span className="w-5 h-5 border-2 border-emerald-900/30 border-t-emerald-900 rounded-full animate-spin" />

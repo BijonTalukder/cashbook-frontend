@@ -19,6 +19,7 @@ import {
 import { useAuthStore } from "../../store/authStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { useBackHandler, useBodyScrollLock } from "../../native/hooks";
 
 const C = {
   bg: "var(--bg)",
@@ -75,6 +76,11 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
       setAmount(String(remaining));
     }
   }, [open]);
+
+  // Hardware back dismisses the sheet before it navigates, and the page behind
+  // it must not scroll while it is up.
+  useBackHandler(open, onClose);
+  useBodyScrollLock(open);
 
   if (!open) return null;
 
@@ -139,21 +145,31 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
 
   return (
     <div
-      className="fixed inset-0 z-[400] flex items-center sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-0 sm:p-4 anim-scrim-in"
       style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(10px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden"
+        className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden anim-sheet-up sm:animate-none"
         style={{
           background: C.modal,
           border: "1px solid var(--border-strong)",
-          maxHeight: "92vh",
+          // dvh, not vh: with the soft keyboard up, vh keeps the pre-keyboard
+          // height and pushes the action button off the bottom of the screen.
+          maxHeight: "92dvh",
           overflowY: "auto",
+          overscrollBehavior: "contain",
+          paddingBottom: "var(--safe-bottom)",
+          boxShadow: "var(--shadow-sheet)",
         }}
       >
+        {/* Grab handle — signals "drag or tap outside to dismiss" the way an
+            Android bottom sheet does. */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="h-1 w-10 rounded-full" style={{ background: "var(--border-strong)" }} />
+        </div>
         {/* ── Header ──────────────────────────────────── */}
         <div
           className="flex items-center justify-between px-5 pt-5 pb-4 sticky top-0 z-10"
@@ -313,7 +329,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
                     {symbol}
                   </span>
                   <input
-                    type="number"
+                    type="number" inputMode="decimal"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder={String(remaining)}
@@ -398,7 +414,7 @@ const SettleModal = ({ txn, open, onClose, onUpdate }: Props) => {
               <button
                 onClick={handleSettle}
                 disabled={submitting || !amount}
-                className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 press disabled:opacity-50"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
                 {submitting ? (

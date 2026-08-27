@@ -9,6 +9,7 @@ import { useDataVersion } from "../../store/offlineStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { plural } from "../../i18n/labels";
+import { useRefreshHandler } from "../../native/refresh";
 
 const C = {
   card: "var(--surface-1)",
@@ -44,6 +45,10 @@ const SalesPage = () => {
     }
   };
 
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
+
+
   useEffect(() => { load(); }, [activeBusiness?._id, dataVersion]);
 
   return (
@@ -55,7 +60,7 @@ const SalesPage = () => {
           </h1>
           <button
             onClick={() => navigate("/sales/new")}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold press"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             <Plus size={15} /> {t("sale.add")}
@@ -84,7 +89,7 @@ const SalesPage = () => {
                 <button
                   key={s._id}
                   onClick={() => navigate(`/sales/${s._id}`)}
-                  className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all"
+                  className="row-press w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 text-left"
                   style={{ borderBottom: "1px solid var(--border-light)" }}
                 >
                   <div className="flex-1 min-w-0">
@@ -95,7 +100,7 @@ const SalesPage = () => {
                           customer: s.customer?.name ?? t("sale.walkIn"),
                         })}
                       </p>
-                      <SyncBadge status={s.syncStatus} />
+                      <SyncBadge status={s.syncStatus} compact />
                     </div>
                     <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
                       {t("common.dateAndItems", {

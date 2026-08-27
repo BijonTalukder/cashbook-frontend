@@ -3,10 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import {
   TrendingUp, LayoutDashboard, ArrowLeftRight, Users,
   UtensilsCrossed, Settings, LogOut, HandCoins,
-  ChevronLeft, FileText, Calculator, MoreHorizontal,
+  ChevronLeft, ArrowLeft, FileText, Calculator, MoreHorizontal,
   User, Trash2, X, Contact, Truck, Package, ShoppingCart, ShoppingBag, Receipt, ScrollText, BarChart3,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
+import { useBackHandler } from "../native/hooks";
+import { haptic, exitApp, isNativeApp, pushBackHandler } from "../native/bridge";
+import PageTransition from "../components/ui/PageTransition";
+import PullToRefresh from "../components/ui/PullToRefresh";
+import { RefreshProvider, useRefreshRunner } from "../native/refresh";
 import { useBusinessStore } from "../store/businessStore";
 import BusinessSwitcher from "../components/shared/BusinessSwitcher";
 import FloatingAI from "../pages/Ai/FloatingAI";
@@ -14,6 +19,7 @@ import ThemeToggle from "../components/shared/ThemeToggle";
 import LanguageToggle from "../components/shared/LanguageToggle";
 import SyncStatusIndicator from "../components/shared/SyncStatusIndicator";
 import { useTranslation } from "../i18n/useTranslation";
+import { toast } from "sonner";
 
 const C = {
   bg: "var(--bg)",
@@ -86,6 +92,18 @@ const getPageTitleKey = (path: string) => {
   return partial ? partial[1] : "app.name";
 };
 
+/** Lives under RefreshProvider so it can reach whatever screen registered itself. */
+const ScreenHost = () => {
+  const runRefresh = useRefreshRunner();
+  return (
+    <PullToRefresh onRefresh={runRefresh}>
+      <PageTransition>
+        <Outlet />
+      </PageTransition>
+    </PullToRefresh>
+  );
+};
+
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -115,7 +133,49 @@ const AppLayout = () => {
   const [showMore, setShowMore] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  /* A native app bar is flat while the screen is at rest and lifts once
+     content slides under it. Without the cue, a translucent header just looks
+     like it is bleeding into the page. */
+  const [lifted, setLifted] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setLifted(window.scrollY > 4);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const handleLogout = () => { logout(); navigate("/login", { replace: true }); };
+
+  /* ── Android back button ──────────────────────────────
+     Transient UI first (drawer, user menu — Sheet registers its own), then
+     in-app navigation, and only at a root screen does a second press within
+     two seconds actually leave the app. Anything less and the app feels like
+     a browser tab that closes on the first back press. */
+  useBackHandler(showMore, () => setShowMore(false));
+  useBackHandler(showUserMenu, () => setShowUserMenu(false));
+
+  const exitArmed = useRef(false);
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    return pushBackHandler(() => {
+      if (!isRootPath(location.pathname)) {
+        navigate(-1);
+        return true;
+      }
+      if (location.pathname !== "/dashboard") {
+        navigate("/dashboard");
+        return true;
+      }
+      if (exitArmed.current) {
+        exitApp();
+        return true;
+      }
+      exitArmed.current = true;
+      toast(t("nav.pressBackAgain"));
+      setTimeout(() => { exitArmed.current = false; }, 2000);
+      return true;
+    });
+  }, [location.pathname, navigate, t]);
 
   const isActive = (to: string) =>
     to === "/dashboard"
@@ -168,6 +228,7 @@ const AppLayout = () => {
   }, [navigate]);
 
   return (
+    <RefreshProvider>
     <div
       className="min-h-screen flex flex-col lg:flex-row"
       style={{ background: C.bg }}
@@ -277,57 +338,62 @@ const AppLayout = () => {
         className="lg:hidden sticky top-0 z-50"
         style={{
           background: "var(--header-bg)",
-          borderBottom: `1px solid ${C.border}`,
+          borderBottom: `1px solid ${lifted ? "var(--border)" : "transparent"}`,
+          boxShadow: lifted ? "0 1px 12px rgba(0,0,0,0.12)" : "none",
+          transition:
+            "box-shadow var(--dur-base) var(--ease-emphasized), border-color var(--dur-base) var(--ease-emphasized)",
           backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          // Edge-to-edge (Android 15 / targetSdk 35) draws the WebView behind
+          // the status bar — without this the title sits under the clock.
+          paddingTop: "var(--safe-top)",
+          paddingLeft: "var(--safe-left)",
+          paddingRight: "var(--safe-right)",
         }}
       >
-        <div className="flex items-center px-3 h-14 gap-2">
+        <div
+          className="flex items-center px-4 gap-2"
+          style={{ height: "var(--header-h)" }}
+        >
 
-          {/* Left: back button OR logo */}
-          {showBack ? (
+          {/* Leading — a navigation icon on a pushed screen, nothing on a root
+              one. Material app bars use a bare arrow with a circular ripple,
+              not a filled chip. */}
+          {showBack && (
             <button
-              onClick={() => navigate(-1)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0 transition-all active:scale-90"
-              style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
+              onClick={() => { haptic("light"); navigate(-1); }}
+              aria-label={t("common.back")}
+              className="ripple w-10 h-10 -ml-1 flex items-center justify-center rounded-full flex-shrink-0 press"
+              style={{ color: "var(--text-primary)" }}
             >
-              <ChevronLeft size={20} />
+              <ArrowLeft size={22} />
             </button>
-          ) : (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-7 h-7 bg-emerald-400 rounded-lg flex items-center justify-center">
-                <TrendingUp size={13} className="text-emerald-950" />
-              </div>
-              <span
-                className="font-bold text-base"
-                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
-              >
-                {t("app.name")}
-              </span>
-            </div>
           )}
 
-          {/* Center: page title (when back) or business switcher (root) */}
-          <div className="flex-1 flex justify-center">
+          {/* Title — left-aligned, the Android convention. A centred title is
+              an iOS idiom, and it was also what forced the trailing actions off
+              the right edge of a 360dp screen. On a root screen the title *is*
+              the business switcher. */}
+          <div className="flex-1 min-w-0">
             {showBack ? (
-              <p
-                className="text-sm font-semibold truncate px-2"
-                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
+              <h1
+                className="text-[17px] font-semibold truncate"
+                style={{ color: "var(--text-primary)", letterSpacing: "-0.01em" }}
               >
                 {pageTitle}
-              </p>
+              </h1>
             ) : (
-              <BusinessSwitcher onSelect={() => navigate("/transactions")} />
+              <BusinessSwitcher variant="appbar" onSelect={() => navigate("/dashboard")} />
             )}
           </div>
 
           {/* Right: theme toggle + avatar with dropdown */}
           <div className="flex items-center gap-1.5 flex-shrink-0 relative">
             <SyncStatusIndicator />
-            <LanguageToggle />
-            <ThemeToggle />
             <button
-              onClick={() => setShowUserMenu((v) => !v)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              onClick={() => { haptic("light"); setShowUserMenu((v) => !v); }}
+              aria-label={t("nav.profileSettings")}
+              className="w-9 h-9 rounded-full flex items-center justify-center press"
               style={{ background: "linear-gradient(135deg, #10b981, #0d9488)" }}
             >
               <span className="text-xs font-bold text-white">
@@ -344,7 +410,7 @@ const AppLayout = () => {
                   onClick={() => setShowUserMenu(false)}
                 />
                 <div
-                  className="absolute right-0 top-10 z-50 w-52 rounded-2xl py-1 overflow-hidden"
+                  className="absolute right-0 top-11 z-50 w-64 rounded-2xl py-1 overflow-hidden"
                   style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-strong)", boxShadow: "var(--shadow-elevated)" }}
                 >
                   {/* User info */}
@@ -357,6 +423,13 @@ const AppLayout = () => {
                     </p>
                   </div>
 
+                  {/* Appearance & language — moved out of the app bar so the
+                      trailing cluster fits a 360dp screen. */}
+                  <div className="px-2 py-2 space-y-1.5" style={{ borderBottom: "1px solid var(--surface-4)" }}>
+                    <ThemeToggle variant="row" />
+                    <LanguageToggle variant="row" />
+                  </div>
+
                   {/* Menu items */}
                   {[
                     { icon: User, label: t("nav.profileSettings"), action: () => { navigate("/settings"); setShowUserMenu(false); } },
@@ -366,7 +439,7 @@ const AppLayout = () => {
                     <button
                       key={label}
                       onClick={action}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors"
+                      className="w-full flex items-center gap-3 px-4 h-12 text-sm text-left row-press"
                       style={{ color: danger ? "#ef4444" : "var(--text-secondary)" }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-3)"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
@@ -383,8 +456,14 @@ const AppLayout = () => {
       </header>
 
       {/* ── Main Content ────────────────────────── */}
-      <main className="flex-1 min-w-0 pb-24 lg:pb-0">
-        <Outlet />
+      <main
+        className="flex-1 min-w-0 pb-[calc(var(--bottomnav-total)+0.75rem)] lg:pb-0"
+        style={{
+          paddingLeft: "var(--safe-left)",
+          paddingRight: "var(--safe-right)",
+        }}
+      >
+        <ScreenHost />
       </main>
       <FloatingAI />
       {/* ── Mobile Bottom Nav ───────────────────── */}
@@ -397,19 +476,33 @@ const AppLayout = () => {
         }}
       >
         <div
-          className="flex items-center justify-around px-2 pt-2"
-          style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+          className="flex items-stretch justify-around px-1"
+          style={{
+            minHeight: "var(--bottomnav-h)",
+            paddingBottom: "var(--safe-bottom)",
+            paddingLeft: "var(--safe-left)",
+            paddingRight: "var(--safe-right)",
+          }}
         >
           {bottomMain.map(({ to, icon: Icon, labelKey }) => {
             const active = isActive(to);
             return (
-              <NavLink key={to} to={to} className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl">
-                <div className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
-                  style={{ background: active ? "var(--nav-active-bg)" : "transparent" }}>
-                  <Icon size={20} style={{ color: active ? "#10b981" : "var(--text-faint)" }} />
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => haptic("selection")}
+                className="flex flex-col items-center justify-center gap-0.5 px-2 pt-1.5 pb-1 rounded-xl flex-1 min-w-0 press-sm"
+              >
+                <div
+                  className="w-14 h-7 flex items-center justify-center rounded-full transition-all"
+                  style={{ background: active ? "var(--nav-active-bg)" : "transparent" }}
+                >
+                  <Icon size={19} style={{ color: active ? "#10b981" : "var(--text-faint)" }} />
                 </div>
-                <span className="text-[11px] leading-snug"
-                  style={{ color: active ? "#10b981" : "var(--text-faint)", fontWeight: active ? 500 : 400 }}>
+                <span
+                  className="text-[10.5px] leading-tight truncate max-w-full"
+                  style={{ color: active ? "#10b981" : "var(--text-faint)", fontWeight: active ? 500 : 400 }}
+                >
                   {t(labelKey)}
                 </span>
               </NavLink>
@@ -419,14 +512,19 @@ const AppLayout = () => {
           {/* More button */}
           {bottomMore.length > 0 && (
             <button
-              onClick={() => setShowMore((v) => !v)}
-              className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl"
+              onClick={() => { haptic("selection"); setShowMore((v) => !v); }}
+              className="flex flex-col items-center justify-center gap-0.5 px-2 pt-1.5 pb-1 rounded-xl flex-1 min-w-0 press-sm"
             >
-              <div className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
-                style={{ background: showMore ? "var(--nav-active-bg)" : "transparent" }}>
-                <MoreHorizontal size={20} style={{ color: showMore ? "#10b981" : "var(--text-faint)" }} />
+              <div
+                className="w-14 h-7 flex items-center justify-center rounded-full transition-all"
+                style={{ background: showMore ? "var(--nav-active-bg)" : "transparent" }}
+              >
+                <MoreHorizontal size={19} style={{ color: showMore ? "#10b981" : "var(--text-faint)" }} />
               </div>
-              <span className="text-[11px]" style={{ color: showMore ? "#10b981" : "var(--text-faint)" }}>
+              <span
+                className="text-[10.5px] leading-tight truncate max-w-full"
+                style={{ color: showMore ? "#10b981" : "var(--text-faint)" }}
+              >
                 {t("nav.more")}
               </span>
             </button>
@@ -438,18 +536,24 @@ const AppLayout = () => {
       {showMore && (
         <>
           <div
-            className="lg:hidden fixed inset-0 z-[55]"
-            style={{ background: "var(--overlay-scrim)" }}
+            className="lg:hidden fixed inset-0 z-[55] anim-scrim-in"
+            style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(4px)" }}
             onClick={() => setShowMore(false)}
           />
           <div
-            className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] w-[78vw] max-w-[300px] flex flex-col rounded-r-2xl"
-            style={{ background: "var(--bg-elevated)", borderRight: "1px solid var(--border-strong)", boxShadow: "var(--shadow-elevated)" }}
+            className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] w-[80vw] max-w-[320px] flex flex-col rounded-r-3xl"
+            style={{
+              background: "var(--bg-elevated)",
+              borderRight: "1px solid var(--border-strong)",
+              boxShadow: "var(--shadow-elevated)",
+              animation: "page-forward var(--dur-base) var(--ease-decelerate)",
+              paddingLeft: "var(--safe-left)",
+            }}
           >
             {/* Header */}
             <div
               className="flex items-center justify-between px-4 pb-3 flex-shrink-0"
-              style={{ paddingTop: "max(1rem, env(safe-area-inset-top))", borderBottom: "1px solid var(--border-light)" }}
+              style={{ paddingTop: "calc(var(--safe-top) + 1rem)", borderBottom: "1px solid var(--border-light)" }}
             >
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 bg-emerald-400 rounded-lg flex items-center justify-center">
@@ -521,12 +625,13 @@ const AppLayout = () => {
               >
                 <LogOut size={18} /> {t("nav.logout")}
               </button>
-              <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
+              <div style={{ paddingBottom: "var(--safe-bottom)" }} />
             </div>
           </div>
         </>
       )}
     </div>
+    </RefreshProvider>
   );
 };
 

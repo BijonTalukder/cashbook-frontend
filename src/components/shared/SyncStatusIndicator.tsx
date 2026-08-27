@@ -111,7 +111,7 @@ const SyncStatusIndicator = ({ variant = "icon", className = "" }: Props) => {
       onClick={handleSync}
       aria-label={`${META.label} — ${detail}`}
       title={`${META.label} — ${detail}`}
-      className={`h-9 flex items-center justify-center gap-1 rounded-xl transition-all active:scale-90 ${
+      className={`h-9 flex items-center justify-center gap-1 rounded-xl press ${
         state === "synced" ? "w-9" : "px-2.5"
       } ${className}`}
       style={{ background: "var(--surface-3)", color: META.color }}

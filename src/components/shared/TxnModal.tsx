@@ -20,6 +20,7 @@ import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { enumLabel } from "../../i18n/labels";
+import Sheet from "../ui/Sheet";
 
 /* ─── Schema ──────────────────────────────────────────── */
 const buildSchema = (t: TFunction) =>
@@ -250,28 +251,9 @@ const TxnModal = ({
   })();
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: C.overlay, backdropFilter: "blur(8px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: C.card, border: `1px solid ${C.border}`, maxHeight: "90dvh", overflowY: "auto" }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 sticky top-0 z-10"
-          style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-semibold"
-            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>{modalTitle}</h2>
-          <button onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-lg"
-            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
-            <X size={15} />
-          </button>
-        </div>
+    <Sheet open={open} onClose={onClose} size="md" title={modalTitle}>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
           {/* Type tabs */}
           <div className="grid grid-cols-3 gap-2">
@@ -305,7 +287,7 @@ const TxnModal = ({
               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold"
                 style={{ color: typeColor, fontSize: "15px" }}>{symbol}</span>
               <input {...register("amount", { valueAsNumber: true })}
-                type="number" step="0.01" min="0" placeholder={t("txn.amountPlaceholder")}
+                type="number" inputMode="decimal" step="0.01" min="0" placeholder={t("txn.amountPlaceholder")}
                 style={{ ...inputCss(!!errors.amount), paddingLeft: "28px", fontSize: "20px", fontWeight: 700 }} />
             </div>
           </Field>
@@ -370,7 +352,7 @@ const TxnModal = ({
                     return (
                       <button key={cat._id} type="button"
                         onClick={() => setValue("category", cat._id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium press"
                         style={{ background: sel ? `${typeColor}15` : C.input, border: `1px solid ${sel ? `${typeColor}45` : C.inputBorder}`, color: sel ? typeColor : "var(--text-secondary)", flexShrink: 0 }}>
                         {cat.icon && <span>{cat.icon}</span>}
                         {cat.name}
@@ -379,7 +361,7 @@ const TxnModal = ({
                   })}
                   {!addingCat && (
                     <button type="button" onClick={() => setAddingCat(true)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium press"
                       style={{ background: "transparent", border: `1px dashed ${C.inputBorder}`, color: "var(--text-faint)", flexShrink: 0 }}>
                       <Plus size={11} /> {t("txn.newCategory")}
                     </button>
@@ -433,13 +415,12 @@ const TxnModal = ({
 
           {/* Submit */}
           <button type="submit" disabled={submitting}
-            className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-2"
+            className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 press mt-2"
             style={{ background: typeColor, color: selType === "income" ? "#022c22" : "#fff", opacity: submitting ? 0.7 : 1 }}>
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <><TypeIcon size={15} />{submitLabel}</>}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 };
 

@@ -9,7 +9,11 @@ import StockAdjustModal from "../../components/shared/StockAdjustModal";
 import SyncBadge from "../../components/shared/SyncBadge";
 import { useDataVersion } from "../../store/offlineStore";
 import { useTranslation } from "../../i18n/useTranslation";
+import { SkeletonList } from "../../components/ui/Skeleton";
+import { haptic } from "../../native/bridge";
 import { useFormat } from "../../i18n/useFormat";
+import { confirmAction } from "../../components/ui/confirm";
+import { useRefreshHandler } from "../../native/refresh";
 
 const C = {
   card: "var(--surface-1)",
@@ -31,6 +35,7 @@ const ProductsPage = () => {
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
   const [editing, setEditing] = useState<IProduct | null>(null);
   const [adjusting, setAdjusting] = useState<IProduct | null>(null);
+
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
@@ -54,6 +59,9 @@ const ProductsPage = () => {
     }
   };
 
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
+
   useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
@@ -61,7 +69,13 @@ const ProductsPage = () => {
   }, [activeBusiness?._id, search, lowStockOnly, dataVersion]);
 
   const handleDelete = async (p: IProduct) => {
-    if (!confirm(t("common.confirmDelete", { name: p.name }))) return;
+    const ok = await confirmAction({
+      title: t("common.confirmDelete", { name: p.name }),
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await productService.remove(p._id);
       setProducts((prev) => prev.filter((x) => x._id !== p._id));
@@ -76,13 +90,13 @@ const ProductsPage = () => {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-4xl mx-auto space-y-5">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold truncate" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
             {t("product.title")}
           </h1>
           <button
             onClick={() => { setEditing(null); setModalOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 h-11 rounded-xl text-sm font-semibold flex-shrink-0 press"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             <Plus size={15} /> {t("product.add")}
@@ -96,13 +110,13 @@ const ProductsPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("product.searchByNameSkuCategory")}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
+              className="w-full pl-10 pr-4 h-11 rounded-xl text-sm focus:outline-none"
               style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-primary)" }}
             />
           </div>
           <button
             onClick={() => setLowStockOnly((v) => !v)}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 px-3.5 h-11 rounded-xl text-xs font-medium flex-shrink-0 press"
             style={{
               background: lowStockOnly ? "rgba(239,68,68,0.1)" : C.card,
               border: `1px solid ${lowStockOnly ? "rgba(239,68,68,0.4)" : C.border}`,
@@ -118,11 +132,7 @@ const ProductsPage = () => {
 
         <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
           {loading ? (
-            <div className="p-4 space-y-2">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
-              ))}
-            </div>
+            <SkeletonList rows={5} />
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
@@ -141,7 +151,7 @@ const ProductsPage = () => {
               return (
                 <div
                   key={p._id}
-                  className="flex items-center gap-3 px-5 py-3.5"
+                  className="flex items-center gap-3 px-3.5 sm:px-5 py-3"
                   style={{ borderBottom: "1px solid var(--border-light)" }}
                 >
                   <div
@@ -155,52 +165,70 @@ const ProductsPage = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
-                      <SyncBadge status={p.syncStatus} />
-                    </div>
-                    <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                      {t("product.categoryAndPrice", {
-                        category: p.category || t("product.uncategorized"),
-                        price: money(p.sellingPrice),
-                      })}
-                    </p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-semibold" style={{ color: isLow ? "#ef4444" : "var(--text-primary)" }}>
-                      {t("product.stockLine", { stock: num(p.stock), unit: p.unit ?? "" })}
-                    </p>
-                    {isLow && (
-                      <p className="text-[10px] flex items-center gap-1 justify-end" style={{ color: "#ef4444" }}>
-                        <AlertTriangle size={9} /> {t("product.lowStock")}
+                    {/* Line 1 — the name, and the number the user came to check.
+                        Nothing else competes for this line. */}
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <p className="text-sm font-medium truncate flex-1 min-w-0" style={{ color: "var(--text-primary)" }}>
+                        {p.name}
                       </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button
-                      onClick={() => setAdjusting(p)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg"
-                      style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
-                      title={t("stock.adjust")}
-                    >
-                      <SlidersHorizontal size={12} />
-                    </button>
-                    <button
-                      onClick={() => { setEditing(p); setModalOpen(true); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg"
-                      style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
-                      title={t("common.edit")}
-                    >
-                      <Pencil size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg"
-                      style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
-                      title={t("common.delete")}
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                      <p
+                        className="text-sm font-semibold flex-shrink-0 tabular-nums"
+                        style={{ color: isLow ? "#ef4444" : "var(--text-primary)" }}
+                      >
+                        {t("product.stockLine", { stock: num(p.stock), unit: p.unit ?? "" })}
+                      </p>
+                    </div>
+
+                    {/* Line 2 — status first, then meta, then the actions.
+                        Sync state and a low-stock warning both outrank the
+                        category, so the category is what truncates when a row
+                        carries badges. */}
+                    <div className="flex items-center gap-1.5 mt-1 min-w-0">
+                      <SyncBadge status={p.syncStatus} compact />
+                      {isLow && (
+                        <span
+                          className="text-[10px] flex items-center gap-1 flex-shrink-0"
+                          style={{ color: "#ef4444" }}
+                        >
+                          <AlertTriangle size={9} /> {t("product.lowStock")}
+                        </span>
+                      )}
+                      <p className="text-[11px] truncate flex-1 min-w-0" style={{ color: "var(--text-faint)" }}>
+                        {t("product.categoryAndPrice", {
+                          category: p.category || t("product.uncategorized"),
+                          price: money(p.sellingPrice),
+                        })}
+                      </p>
+                      <div className="flex items-center gap-1 flex-shrink-0 -my-1">
+                        <button
+                          onClick={() => { haptic("light"); setAdjusting(p); }}
+                          className="w-9 h-9 flex items-center justify-center rounded-lg press"
+                          style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                          aria-label={t("stock.adjust")}
+                          title={t("stock.adjust")}
+                        >
+                          <SlidersHorizontal size={13} />
+                        </button>
+                        <button
+                          onClick={() => { haptic("light"); setEditing(p); setModalOpen(true); }}
+                          className="w-9 h-9 flex items-center justify-center rounded-lg press"
+                          style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                          aria-label={t("common.edit")}
+                          title={t("common.edit")}
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(p)}
+                          className="w-9 h-9 flex items-center justify-center rounded-lg press"
+                          style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
+                          aria-label={t("common.delete")}
+                          title={t("common.delete")}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );

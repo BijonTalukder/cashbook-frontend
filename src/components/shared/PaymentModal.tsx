@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { paymentService } from "../../services/payment.service";
 import { customerService, type ICustomer } from "../../services/customer.service";
@@ -8,6 +8,7 @@ import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { paymentMethodLabel } from "../../i18n/labels";
+import Sheet from "../ui/Sheet";
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -112,29 +113,9 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: C.overlay, backdropFilter: "blur(8px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl overflow-hidden"
-        style={{ background: C.card, border: `1px solid ${C.border}` }}
-      >
-        <div className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-semibold"
-            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {mode === "receive" ? t("payment.receive") : t("payment.make")}
-          </h2>
-          <button onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-lg"
-            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
-            <X size={15} />
-          </button>
-        </div>
+    <Sheet open={open} onClose={onClose} size="sm" title={mode === "receive" ? t("payment.receive") : t("payment.make")}>
 
-        <form onSubmit={onSubmit} className="p-5 space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           {presetParty ? (
             <div className="flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ background: "var(--surface-2)" }}>
               <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{presetParty.name}</span>
@@ -168,7 +149,7 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
                 </button>
               )}
             </div>
-            <input type="number" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
+            <input type="number" inputMode="decimal" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
               placeholder={t("common.zero")} style={inputCss} />
           </div>
 
@@ -189,15 +170,14 @@ const PaymentModal = ({ open, onClose, onSuccess, mode, presetParty }: Props) =>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
             {mode === "receive" ? t("payment.receive") : t("payment.make")}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 };
 

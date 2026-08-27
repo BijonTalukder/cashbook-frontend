@@ -11,6 +11,8 @@ import CustomerModal from "../../components/shared/CustomerModal";
 import PaymentModal from "../../components/shared/PaymentModal";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { confirmAction } from "../../components/ui/confirm";
+import { useRefreshHandler } from "../../native/refresh";
 
 const C = {
   card: "var(--surface-1)",
@@ -43,11 +45,21 @@ const CustomerDetailPage = () => {
     }
   };
 
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
+
+
   useEffect(() => { load(); }, [id]);
 
   const handleDelete = async () => {
     if (!customer) return;
-    if (!confirm(t("customer.confirmRemove", { name: customer.name }))) return;
+    const ok = await confirmAction({
+      title: t("customer.confirmRemove", { name: customer.name }),
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await customerService.remove(customer._id);
       toast.success(t("customer.removed"));
@@ -84,7 +96,7 @@ const CustomerDetailPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
         <button
           onClick={() => navigate("/customers")}
-          className="flex items-center gap-1.5 text-xs"
+          className="hidden lg:flex items-center gap-1.5 text-xs press"
           style={{ color: "var(--text-faint)" }}
         >
           <ArrowLeft size={13} /> {t("customer.backToCustomers")}
@@ -162,7 +174,7 @@ const CustomerDetailPage = () => {
           {customer.totalDue > 0 && (
             <button
               onClick={() => setPayOpen(true)}
-              className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold press"
               style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
             >
               <ArrowDownCircle size={15} /> {t("payment.receive")}

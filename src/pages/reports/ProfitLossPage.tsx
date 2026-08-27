@@ -5,6 +5,7 @@ import { reportService, type IProfitLoss } from "../../services/report.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { useRefreshHandler } from "../../native/refresh";
 
 const C = {
   card: "var(--surface-1)",
@@ -55,6 +56,10 @@ const ProfitLossPage = () => {
       setLoading(false);
     }
   };
+
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
+
 
   useEffect(() => {
     load();

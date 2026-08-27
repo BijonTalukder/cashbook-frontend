@@ -310,7 +310,15 @@ const OnboardingPage = () => {
 
   /* ─── Render ───────────────────────────────────────── */
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: "var(--bg)" }}>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-6"
+      style={{
+        background: "var(--bg)",
+        // Rendered outside AppLayout, so it carries its own edge-to-edge insets.
+        paddingTop: "calc(1.5rem + var(--safe-top))",
+        paddingBottom: "calc(1.5rem + var(--safe-bottom))",
+      }}
+    >
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -579,7 +587,7 @@ const OnboardingPage = () => {
               <div>
                 <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>{t("newBusiness.openingBalanceOptional")}</label>
                 <input
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="0"
                   value={bizDetails.openingBalance}
                   onChange={(e) => updateBizDetails({ openingBalance: e.target.value })}

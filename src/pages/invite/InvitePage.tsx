@@ -140,7 +140,11 @@ const InvitePage = () => {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: "var(--bg)" }}
+      style={{
+        background: "var(--bg)",
+        paddingTop: "calc(1.5rem + var(--safe-top))",
+        paddingBottom: "calc(1.5rem + var(--safe-bottom))",
+      }}
     >
       {/* Background glow */}
       <div
@@ -460,7 +464,7 @@ const InvitePage = () => {
               <button
                 onClick={handleAccept}
                 disabled={submitting}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold press"
                 style={{
                   background: "#10b981",
                   color: "#022c22",

@@ -16,8 +16,13 @@
                 ? "dark"
                 : "light";
           document.documentElement.setAttribute("data-theme", theme);
+          var bg = theme === "dark" ? "#0a0f1e" : "#f8fafc";
+          document.documentElement.style.background = bg;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", bg);
         } catch (e) {
           document.documentElement.setAttribute("data-theme", "dark");
+          document.documentElement.style.background = "#0a0f1e";
         }
       })();
     </script>
@@ -30,8 +35,10 @@
          for accessibility (low vision, small mobile screens with dense POS/inventory data) -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, interactive-widget=resizes-content"
     />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="format-detection" content="telephone=no" />
 
     <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -81,6 +88,76 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Boot splash.
+         A WebView shell has no Activity to hold the launch theme once the page
+         starts loading, so without this the user watches a blank frame for as
+         long as the bundle takes to parse. Removed by main.tsx on first render. -->
+    <div id="boot-splash">
+      <div class="boot-mark">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none"
+             stroke="#022c22" stroke-width="2.5" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+          <polyline points="16 7 22 7 22 13" />
+        </svg>
+      </div>
+      <div class="boot-bar"><span></span></div>
+    </div>
+
+    <style>
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        background: #f8fafc;
+        transition: opacity 260ms ease;
+      }
+      [data-theme="dark"] #boot-splash { background: #0a0f1e; }
+      #boot-splash.is-hidden { opacity: 0; pointer-events: none; }
+      .boot-mark {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        background: #10b981;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.32);
+        animation: boot-pop 520ms cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      .boot-bar {
+        width: 120px;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(16, 185, 129, 0.18);
+        overflow: hidden;
+      }
+      .boot-bar span {
+        display: block;
+        width: 40%;
+        height: 100%;
+        border-radius: 999px;
+        background: #10b981;
+        animation: boot-slide 1.1s ease-in-out infinite;
+      }
+      @keyframes boot-pop {
+        from { transform: scale(0.7); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+      @keyframes boot-slide {
+        0% { transform: translateX(-110%); }
+        100% { transform: translateX(360%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-mark, .boot-bar span { animation: none; }
+      }
+    </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

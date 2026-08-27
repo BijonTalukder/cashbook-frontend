@@ -52,6 +52,7 @@ import mealService from "../../services/meal.service";
 import BusinessDashboardContent from "./BusinessDashboardContent";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { useRefreshHandler } from "../../native/refresh";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -130,7 +131,7 @@ const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
   return (
     <button
       onClick={() => navigate("/meals")}
-      className="w-full text-left rounded-2xl p-5 transition-all active:scale-[0.98] group relative overflow-hidden"
+      className="w-full text-left rounded-2xl p-5 press group relative overflow-hidden"
       style={{
         background: "rgba(139,92,246,0.06)",
         border: "1px solid rgba(139,92,246,0.2)",
@@ -253,7 +254,7 @@ const BusinessCard = ({
   return (
     <button
       onClick={() => onSelect(business)}
-      className="w-full text-left rounded-2xl p-5 transition-all duration-200 group relative overflow-hidden active:scale-[0.98]"
+      className="w-full text-left rounded-2xl p-5 transition-all duration-200 group relative overflow-hidden press-sm"
       style={{
         background: isActive ? type.bg : C.card,
         border: `1px solid ${isActive ? type.border : C.border}`,
@@ -443,6 +444,11 @@ const DashboardPage = () => {
 
   useEffect(() => { fetchBusinesses(); }, []);
   useEffect(() => { fetchBusinessData(); }, [fetchBusinessData]);
+
+  // Pull down on the dashboard to re-fetch both halves of it.
+  useRefreshHandler(async () => {
+    await Promise.all([fetchBusinesses(true), fetchBusinessData()]);
+  });
 
   const handleSelect = (b: IBusiness) => {
     setActiveBusiness(b);
@@ -824,7 +830,7 @@ const DashboardPage = () => {
                     <button
                       key={to}
                       onClick={() => navigate(to)}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl active:scale-95 transition-all group"
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl press group"
                       style={{ border: `1px solid ${C.borderLight}` }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
@@ -859,7 +865,7 @@ const DashboardPage = () => {
             </h2>
             <button
               onClick={() => navigate("/business/new")}
-              className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl active:scale-95 transition-all"
+              className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl press"
               style={{
                 background: "rgba(16,185,129,0.08)",
                 border: "1px solid rgba(16,185,129,0.2)",
@@ -884,7 +890,7 @@ const DashboardPage = () => {
               <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>{t("dashboard.noBusinessesHint")}</p>
               <button
                 onClick={() => navigate("/onboarding")}
-                className="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold active:scale-95 transition-all"
+                className="inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold press"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
                 {t("dashboard.setUpBusiness")} <ArrowRight size={14} />

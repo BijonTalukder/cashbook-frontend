@@ -19,6 +19,8 @@ import SettleModal from "../../components/shared/SettleModal";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { plural } from "../../i18n/labels";
+import LoadFailedState from "../../components/shared/LoadFailedState";
+import { toastLoadFailure } from "../../offline/notify";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -76,7 +78,7 @@ const TxnRow = ({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 scroll-x snap-x-rail -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
           <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
             {txn.category?.name ?? t("product.uncategorized")}
             {txn.category?.icon && <span className="ml-1">{txn.category.icon}</span>}
@@ -233,6 +235,7 @@ const TransactionsPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ITransaction | null>(null);
   const [defaultType, setDefaultType] = useState<TxnType>("expense");
+  const [failed, setFailed] = useState(false);
   const [deleting, setDeleting] = useState<ITransaction | null>(null);
   const [settling, setSettling] = useState<ITransaction | null>(null);
 
@@ -247,8 +250,10 @@ const TransactionsPage = () => {
       setSummary(result.summary);
       setTotalPages(result.pagination.totalPages);
       setTotal(result.pagination.total);
+      setFailed(false);
     } catch {
-      toast.error(t("transactions.loadFailed"));
+      setFailed(true);
+      toastLoadFailure(t("transactions.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -300,10 +305,10 @@ const TransactionsPage = () => {
       <div className="max-w-4xl mx-auto px-4 py-6 lg:px-8 lg:py-8 space-y-5">
 
         {/* ── Header ──────────────────────────────────── */}
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <h1
-              className="text-2xl font-bold"
+              className="text-2xl font-bold truncate"
               style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
             >
               {t("transactions.title")}
@@ -318,31 +323,32 @@ const TransactionsPage = () => {
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => fetchTxns(page)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl"
+              aria-label={t("common.refresh")}
+              className="w-10 h-10 flex items-center justify-center rounded-xl flex-shrink-0 press"
               style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
             >
               <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             </button>
             <button
               onClick={() => openAdd("income")}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium active:scale-95"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium press"
               style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981" }}
             >
               <TrendingUp size={13} /> {t("txn.income")}
             </button>
             <button
               onClick={() => openAdd("expense")}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium active:scale-95"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium press"
               style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}
             >
               <TrendingDown size={13} /> {t("txn.expense")}
             </button>
             <button
               onClick={() => openAdd("expense")}
-              className="sm:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium"
+              className="sm:hidden flex items-center gap-1.5 px-3.5 h-10 rounded-xl text-xs font-semibold flex-shrink-0 press"
               style={{ background: "#10b981", color: "#022c22" }}
             >
               <Plus size={14} /> {t("common.add")}
@@ -351,7 +357,7 @@ const TransactionsPage = () => {
         </div>
 
         {/* ── Summary cards ────────────────────────────── */}
-        {summary && (
+        {summary && !failed && (
           <div className="grid grid-cols-3 gap-3">
             {[
               { key: "income", label: t("txn.income"), value: summary.totalIncome, color: "#10b981", icon: ArrowUpRight },
@@ -364,18 +370,24 @@ const TransactionsPage = () => {
                 icon: summary.balance >= 0 ? ArrowUpRight : ArrowDownRight,
               },
             ].map(({ key, label, value, color, icon: Icon }) => (
-              <div key={key} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
+              <div
+                key={key}
+                className="rounded-2xl p-3 sm:p-4 min-w-0"
+                style={{ background: C.card, border: `1px solid ${C.border}` }}
+              >
+                <div className="flex items-center justify-between gap-1 mb-2">
+                  <span className="text-[11px] sm:text-xs truncate" style={{ color: "var(--text-faint)" }}>
+                    {label}
+                  </span>
                   <div
-                    className="w-6 h-6 rounded-md flex items-center justify-center"
+                    className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
                     style={{ background: `${color}15`, color }}
                   >
                     <Icon size={12} />
                   </div>
                 </div>
                 <p
-                  className="text-lg font-bold"
+                  className="text-[15px] sm:text-lg font-bold truncate tabular-nums"
                   style={{ fontFamily: "'DM Serif Display', serif", color }}
                 >
                   {money(Math.abs(value))}
@@ -386,7 +398,7 @@ const TransactionsPage = () => {
         )}
 
         {/* ── Type filter pills ────────────────────────── */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 scroll-x snap-x-rail -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
           {[
             { label: t("transactions.filterAll"), value: "" },
             { label: t("txn.income"), value: "income" },
@@ -399,7 +411,7 @@ const TransactionsPage = () => {
               <button
                 key={value}
                 onClick={() => setTypeFilter(value as TxnType | "")}
-                className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+                className="px-3.5 h-9 flex-shrink-0 rounded-xl text-xs font-medium press whitespace-nowrap"
                 style={{
                   background: isActive ? `${color}15` : C.card,
                   border: `1px solid ${isActive ? `${color}35` : C.border}`,
@@ -427,6 +439,8 @@ const TransactionsPage = () => {
                 {t("transactions.selectBusiness")}
               </p>
             </div>
+          ) : failed ? (
+            <LoadFailedState onRetry={() => fetchTxns(page)} />
           ) : transactions.length === 0 ? (
             <div className="text-center py-16">
               <div
@@ -502,20 +516,41 @@ const TransactionsPage = () => {
       </div>
 
       {/* ── Mobile FAB ───────────────────────────────── */}
-      <div className="lg:hidden fixed bottom-24 right-4 flex flex-col gap-2 z-40">
+      <div
+        className="lg:hidden fixed flex flex-col z-40"
+        style={{
+          // Stacks upward from the assistant button's slot rather than a fixed
+          // offset, so the two no longer overlap on short screens.
+          bottom: "var(--fab-slot-1)",
+          right: "var(--fab-right)",
+          gap: "var(--fab-gap)",
+        }}
+      >
         <button
           onClick={() => openAdd("income")}
-          className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95"
-          style={{ background: "#10b981", boxShadow: "0 8px 24px rgba(16,185,129,0.35)" }}
+          aria-label={t("txn.income")}
+          className="rounded-2xl flex items-center justify-center press"
+          style={{
+            width: "var(--fab-size)",
+            height: "var(--fab-size)",
+            background: "#10b981",
+            boxShadow: "0 8px 24px rgba(16,185,129,0.35)",
+          }}
         >
-          <TrendingUp size={20} className="text-emerald-950" />
+          <TrendingUp size={22} className="text-emerald-950" />
         </button>
         <button
           onClick={() => openAdd("expense")}
-          className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95"
-          style={{ background: "#ef4444", boxShadow: "0 8px 24px rgba(239,68,68,0.35)" }}
+          aria-label={t("txn.expense")}
+          className="rounded-2xl flex items-center justify-center press"
+          style={{
+            width: "var(--fab-size)",
+            height: "var(--fab-size)",
+            background: "#ef4444",
+            boxShadow: "0 8px 24px rgba(239,68,68,0.35)",
+          }}
         >
-          <TrendingDown size={20} className="text-white" />
+          <TrendingDown size={22} className="text-white" />
         </button>
       </div>
 

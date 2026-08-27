@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Receipt } from "lucide-react";
-import { toast } from "sonner";
 import { expenseService, type IExpense } from "../../services/expense.service";
 import { useBusinessStore } from "../../store/businessStore";
 import ExpenseModal from "../../components/shared/ExpenseModal";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { paymentMethodLabel } from "../../i18n/labels";
+import { useRefreshHandler } from "../../native/refresh";
+import LoadFailedState from "../../components/shared/LoadFailedState";
+import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
   card: "var(--surface-1)",
@@ -22,7 +24,9 @@ const ExpensesPage = () => {
 
   const [expenses, setExpenses] = useState<IExpense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
+
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
@@ -39,12 +43,17 @@ const ExpensesPage = () => {
     try {
       const data = await expenseService.getAll(activeBusiness._id, { limit: "50" });
       setExpenses(data.expenses);
+      setFailed(false);
     } catch {
-      toast.error(t("expense.loadFailed"));
+      setFailed(true);
+      toastLoadFailure(t("expense.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
+
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
 
   useEffect(() => { load(); }, [activeBusiness?._id]);
 
@@ -59,7 +68,7 @@ const ExpensesPage = () => {
           </h1>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold press"
             style={{ background: "#ef4444", color: "#fff" }}
           >
             <Plus size={15} /> {t("expense.add")}
@@ -82,6 +91,8 @@ const ExpensesPage = () => {
                 <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
               ))}
             </div>
+          ) : failed ? (
+            <LoadFailedState onRetry={load} />
           ) : expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>

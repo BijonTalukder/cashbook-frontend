@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { X, Loader2, Plus, Minus, Equal } from "lucide-react";
+import { Loader2, Plus, Minus, Equal } from "lucide-react";
 import { toast } from "sonner";
 import { productService, type IProduct } from "../../services/product.service";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import Sheet from "../ui/Sheet";
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -56,29 +57,9 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: C.overlay, backdropFilter: "blur(8px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl overflow-hidden"
-        style={{ background: C.card, border: `1px solid ${C.border}` }}
-      >
-        <div className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-semibold"
-            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("stock.adjust")}
-          </h2>
-          <button onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-lg"
-            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
-            <X size={15} />
-          </button>
-        </div>
+    <Sheet open={open} onClose={onClose} size="sm" title={t("stock.adjust")}>
 
-        <div className="p-5 space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ background: "var(--surface-2)" }}>
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>{product.name}</span>
             <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -113,7 +94,7 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
               {type === "set" ? t("stock.newQuantity") : t("stock.quantity")}
             </label>
             <input
-              type="number" min="0"
+              type="number" inputMode="decimal" min="0"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder={t("common.zero")}
@@ -128,15 +109,14 @@ const StockAdjustModal = ({ open, onClose, onSuccess, product }: Props) => {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
             {t("stock.update")}
           </button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   );
 };
 

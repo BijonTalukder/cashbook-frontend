@@ -2,9 +2,52 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════ */
+
 :root {
-    /* Android WebView থেকে inject হয় — default 0 */
-    --android-status-bar-height: 0px;
+    /* Safe areas.
+       In a plain browser these resolve to env() (notch / gesture bar).
+       The Android WebView wrapper additionally injects real inset values
+       via `NativeBridge.applyInsets()` so edge-to-edge (targetSdk 35+)
+       does not push the header under the status bar. */
+    --safe-top: 0px;
+    --safe-bottom: 0px;
+    --safe-left: 0px;
+    --safe-right: 0px;
+
+    /* Kept for backwards compatibility with the existing wrapper contract */
+    --android-status-bar-height: var(--safe-top);
+
+    /* App chrome metrics — one source of truth so content padding,
+       sticky offsets and the FAB never drift apart. */
+    --header-h: 56px;
+    --bottomnav-h: 62px;
+    --bottomnav-total: calc(var(--bottomnav-h) + var(--safe-bottom));
+
+    /* Floating-action slot. The assistant button occupies slot 0; a screen's
+       own actions stack upward from slot 1 so the two never sit on top of
+       each other (they did, on the transactions screen). */
+    --fab-size: 56px;
+    --fab-gap: 12px;
+    --fab-slot-0: calc(var(--bottomnav-total) + 1rem);
+    --fab-slot-1: calc(var(--fab-slot-0) + var(--fab-size) + var(--fab-gap));
+    --fab-slot-2: calc(var(--fab-slot-1) + var(--fab-size) + var(--fab-gap));
+    --fab-right: calc(1rem + var(--safe-right));
+
+    /* Native motion curves (Material 3 emphasized / standard) */
+    --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --ease-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+    --ease-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+    --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+    --dur-fast: 140ms;
+    --dur-base: 220ms;
+    --dur-slow: 320ms;
+
+    --brand: #10b981;
+    --brand-ink: #022c22;
 
     color-scheme: light;
 
@@ -37,11 +80,18 @@
     --nav-active-bg: rgba(16, 185, 129, 0.12);
 
     --shadow-elevated: 0 10px 40px rgba(15, 23, 42, 0.12);
+    --shadow-sheet: 0 -8px 40px rgba(15, 23, 42, 0.16);
+    --ripple: rgba(15, 23, 42, 0.09);
+    --skeleton-1: rgba(15, 23, 42, 0.05);
+    --skeleton-2: rgba(15, 23, 42, 0.09);
 }
 
 @supports (padding-top: env(safe-area-inset-top)) {
     :root {
-        --android-status-bar-height: env(safe-area-inset-top, 0px);
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
     }
 }
 
@@ -78,9 +128,488 @@
     --nav-active-bg: rgba(16, 185, 129, 0.1);
 
     --shadow-elevated: 0 10px 40px rgba(0, 0, 0, 0.5);
+    --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.6);
+    --ripple: rgba(255, 255, 255, 0.12);
+    --skeleton-1: rgba(255, 255, 255, 0.04);
+    --skeleton-2: rgba(255, 255, 255, 0.09);
+}
+
+/* ═══════════════════════════════════════════════════════
+   NATIVE SHELL RESET
+   Removes the browser tells that betray a WebView: blue tap
+   flashes, text selection on chrome, rubber-band overscroll,
+   pull-to-refresh, long-press callouts, focus rings on touch.
+   ═══════════════════════════════════════════════════════ */
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    /* Never let a wide child scroll the whole document sideways —
+       the single most common "not responsive" symptom. */
+    overflow-x: hidden;
+    /* Kills WebView pull-to-refresh and the bounce at both ends. */
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    height: 100%;
 }
 
 body {
     background: var(--bg);
     color: var(--text-primary);
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+    min-height: 100%;
+    /* Chrome is app furniture, not a document: no accidental selection
+       or callout menus when a tap is held a beat too long. */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    /* Removes the 300ms click delay without banning pinch-zoom. */
+    touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-synthesis-weight: none;
+}
+
+/* Real content stays selectable — users copy amounts, invoice numbers,
+   phone numbers and invite links out of this app constantly. */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.selectable {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
+/* iOS/WebView zooms the viewport when a focused input is under 16px.
+   Rendered size stays visually small via the transform-free trick of
+   just setting 16px and letting padding carry the compactness. */
+@media (max-width: 1023px) {
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+}
+
+/* Focus rings belong to keyboards, not fingers. */
+:focus {
+    outline: none;
+}
+:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+/* Number inputs: no spinner stubs in a touch UI. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+input,
+textarea,
+select,
+button {
+    font-family: inherit;
+}
+
+::placeholder {
+    color: var(--text-faint);
+    opacity: 1;
+}
+
+img {
+    max-width: 100%;
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+/* Native-feeling thin scrollbars on desktop; invisible on touch. */
+@media (min-width: 1024px) {
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--surface-7);
+        border-radius: 999px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+}
+@media (max-width: 1023px) {
+    ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════ */
+
+.no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Any scroller inside the app should trap its overscroll so the
+   gesture never leaks into the page (or the WebView) behind it. */
+.scroll-y {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar {
+    display: none;
+}
+
+/* Horizontal chip rails / filter rows that should snap like a native pager. */
+.snap-x-rail {
+    scroll-snap-type: x proximity;
+}
+.snap-x-rail > * {
+    scroll-snap-align: start;
+}
+
+/* Safe-area helpers */
+.safe-top {
+    padding-top: var(--safe-top);
+}
+.safe-bottom {
+    padding-bottom: var(--safe-bottom);
+}
+.safe-x {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+}
+
+/* Guarantees an Android-minimum 48dp touch target without changing
+   the visual size of the control it wraps. */
+.tap-target {
+    position: relative;
+}
+.tap-target::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 48px);
+    height: max(100%, 48px);
+    transform: translate(-50%, -50%);
+}
+
+/* Press feedback — the single cheapest "this is an app" signal. */
+.press {
+    transition:
+        transform var(--dur-fast) var(--ease-emphasized),
+        opacity var(--dur-fast) var(--ease-emphasized),
+        background-color var(--dur-fast) var(--ease-emphasized);
+    -webkit-tap-highlight-color: transparent;
+}
+.press:active {
+    transform: scale(0.96);
+}
+.press-sm:active {
+    transform: scale(0.98);
+}
+
+/* Tappable list row: a touch-down tint plus a hair of inset, the way an
+   Android list item responds under a finger. Uses :active rather than a JS
+   handler so it fires on touchdown, before any navigation work starts. */
+.row-press {
+    transition:
+        background-color var(--dur-fast) var(--ease-emphasized),
+        transform var(--dur-fast) var(--ease-emphasized);
+}
+.row-press:active {
+    background-color: var(--surface-3);
+    transform: scale(0.995);
+}
+
+/* Material-style ripple, driven by JS setting --rx/--ry on the host. */
+.ripple {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.ripple-ink {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    background: var(--ripple);
+    pointer-events: none;
+    animation: ripple-out 520ms var(--ease-decelerate) forwards;
+}
+
+@keyframes ripple-out {
+    to {
+        transform: scale(2.4);
+        opacity: 0;
+    }
+}
+
+/* Hairline dividers that stay 1 physical pixel on 2x/3x screens. */
+.hairline-b {
+    border-bottom: 1px solid var(--border-light);
+}
+@media (min-resolution: 2dppx) {
+    .hairline-b {
+        border-bottom-width: 0.5px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOTION
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes sheet-up {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+@keyframes sheet-down {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(100%);
+    }
+}
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: scale(0.94) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+@keyframes dialog-out {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+@keyframes scrim-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes scrim-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+@keyframes page-forward {
+    from {
+        opacity: 0;
+        transform: translate3d(16px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+@keyframes page-back {
+    from {
+        opacity: 0;
+        transform: translate3d(-16px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+@keyframes shimmer {
+    from {
+        background-position: -200% 0;
+    }
+    to {
+        background-position: 200% 0;
+    }
+}
+@keyframes spin-native {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.anim-sheet-up {
+    animation: sheet-up var(--dur-slow) var(--ease-decelerate);
+}
+.anim-sheet-down {
+    animation: sheet-down var(--dur-base) var(--ease-accelerate) forwards;
+}
+.anim-dialog-in {
+    animation: dialog-in var(--dur-base) var(--ease-spring);
+}
+.anim-dialog-out {
+    animation: dialog-out var(--dur-fast) var(--ease-accelerate) forwards;
+}
+.anim-scrim-in {
+    animation: scrim-in var(--dur-base) var(--ease-emphasized);
+}
+.anim-scrim-out {
+    animation: scrim-out var(--dur-base) var(--ease-emphasized) forwards;
+}
+.anim-page-forward {
+    animation: page-forward var(--dur-base) var(--ease-decelerate);
+}
+.anim-page-back {
+    animation: page-back var(--dur-base) var(--ease-decelerate);
+}
+.anim-fade-up {
+    animation: fade-up var(--dur-slow) var(--ease-decelerate) both;
+}
+
+/* Staggered list entry — makes a freshly loaded list feel populated
+   rather than pasted in. Capped so long lists don't crawl. */
+.stagger > * {
+    animation: fade-up 300ms var(--ease-decelerate) both;
+}
+.stagger > *:nth-child(1) {
+    animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+    animation-delay: 25ms;
+}
+.stagger > *:nth-child(3) {
+    animation-delay: 50ms;
+}
+.stagger > *:nth-child(4) {
+    animation-delay: 75ms;
+}
+.stagger > *:nth-child(5) {
+    animation-delay: 100ms;
+}
+.stagger > *:nth-child(6) {
+    animation-delay: 125ms;
+}
+.stagger > *:nth-child(7) {
+    animation-delay: 150ms;
+}
+.stagger > *:nth-child(n + 8) {
+    animation-delay: 175ms;
+}
+
+/* Skeletons: a moving shimmer reads as "loading", a static block reads
+   as "broken". */
+.skeleton {
+    background:
+        linear-gradient(
+            90deg,
+            var(--skeleton-1) 25%,
+            var(--skeleton-2) 50%,
+            var(--skeleton-1) 75%
+        );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+    border-radius: 12px;
+}
+
+/* Every existing placeholder in the app is a Tailwind `animate-pulse` block
+   with an inline surface background. A pulsing flat block reads as a stalled
+   screen; a shimmer reads as progress. Upgrading them here rather than at ~20
+   call sites keeps the two styles from drifting apart.
+   `!important` is load-bearing: it is what lets these win over the inline
+   `background:` shorthand those elements already carry. */
+.animate-pulse {
+    animation: shimmer 1.4s linear infinite !important;
+    background-image: linear-gradient(
+        90deg,
+        transparent 25%,
+        var(--skeleton-2) 50%,
+        transparent 75%
+    ) !important;
+    background-size: 200% 100% !important;
+    opacity: 1 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL / SHEET BODY LOCK
+   Applied by useBodyScrollLock so the page behind a sheet
+   cannot scroll or bounce on touch.
+   ═══════════════════════════════════════════════════════ */
+
+body.sheet-open {
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PRINT — invoices are printed / saved as PDF from this app
+   ═══════════════════════════════════════════════════════ */
+
+@media print {
+    .no-print,
+    header,
+    nav,
+    aside {
+        display: none !important;
+    }
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+    main {
+        padding: 0 !important;
+    }
 }
