@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { expenseService, type IExpense } from "../../services/expense.service";
 import { transactionService, type ITxnCategory } from "../../services/transaction.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { paymentMethodLabel } from "../../i18n/labels";
+import Sheet from "../ui/Sheet";
 
 const C = {
   overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
@@ -85,29 +86,9 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: C.overlay, backdropFilter: "blur(8px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: C.card, border: `1px solid ${C.border}`, maxHeight: "90dvh", overflowY: "auto" }}
-      >
-        <div className="flex items-center justify-between px-5 py-4 sticky top-0 z-10"
-          style={{ background: C.card, borderBottom: `1px solid ${C.border}` }}>
-          <h2 className="text-base font-semibold"
-            style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("expense.add")}
-          </h2>
-          <button onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-lg"
-            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
-            <X size={15} />
-          </button>
-        </div>
+    <Sheet open={open} onClose={onClose} size="md" title={t("expense.add")}>
 
-        <form onSubmit={onSubmit} className="p-5 space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("common.category")}</label>
             <div className="flex flex-wrap gap-2">
@@ -116,7 +97,7 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
                   key={c._id}
                   type="button"
                   onClick={() => setCategoryId(c._id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all"
+                  className="flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium border flex-shrink-0 whitespace-nowrap press"
                   style={{
                     background: categoryId === c._id ? "rgba(239,68,68,0.1)" : "var(--surface-2)",
                     borderColor: categoryId === c._id ? "rgba(239,68,68,0.4)" : C.border,
@@ -132,7 +113,7 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
 
           <div>
             <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("common.amount")}</label>
-            <input type="number" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
+            <input type="number" inputMode="decimal" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)}
               placeholder={t("common.zero")} style={inputCss()} />
           </div>
 
@@ -164,15 +145,14 @@ const ExpenseModal = ({ open, onClose, onSuccess }: Props) => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#ef4444", color: "#fff" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}
             {t("expense.add")}
           </button>
         </form>
-      </div>
-    </div>
+    </Sheet>
   );
 };
 

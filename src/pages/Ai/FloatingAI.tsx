@@ -21,6 +21,8 @@ import {
 } from "../../services/business.service";
 import api from "../../services/api";
 import { useTranslation } from "../../i18n/useTranslation";
+import { haptic } from "../../native/bridge";
+import { useBackHandler, useBodyScrollLock, useMediaQuery } from "../../native/hooks";
 import type { TFunction } from "../../i18n/useTranslation";
 import { enumLabel } from "../../i18n/labels";
 
@@ -185,6 +187,7 @@ const Bubble = ({ msg, onRetry }: { msg: Message; onRetry?: () => void }) => {
 const FloatingAI = () => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [step, setStep] = useState<Step>("select");
   const [businesses, setBusinesses] = useState<IBusiness[]>([]);
   const [loadingBiz, setLoadingBiz] = useState(false);
@@ -318,17 +321,26 @@ const FloatingAI = () => {
     setTimeout(handleReset, 300);
   };
 
+  // The assistant is a full-screen surface on phones: back should dismiss it
+  // and the page behind it must not scroll while it is up.
+  useBackHandler(open, handleClose);
+  useBodyScrollLock(open);
+
   const suggestionKeys = SUGGESTION_KEYS[selected?.type ?? "personal"] ?? SUGGESTION_KEYS.personal;
 
   return (
     <>
       {/* Floating button */}
       <button
-        onClick={() => setOpen(true)}
-        className="fixed z-40 w-14 h-14 rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+        onClick={() => { haptic("medium"); setOpen(true); }}
+        aria-label={t("ai.assistant")}
+        className="fixed z-40 w-14 h-14 rounded-2xl flex items-center justify-center press"
         style={{
-          bottom: "13rem",
-          right: "1rem",
+          // Sits one gap above the tab bar, like a Material FAB anchored to a
+          // BottomAppBar — the old fixed 13rem floated it mid-screen on phones
+          // and collided with page content on short viewports.
+          bottom: isDesktop ? "1.5rem" : "var(--fab-slot-0)",
+          right: "var(--fab-right)",
           background: "linear-gradient(135deg,#10b981,#0d9488)",
           boxShadow: "0 8px 32px rgba(16,185,129,0.35)",
         }}
@@ -339,7 +351,7 @@ const FloatingAI = () => {
       {/* Modal */}
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-16 sm:pb-0"
+          className="fixed inset-0 z-[210] flex items-end sm:items-center justify-center"
           style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(4px)" }}
           onClick={(e) => {
             if (e.target === e.currentTarget) handleClose();
@@ -351,11 +363,9 @@ const FloatingAI = () => {
               background: "var(--bg-elevated)",
               border: "1px solid var(--border-strong)",
               boxShadow: "var(--shadow-elevated)",
-              height:
-                step === "chat"
-                  ? "calc(82vh - env(safe-area-inset-bottom))"
-                  : "auto",
-              maxHeight: "82vh",
+              height: step === "chat" ? "82dvh" : "auto",
+              maxHeight: "88dvh",
+              paddingBottom: "var(--safe-bottom)",
             }}
           >
             {/* Header */}
@@ -635,7 +645,7 @@ const FloatingAI = () => {
                   <button
                     onClick={() => handleSend()}
                     disabled={!input.trim() || thinking || greeting}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 active:scale-95 transition-all"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 press"
                     style={{ background: "#10b981" }}
                   >
                     {thinking ? (

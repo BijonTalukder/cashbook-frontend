@@ -168,7 +168,7 @@ const DueCard = ({
             {isMeFrom && (
               <button
                 onClick={() => onSettleAll(due)}
-                className="flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+                className="flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 press"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
                 <CheckCircle2 size={13} /> {t("dues.markPaid")}

@@ -161,7 +161,7 @@ const ShareInviteLink = ({
         <button
           onClick={copy}
           title={t("members.copyLink")}
-          className="w-7 h-7 flex items-center justify-center rounded-lg transition-all active:scale-95"
+          className="w-7 h-7 flex items-center justify-center rounded-lg press"
           style={actionStyle}
         >
           <Copy size={12} />
@@ -169,7 +169,7 @@ const ShareInviteLink = ({
         <button
           onClick={whatsapp}
           title={t("members.shareWhatsApp")}
-          className="w-7 h-7 flex items-center justify-center rounded-lg transition-all active:scale-95"
+          className="w-7 h-7 flex items-center justify-center rounded-lg press"
           style={{
             background: "rgba(37,211,102,0.1)",
             border: "1px solid rgba(37,211,102,0.25)",
@@ -182,7 +182,7 @@ const ShareInviteLink = ({
           <button
             onClick={share}
             title={t("members.share")}
-            className="w-7 h-7 flex items-center justify-center rounded-lg transition-all active:scale-95"
+            className="w-7 h-7 flex items-center justify-center rounded-lg press"
             style={actionStyle}
           >
             <Share2 size={12} />
@@ -214,7 +214,7 @@ const ShareInviteLink = ({
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={copy}
-          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all active:scale-[0.98]"
+          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium press"
           style={actionStyle}
         >
           <Copy size={13} />
@@ -222,7 +222,7 @@ const ShareInviteLink = ({
         </button>
         <button
           onClick={whatsapp}
-          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all active:scale-[0.98]"
+          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium press"
           style={{
             background: "rgba(37,211,102,0.12)",
             border: "1px solid rgba(37,211,102,0.3)",
@@ -235,7 +235,7 @@ const ShareInviteLink = ({
         {canShareNative() && (
           <button
             onClick={share}
-            className="col-span-2 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all active:scale-[0.98]"
+            className="col-span-2 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium press"
             style={actionStyle}
           >
             <Share2 size={13} />
@@ -463,7 +463,7 @@ const InviteModal = ({
               <button
                 onClick={handleInvite}
                 disabled={submitting || !email.trim()}
-                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 press"
                 style={{
                   background: "#10b981",
                   color: "#022c22",
@@ -1018,7 +1018,7 @@ const MembersPage = () => {
             {canInvite && (
               <button
                 onClick={() => setInviteOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium press"
                 style={{ background: "#10b981", color: "#022c22" }}
               >
                 <UserPlus size={15} />

@@ -11,6 +11,8 @@ import SupplierModal from "../../components/shared/SupplierModal";
 import PaymentModal from "../../components/shared/PaymentModal";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { confirmAction } from "../../components/ui/confirm";
+import { useRefreshHandler } from "../../native/refresh";
 
 const C = {
   card: "var(--surface-1)",
@@ -43,11 +45,21 @@ const SupplierDetailPage = () => {
     }
   };
 
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
+
+
   useEffect(() => { load(); }, [id]);
 
   const handleDelete = async () => {
     if (!supplier) return;
-    if (!confirm(t("supplier.confirmRemove", { name: supplier.name }))) return;
+    const ok = await confirmAction({
+      title: t("supplier.confirmRemove", { name: supplier.name }),
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await supplierService.remove(supplier._id);
       toast.success(t("supplier.removed"));
@@ -84,7 +96,7 @@ const SupplierDetailPage = () => {
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
         <button
           onClick={() => navigate("/suppliers")}
-          className="flex items-center gap-1.5 text-xs"
+          className="hidden lg:flex items-center gap-1.5 text-xs press"
           style={{ color: "var(--text-faint)" }}
         >
           <ArrowLeft size={13} /> {t("supplier.backToSuppliers")}
@@ -162,7 +174,7 @@ const SupplierDetailPage = () => {
           {supplier.totalPayable > 0 && (
             <button
               onClick={() => setPayOpen(true)}
-              className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold press"
               style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
             >
               <ArrowUpCircle size={15} /> {t("payment.make")}

@@ -162,7 +162,7 @@ const ProfileSection = () => {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold press disabled:opacity-60"
         style={{ background: "#10b981", color: "#022c22" }}
       >
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
@@ -287,7 +287,7 @@ const PasswordSection = () => {
       <button
         onClick={handleChange}
         disabled={saving}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold press disabled:opacity-60"
         style={{ background: "var(--surface-4)", border: "1px solid var(--border-strong)", color: "var(--text-secondary)" }}
       >
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}

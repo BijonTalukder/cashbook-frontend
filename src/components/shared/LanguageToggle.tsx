@@ -81,7 +81,7 @@ const LanguageToggle = ({ variant = "icon", className = "" }: LanguageToggleProp
       onClick={toggleLanguage}
       aria-label={t("settings.switchLanguage")}
       title={t("settings.switchLanguage")}
-      className={`h-9 min-w-9 px-2 flex items-center justify-center rounded-xl text-xs font-semibold transition-all active:scale-90 ${className}`}
+      className={`h-9 min-w-9 px-2 flex items-center justify-center rounded-xl text-xs font-semibold press ${className}`}
       style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
     >
       {meta.short}

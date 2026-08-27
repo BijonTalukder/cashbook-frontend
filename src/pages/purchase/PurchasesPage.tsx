@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Package, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
 import { purchaseService, type IPurchase } from "../../services/purchase.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { plural } from "../../i18n/labels";
+import { useRefreshHandler } from "../../native/refresh";
+import LoadFailedState from "../../components/shared/LoadFailedState";
+import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
   card: "var(--surface-1)",
@@ -27,6 +29,7 @@ const PurchasesPage = () => {
 
   const [purchases, setPurchases] = useState<IPurchase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   const load = async () => {
     if (!activeBusiness) return;
@@ -34,12 +37,18 @@ const PurchasesPage = () => {
     try {
       const data = await purchaseService.getAll(activeBusiness._id, { limit: "50" });
       setPurchases(data.purchases);
+      setFailed(false);
     } catch {
-      toast.error(t("purchase.loadFailed"));
+      setFailed(true);
+      toastLoadFailure(t("purchase.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
+
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
+
 
   useEffect(() => { load(); }, [activeBusiness?._id]);
 
@@ -52,7 +61,7 @@ const PurchasesPage = () => {
           </h1>
           <button
             onClick={() => navigate("/purchases/new")}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold press"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             <Plus size={15} /> {t("purchase.add")}
@@ -66,6 +75,8 @@ const PurchasesPage = () => {
                 <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
               ))}
             </div>
+          ) : failed ? (
+            <LoadFailedState onRetry={load} />
           ) : purchases.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
@@ -81,7 +92,7 @@ const PurchasesPage = () => {
                 <button
                   key={p._id}
                   onClick={() => navigate(`/purchases/${p._id}`)}
-                  className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all"
+                  className="row-press w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 text-left"
                   style={{ borderBottom: "1px solid var(--border-light)" }}
                 >
                   <div className="flex-1 min-w-0">

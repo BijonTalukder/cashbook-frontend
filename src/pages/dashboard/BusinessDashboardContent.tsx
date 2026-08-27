@@ -6,7 +6,6 @@ import {
   Wallet, Landmark, TrendingUp, HandCoins,
   Clock, ArrowLeftRight, ArrowRight, RefreshCw,
 } from "lucide-react";
-import { toast } from "sonner";
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
 } from "recharts";
@@ -17,6 +16,8 @@ import { supplierService, type ISupplier } from "../../services/supplier.service
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { toCurrency } from "../../utils/currency";
+import LoadFailedState from "../../components/shared/LoadFailedState";
+import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
   card: "var(--surface-1)",
@@ -29,6 +30,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
   const [topDebtors, setTopDebtors] = useState<ICustomer[]>([]);
   const [topCreditors, setTopCreditors] = useState<ISupplier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const { t } = useTranslation();
   const { money, compact, date: fmtDate } = useFormat(toCurrency(business.currency));
 
@@ -45,20 +47,42 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
 
   const load = async (silent = false) => {
     if (!silent) setLoading(true);
-    try {
-      const [data, customers, suppliers] = await Promise.all([
-        dashboardService.getBusinessSummary(business._id),
-        customerService.getAll(business._id),
-        supplierService.getAll(business._id),
-      ]);
-      setSummary(data);
-      setTopDebtors(customers.filter((c) => c.totalDue > 0).sort((a, b) => b.totalDue - a.totalDue).slice(0, 3));
-      setTopCreditors(suppliers.filter((s) => s.totalPayable > 0).sort((a, b) => b.totalPayable - a.totalPayable).slice(0, 3));
-    } catch {
-      toast.error(t("bizDashboard.loadFailed"));
-    } finally {
-      setLoading(false);
+
+    /* allSettled, not all.
+       Customers are mirrored to IndexedDB; the summary and suppliers are not.
+       With Promise.all, the one online-only call that fails offline threw away
+       the debtor list the device could perfectly well have shown from cache. */
+    const [summaryRes, customersRes, suppliersRes] = await Promise.allSettled([
+      dashboardService.getBusinessSummary(business._id),
+      customerService.getAll(business._id),
+      supplierService.getAll(business._id),
+    ]);
+
+    if (summaryRes.status === "fulfilled") setSummary(summaryRes.value);
+    if (customersRes.status === "fulfilled") {
+      setTopDebtors(
+        customersRes.value
+          .filter((c) => c.totalDue > 0)
+          .sort((a, b) => b.totalDue - a.totalDue)
+          .slice(0, 3),
+      );
     }
+    if (suppliersRes.status === "fulfilled") {
+      setTopCreditors(
+        suppliersRes.value
+          .filter((s) => s.totalPayable > 0)
+          .sort((a, b) => b.totalPayable - a.totalPayable)
+          .slice(0, 3),
+      );
+    }
+
+    // Only the summary drives the headline figures, so only it decides whether
+    // the numbers are trustworthy.
+    const summaryFailed = summaryRes.status === "rejected";
+    setFailed(summaryFailed);
+    if (summaryFailed && !silent) toastLoadFailure(t("bizDashboard.loadFailed"));
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -108,8 +132,16 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
             {loading ? (
               <div className="h-6 w-16 rounded animate-pulse" style={{ background: "var(--surface-4)" }} />
             ) : (
-              <p className="text-xl font-bold leading-none truncate" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-                {money(value)}
+              <p
+                className="text-xl font-bold leading-none truncate"
+                style={{
+                  fontFamily: "'DM Serif Display', serif",
+                  color: failed ? "var(--text-faint)" : "var(--text-primary)",
+                }}
+              >
+                {/* An em dash, not ৳0 — a figure the app could not fetch is not
+                    the same as a day with no takings. */}
+                {failed ? "—" : money(value)}
               </p>
             )}
           </div>
@@ -124,7 +156,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
             <button
               key={key}
               onClick={onClick}
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl active:scale-95 transition-all group"
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl press group"
               style={{ border: "1px solid var(--border-light)" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
@@ -153,6 +185,8 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
                 <div key={i} className="h-12 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
               ))}
             </div>
+          ) : failed ? (
+            <LoadFailedState onRetry={() => load()} />
           ) : !summary?.recentTransactions.length ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>

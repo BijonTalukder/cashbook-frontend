@@ -9,6 +9,9 @@ import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { enumLabel, paymentMethodLabel } from "../../i18n/labels";
+import { useRefreshHandler } from "../../native/refresh";
+import LoadFailedState from "../../components/shared/LoadFailedState";
+import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
   card: "var(--surface-1)",
@@ -27,6 +30,7 @@ const LedgerPage = () => {
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [showFilters, setShowFilters] = useState(!!searchParams.get("sourceType"));
 
   const [type, setType] = useState("");
@@ -36,6 +40,7 @@ const LedgerPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
 
   useEffect(() => {
     if (!activeBusiness) return;
@@ -58,12 +63,17 @@ const LedgerPage = () => {
 
       const data = await transactionService.getAll(activeBusiness._id, params);
       setTransactions(data.transactions);
+      setFailed(false);
     } catch {
-      toast.error(t("ledger.loadFailed"));
+      setFailed(true);
+      toastLoadFailure(t("ledger.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
+
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
 
   useEffect(() => {
     load();
@@ -195,6 +205,8 @@ const LedgerPage = () => {
                 <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
               ))}
             </div>
+          ) : failed ? (
+            <LoadFailedState onRetry={load} />
           ) : transactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>

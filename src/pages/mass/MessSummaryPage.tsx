@@ -75,7 +75,7 @@ const MemberCard = ({ m }: { m: MessMember }) => {
     >
       <button
         onClick={() => setOpen((p) => !p)}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
+        className="row-press w-full flex items-center gap-3 px-4 py-3.5 text-left"
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLElement).style.background =
             "var(--surface-1)";

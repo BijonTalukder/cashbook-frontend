@@ -41,7 +41,7 @@ const MealDashboardWidget = ({ businessId }: Props) => {
   return (
     <button
       onClick={() => navigate("/meals")}
-      className="w-full text-left rounded-2xl p-5 transition-all active:scale-[0.98] group"
+      className="w-full text-left rounded-2xl p-5 press group"
       style={{
         background: "rgba(139,92,246,0.05)",
         border: "1px solid rgba(139,92,246,0.2)",

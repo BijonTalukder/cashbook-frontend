@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FileText,
@@ -25,6 +25,10 @@ import {
 } from "../../services/Invoice.service";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { confirmAction } from "../../components/ui/confirm";
+import LoadFailedState from "../../components/shared/LoadFailedState";
+import { useRefreshHandler } from "../../native/refresh";
+import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
   bg: "var(--bg)",
@@ -356,10 +360,11 @@ const InvoicePage = () => {
   const [transactions, setTransactions] = useState<Tx[]>([]);
   const [invoices, setInvoices] = useState<IInvoiceListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [showGenerate, setShowGenerate] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!businessId) return;
     setLoading(true);
     Promise.all([
@@ -369,10 +374,19 @@ const InvoicePage = () => {
       .then(([txRes, invRes]) => {
         setTransactions(txRes.transactions ?? []);
         setInvoices(invRes);
+        setFailed(false);
       })
-      .catch(() => toast.error(t("invoices.loadFailed")))
+      .catch(() => {
+        setFailed(true);
+        toastLoadFailure(t("invoices.loadFailed"));
+      })
       .finally(() => setLoading(false));
   }, [businessId, t]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
 
   const filtered = transactions.filter(
     (t) => filter === "all" || t.type === filter,
@@ -386,7 +400,13 @@ const InvoicePage = () => {
   const net = totalIncome - totalExpense;
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t("invoices.deleteConfirm"))) return;
+    const ok = await confirmAction({
+      title: t("invoices.deleteConfirm"),
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await invoiceService.delete(businessId, id);
       setInvoices((p) => p.filter((i) => i._id !== id));
@@ -469,8 +489,8 @@ const InvoicePage = () => {
                 {label}
               </span>
             </div>
-            <p className="text-lg font-bold" style={{ color: c }}>
-              {money(v, { decimals: 0 })}
+            <p className="text-lg font-bold truncate" style={{ color: failed ? "var(--text-faint)" : c }}>
+              {failed ? "—" : money(v, { decimals: 0 })}
             </p>
           </div>
         ))}
@@ -501,7 +521,7 @@ const InvoicePage = () => {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  className="px-3.5 h-9 flex items-center rounded-lg text-xs font-medium flex-shrink-0 whitespace-nowrap press"
                   style={{
                     background: active ? `${col}18` : "transparent",
                     border: `1px solid ${active ? `${col}40` : "transparent"}`,
@@ -526,6 +546,8 @@ const InvoicePage = () => {
               style={{ color: "#10b981" }}
             />
           </div>
+        ) : failed ? (
+          <LoadFailedState onRetry={load} />
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-sm" style={{ color: "var(--text-faint)" }}>

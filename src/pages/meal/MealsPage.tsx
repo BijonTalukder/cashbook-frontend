@@ -256,7 +256,7 @@ const MealModal = ({
                 <div className="flex items-center justify-center gap-5">
                   <button
                     onClick={() => setCount((p) => Math.max(0, p - 1))}
-                    className="w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-90"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center press"
                     style={{
                       background: C.card,
                       border: `1px solid ${C.border}`,
@@ -282,7 +282,7 @@ const MealModal = ({
                   </div>
                   <button
                     onClick={() => setCount((p) => Math.min(30, p + 1))}
-                    className="w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-90"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center press"
                     style={{
                       background: "rgba(139,92,246,0.1)",
                       border: "1px solid rgba(139,92,246,0.3)",
@@ -327,7 +327,7 @@ const MealModal = ({
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold press disabled:opacity-60"
                   style={{ background: C.purple, color: "#fff" }}
                 >
                   {saving ? (
@@ -376,7 +376,7 @@ const DayCell = ({
     <button
       onClick={onClick}
       disabled={!isCurrentMonth}
-      className="relative aspect-square w-full rounded-xl flex flex-col items-center justify-center transition-all active:scale-95"
+      className="relative aspect-square w-full rounded-xl flex flex-col items-center justify-center press"
       style={{
         background: isSelected
           ? "rgba(139,92,246,0.15)"
@@ -589,7 +589,7 @@ const MealsPage = () => {
           {!isAdmin && (
             <button
               onClick={() => setSelectedDate(new Date())}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold press"
               style={{
                 background: "rgba(139,92,246,0.1)",
                 border: "1px solid rgba(139,92,246,0.3)",

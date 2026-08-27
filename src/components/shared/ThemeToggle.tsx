@@ -41,7 +41,7 @@ const ThemeToggle = ({ variant = "icon", className = "" }: ThemeToggleProps) => 
     <button
       onClick={toggleTheme}
       aria-label={isDark ? t("theme.switchToLight") : t("theme.switchToDark")}
-      className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all active:scale-90 ${className}`}
+      className={`w-9 h-9 flex items-center justify-center rounded-xl press ${className}`}
       style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
     >
       {isDark ? <Sun size={17} /> : <Moon size={17} />}

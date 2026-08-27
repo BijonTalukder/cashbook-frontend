@@ -288,7 +288,7 @@ const AccordionItem = ({ section, defaultOpen = false }: { section: Section; def
             <button
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
-                className="w-full flex items-center gap-3 px-5 py-4 text-left transition-all"
+                className="row-press w-full flex items-center gap-3 px-4 sm:px-5 py-4 text-left"
                 style={{ background: open ? "var(--surface-1)" : "transparent" }}
             >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -326,7 +326,14 @@ const PrivacyPolicyPage = () => {
     const { t, isBangla } = useTranslation();
 
     return (
-        <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+        <div
+          className="min-h-screen"
+          style={{
+            background: "var(--bg)",
+            paddingTop: "var(--safe-top)",
+            paddingBottom: "var(--safe-bottom)",
+          }}
+        >
 
             {/* ── Top bar ── */}
             <div className="sticky top-0 z-10 flex items-center gap-3 px-4 h-14"

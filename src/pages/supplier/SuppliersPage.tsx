@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Plus, Truck, Phone, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
 import { supplierService, type ISupplier } from "../../services/supplier.service";
 import { useBusinessStore } from "../../store/businessStore";
 import SupplierModal from "../../components/shared/SupplierModal";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { useRefreshHandler } from "../../native/refresh";
+import LoadFailedState from "../../components/shared/LoadFailedState";
+import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
   card: "var(--surface-1)",
@@ -22,8 +24,10 @@ const SuppliersPage = () => {
 
   const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
+
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
@@ -40,12 +44,17 @@ const SuppliersPage = () => {
     try {
       const data = await supplierService.getAll(activeBusiness._id, search || undefined);
       setSuppliers(data);
+      setFailed(false);
     } catch {
-      toast.error(t("supplier.loadFailed"));
+      setFailed(true);
+      toastLoadFailure(t("supplier.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
+
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
 
   useEffect(() => {
     const timer = setTimeout(load, 250);
@@ -62,7 +71,7 @@ const SuppliersPage = () => {
           </h1>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold press"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             <Plus size={15} /> {t("supplier.add")}
@@ -87,6 +96,8 @@ const SuppliersPage = () => {
                 <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
               ))}
             </div>
+          ) : failed ? (
+            <LoadFailedState onRetry={load} />
           ) : suppliers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
@@ -104,7 +115,7 @@ const SuppliersPage = () => {
               <button
                 key={s._id}
                 onClick={() => navigate(`/suppliers/${s._id}`)}
-                className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all"
+                className="row-press w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 text-left"
                 style={{ borderBottom: "1px solid var(--border-light)" }}
               >
                 <div

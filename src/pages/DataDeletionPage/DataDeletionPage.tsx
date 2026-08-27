@@ -38,7 +38,14 @@ const DataDeletionPage = () => {
     };
 
     return (
-        <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+        <div
+          className="min-h-screen"
+          style={{
+            background: "var(--bg)",
+            paddingTop: "var(--safe-top)",
+            paddingBottom: "var(--safe-bottom)",
+          }}
+        >
 
             {/* Top bar */}
             <div className="sticky top-0 z-10 flex items-center gap-3 px-4 h-14"
@@ -209,7 +216,7 @@ const DataDeletionPage = () => {
                             <button
                                 type="submit"
                                 disabled={status === "loading"}
-                                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm disabled:opacity-60 transition-all active:scale-95"
+                                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm disabled:opacity-60 press"
                                 style={{ background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "white" }}>
                                 {status === "loading"
                                     ? <><Loader2 size={16} className="animate-spin" /> {t("dataDeletion.processing")}</>

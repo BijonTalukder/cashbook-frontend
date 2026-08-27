@@ -180,7 +180,7 @@ const NewSalePage = () => {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
-        <button onClick={() => navigate("/sales")} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-faint)" }}>
+        <button onClick={() => navigate("/sales")} className="hidden lg:flex items-center gap-1.5 text-xs press" style={{ color: "var(--text-faint)" }}>
           <ArrowLeft size={13} /> {t("sale.backToSales")}
         </button>
 
@@ -219,13 +219,13 @@ const NewSalePage = () => {
                     ))}
                   </select>
                   <input
-                    type="number" min="0.01" step="0.01" placeholder={t("common.qtyShort")} aria-label={t("common.qtyShort")}
+                    type="number" inputMode="decimal" min="0.01" step="0.01" placeholder={t("common.qtyShort")} aria-label={t("common.qtyShort")}
                     value={row.quantity}
                     onChange={(e) => updateRow(i, { quantity: e.target.value })}
                     style={{ ...inputCss, flex: 1 }}
                   />
                   <input
-                    type="number" min="0" step="0.01" placeholder={t("common.priceShort")} aria-label={t("common.priceShort")}
+                    type="number" inputMode="decimal" min="0" step="0.01" placeholder={t("common.priceShort")} aria-label={t("common.priceShort")}
                     value={row.unitPrice}
                     onChange={(e) => updateRow(i, { unitPrice: e.target.value })}
                     style={{ ...inputCss, flex: 1 }}
@@ -256,11 +256,11 @@ const NewSalePage = () => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("common.discount")}</label>
-              <input type="number" min="0" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} style={inputCss} />
+              <input type="number" inputMode="decimal" min="0" step="0.01" value={discount} onChange={(e) => setDiscount(e.target.value)} style={inputCss} />
             </div>
             <div>
               <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("sale.tax")}</label>
-              <input type="number" min="0" step="0.01" value={tax} onChange={(e) => setTax(e.target.value)} style={inputCss} />
+              <input type="number" inputMode="decimal" min="0" step="0.01" value={tax} onChange={(e) => setTax(e.target.value)} style={inputCss} />
             </div>
           </div>
 
@@ -276,7 +276,7 @@ const NewSalePage = () => {
             <div>
               <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("common.paidAmount")}</label>
               <input
-                type="number" min="0" step="0.01"
+                type="number" inputMode="decimal" min="0" step="0.01"
                 value={paidTouched ? paidAmount : total.toFixed(2)}
                 onChange={(e) => { setPaidTouched(true); setPaidAmount(e.target.value); }}
                 style={inputCss}
@@ -314,7 +314,7 @@ const NewSalePage = () => {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             {submitting && <Loader2 size={14} className="animate-spin" />}

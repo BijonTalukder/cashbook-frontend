@@ -122,7 +122,14 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center p-6">
+    <div
+      className="min-h-screen bg-[#0a0f1e] flex items-center justify-center p-6"
+      style={{
+        // Edge-to-edge: the form must clear the status bar and the gesture bar.
+        paddingTop: "calc(1.5rem + var(--safe-top))",
+        paddingBottom: "calc(1.5rem + var(--safe-bottom))",
+      }}
+    >
       <div className="w-full max-w-lg">
         {/* Logo */}
         <div className="flex items-center justify-between gap-3 mb-10">
@@ -165,6 +172,9 @@ const RegisterPage = () => {
               </label>
               <input
                 {...register("firstName")}
+                autoComplete="given-name"
+                autoCapitalize="words"
+                enterKeyHint="next"
                 placeholder={t("auth.firstNamePlaceholder")}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
@@ -182,6 +192,9 @@ const RegisterPage = () => {
               </label>
               <input
                 {...register("lastName")}
+                autoComplete="family-name"
+                autoCapitalize="words"
+                enterKeyHint="next"
                 placeholder={t("auth.lastNamePlaceholder")}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
@@ -203,6 +216,12 @@ const RegisterPage = () => {
             <input
               {...register("email")}
               type="email"
+              inputMode="email"
+              autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="next"
               placeholder={t("auth.emailPlaceholder")}
               className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-slate-600 
                 focus:outline-none focus:ring-2 transition-all text-sm
@@ -224,8 +243,10 @@ const RegisterPage = () => {
               <input
                 {...register("password")}
                 type={showPass ? "text" : "password"}
+                autoComplete="new-password"
+                enterKeyHint="next"
                 placeholder={t("auth.passwordHint")}
-                className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-11 text-white placeholder-slate-600 
+                className={`w-full bg-white/5 border rounded-xl px-4 py-3 pr-14 text-white placeholder-slate-600 
                   focus:outline-none focus:ring-2 transition-all text-sm
                   ${errors.password ? "border-red-500/50 focus:ring-red-500/20" : "border-white/10 focus:ring-emerald-500/20 focus:border-emerald-500/40"}`}
               />
@@ -233,7 +254,7 @@ const RegisterPage = () => {
                 type="button"
                 onClick={() => setShowPass(!showPass)}
                 aria-label={showPass ? t("auth.hidePassword") : t("auth.showPassword")}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 press"
               >
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -250,7 +271,11 @@ const RegisterPage = () => {
             <label className="block text-sm text-slate-400 mb-3">
               {t("auth.accountType")}
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            {/* Three across a 360dp screen leaves ~58px of text width, which is
+                narrower than the word "management" — the descriptions spilled out
+                of their cards. Stack them into full-width rows on phones and keep
+                the three-up grid from `sm` upward. */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
               {BUSINESS_TYPES.map(
                 ({ value, labelKey, descriptionKey, icon: Icon, color }) => {
                   const isSelected = selectedType === value;
@@ -260,7 +285,8 @@ const RegisterPage = () => {
                       key={value}
                       type="button"
                       onClick={() => setValue("businessType", value)}
-                      className={`relative border rounded-xl p-4 text-left transition-all duration-200
+                      className={`relative border rounded-xl p-3.5 sm:p-4 text-left press
+                      flex items-center gap-3 sm:block
                       ${isSelected ? colors.selected : "border-white/10 bg-white/5 hover:border-white/20"}`}
                     >
                       {isSelected && (
@@ -269,15 +295,17 @@ const RegisterPage = () => {
                         />
                       )}
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${isSelected ? colors.icon : "bg-white/10 text-slate-400"}`}
+                        className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 sm:mb-3 ${isSelected ? colors.icon : "bg-white/10 text-slate-400"}`}
                       >
                         <Icon size={15} />
                       </div>
-                      <div className="text-white text-sm font-medium mb-0.5">
-                        {t(labelKey)}
-                      </div>
-                      <div className="text-slate-500 text-xs leading-relaxed">
-                        {t(descriptionKey)}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-white text-sm font-medium mb-0.5">
+                          {t(labelKey)}
+                        </div>
+                        <div className="text-slate-500 text-xs leading-relaxed">
+                          {t(descriptionKey)}
+                        </div>
                       </div>
                     </button>
                   );

@@ -37,7 +37,7 @@ const ReportsPage = () => {
             <button
               key={labelKey}
               onClick={() => navigate(to)}
-              className="flex items-center gap-3 p-4 rounded-2xl text-left transition-all active:scale-[0.98]"
+              className="flex items-center gap-3 p-4 rounded-2xl text-left press"
               style={{ background: C.card, border: `1px solid ${C.border}` }}
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}15`, color }}>

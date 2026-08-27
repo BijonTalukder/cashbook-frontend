@@ -18,6 +18,7 @@ import { transactionService } from "../../services/transaction.service";
 import { businessService } from "../../services/business.service";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { useBackHandler, useBodyScrollLock } from "../../native/hooks";
 
 /* ── Types ────────────────────────────────────────── */
 interface Member {
@@ -65,6 +66,10 @@ interface Props {
 }
 
 const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
+  // This modal has no `open` prop — it is mounted only while shown.
+  useBackHandler(true, onClose);
+  useBodyScrollLock(true);
+
   const { t } = useTranslation();
   const { money, num, symbol } = useFormat();
   const [members, setMembers] = useState<Member[]>([]);
@@ -173,21 +178,25 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-      style={{ background: "var(--overlay-scrim)" }}
+      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 anim-scrim-in"
+      style={{ background: "var(--overlay-scrim)", backdropFilter: "blur(6px)" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col"
+        className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col anim-sheet-up sm:animate-none"
         style={{
           background: C.bg,
           border: "1px solid var(--border-strong)",
-          maxHeight: "90vh",
-          boxShadow: "var(--shadow-elevated)",
+          maxHeight: "92dvh",
+          boxShadow: "var(--shadow-sheet)",
+          paddingBottom: "var(--safe-bottom)",
         }}
       >
+        <div className="sm:hidden flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="h-1 w-10 rounded-full" style={{ background: "var(--border-strong)" }} />
+        </div>
         {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-4 flex-shrink-0"
@@ -404,7 +413,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                     <button
                       key={p.labelKey}
                       onClick={() => addCost(p)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
+                      className="flex items-center gap-1.5 px-3.5 h-9 rounded-lg text-xs flex-shrink-0 whitespace-nowrap press"
                       style={{
                         background: C.card,
                         border: `1px solid ${C.border}`,
@@ -527,7 +536,7 @@ const SharedCostsModal = ({ businessId, onClose, onDone }: Props) => {
                             {t("sharedCosts.totalAmount", { symbol })}
                           </label>
                           <input
-                            type="number"
+                            type="number" inputMode="decimal"
                             value={cost.amount || ""}
                             onChange={(e) =>
                               updateCost(

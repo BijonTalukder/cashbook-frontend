@@ -9,6 +9,7 @@ import SyncBadge from "../../components/shared/SyncBadge";
 import { useDataVersion } from "../../store/offlineStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
+import { useRefreshHandler } from "../../native/refresh";
 
 const C = {
   card: "var(--surface-1)",
@@ -27,6 +28,7 @@ const CustomersPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
+
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
@@ -50,6 +52,9 @@ const CustomersPage = () => {
     }
   };
 
+  // Pull down on this screen to re-fetch it.
+  useRefreshHandler(load);
+
   useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
@@ -65,7 +70,7 @@ const CustomersPage = () => {
           </h1>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold press"
             style={{ background: "#10b981", color: "#022c22" }}
           >
             <Plus size={15} /> {t("customer.add")}
@@ -107,7 +112,7 @@ const CustomersPage = () => {
               <button
                 key={c._id}
                 onClick={() => navigate(`/customers/${c._id}`)}
-                className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all"
+                className="row-press w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 text-left"
                 style={{ borderBottom: "1px solid var(--border-light)" }}
               >
                 <div
@@ -119,7 +124,7 @@ const CustomersPage = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{c.name}</p>
-                    <SyncBadge status={c.syncStatus} />
+                    <SyncBadge status={c.syncStatus} compact />
                   </div>
                   {c.phone && (
                     <p className="text-[11px] flex items-center gap-1" style={{ color: "var(--text-faint)" }}>
