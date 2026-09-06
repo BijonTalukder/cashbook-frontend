@@ -147,6 +147,9 @@
     "methodRequired": "Enable at least one payment method",
     "nameRequired": "Business name is required",
     "nextInvoiceHint": "Next invoice will be {{number}}",
+    "openingBalance": "Opening balance",
+    "openingBalanceHint": "Editable only before any transactions are recorded. Adjusts the starting cash balance.",
+    "openingBalanceLocked": "Locked — can only be changed while the business has no transactions yet.",
     "title": "Business Settings",
     "updateFailed": "Failed to update settings",
     "updated": "Business settings updated"

@@ -39,6 +39,7 @@ const BusinessSettingsPage = () => {
   const [currency, setCurrency] = useState(toCurrency(activeBusiness?.currency));
   const [invoicePrefix, setInvoicePrefix] = useState(activeBusiness?.invoiceSettings?.prefix ?? "INV");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(activeBusiness?.paymentMethods ?? ["cash", "bank"]);
+  const [openingBalance, setOpeningBalance] = useState(String(activeBusiness?.openingBalance ?? ""));
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -51,16 +52,23 @@ const BusinessSettingsPage = () => {
     setCurrency(toCurrency(activeBusiness.currency));
     setInvoicePrefix(activeBusiness.invoiceSettings?.prefix ?? "INV");
     setPaymentMethods(activeBusiness.paymentMethods ?? ["cash", "bank"]);
+    setOpeningBalance(String(activeBusiness.openingBalance ?? ""));
   }, [activeBusiness?._id]);
 
   const toggleMethod = (m: PaymentMethod) => {
     setPaymentMethods((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
   };
 
+  const openingBalanceNum = activeBusiness?.openingBalance ?? 0;
+  const cashBalanceNum = activeBusiness?.cashBalance ?? 0;
+  const canEditOpeningBalance = Math.abs(cashBalanceNum - openingBalanceNum) < 0.01;
+
   const handleSave = async () => {
     if (!activeBusiness) return;
     if (!name.trim()) { toast.error(t("businessSettings.nameRequired")); return; }
     if (paymentMethods.length === 0) { toast.error(t("businessSettings.methodRequired")); return; }
+
+    const parsedOpeningBalance = Number(openingBalance) || 0;
 
     setSaving(true);
     try {
@@ -73,6 +81,7 @@ const BusinessSettingsPage = () => {
         currency,
         invoiceSettings: { prefix: invoicePrefix || "INV", nextNumber: activeBusiness.invoiceSettings?.nextNumber ?? 1 },
         paymentMethods,
+        openingBalance: canEditOpeningBalance && parsedOpeningBalance !== openingBalanceNum ? parsedOpeningBalance : undefined,
       });
       setActiveBusiness(updated);
       toast.success(t("businessSettings.updated"));
@@ -111,6 +120,29 @@ const BusinessSettingsPage = () => {
                 <option key={sub} value={sub}>{enumLabel(t, "businessSubType", sub)}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("businessSettings.openingBalance")}</label>
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.01"
+              value={openingBalance}
+              disabled={!canEditOpeningBalance}
+              onChange={(e) => setOpeningBalance(e.target.value)}
+              style={{ ...inputCss, opacity: canEditOpeningBalance ? 1 : 0.6 }}
+            />
+            {!canEditOpeningBalance ? (
+              <p className="mt-1 text-[11px]" style={{ color: "#f59e0b" }}>
+                {t("businessSettings.openingBalanceLocked")}
+              </p>
+            ) : (
+              <p className="mt-1 text-[11px]" style={{ color: "var(--text-faint)" }}>
+                {t("businessSettings.openingBalanceHint")}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

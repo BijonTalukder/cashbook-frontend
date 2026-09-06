@@ -107,6 +107,7 @@ export const businessService = {
       currency: string;
       invoiceSettings: { prefix: string; nextNumber: number };
       paymentMethods: PaymentMethod[];
+      openingBalance?: number;
     }>,
   ): Promise<IBusiness> => {
     const { data } = await api.patch(`/businesses/${businessId}`, payload);
@@ -115,7 +116,7 @@ export const businessService = {
   getMembers: async (businessId: string) => {
     const { data } = await api.get(`/business-members/${businessId}`);
 
-    return data.data.map((m: any) => ({
+    return data.data.map((m: { _id: string; firstName: string; lastName: string; email: string; role: string }) => ({
       _id: m._id,
       firstName: m.firstName,
       lastName: m.lastName,
