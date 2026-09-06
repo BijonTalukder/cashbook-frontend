@@ -13,6 +13,7 @@ import PageTransition from "../components/ui/PageTransition";
 import PullToRefresh from "../components/ui/PullToRefresh";
 import { RefreshProvider, useRefreshRunner } from "../native/refresh";
 import { useBusinessStore } from "../store/businessStore";
+import { businessService } from "../services/business.service";
 import BusinessSwitcher from "../components/shared/BusinessSwitcher";
 import FloatingAI from "../pages/Ai/FloatingAI";
 import ThemeToggle from "../components/shared/ThemeToggle";
@@ -108,8 +109,34 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  const { activeBusiness } = useBusinessStore();
+  const { activeBusiness, setActiveBusiness } = useBusinessStore();
   const { t } = useTranslation();
+
+  /** Seed `activeBusiness` so the first protected page a user lands on — a
+   *  deep-link straight to /transactions, or right after onboarding — never
+   *  renders "Select a business". Only the dashboard used to self-heal, on its
+   *  own mount; direct navigation bypassed it. Also stops one account inheriting
+   *  the previous account's cached business (the store is shared/localStorage). */
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const memberships = await businessService.getMyBusinesses();
+        if (cancelled || memberships.length === 0) return;
+        const current = useBusinessStore.getState().activeBusiness;
+        if (current && memberships.some((m) => m.business._id === current._id)) return;
+        const def =
+          memberships.find((m) => m.business._id === user.defaultBusiness) ?? memberships[0];
+        setActiveBusiness(def.business);
+      } catch {
+        // Dashboard and the switcher will retry when the network is back.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, user?.defaultBusiness, setActiveBusiness]);
 
   const isMass = activeBusiness?.type === "mass" || activeBusiness?.mealEnabled;
   const isBusinessMode = activeBusiness?.type === "business";

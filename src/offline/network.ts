@@ -20,6 +20,9 @@ const FRESHNESS_MS = 15_000;
 const probeClient = axios.create({ timeout: PROBE_TIMEOUT_MS });
 
 let lastOkAt = 0;
+/** Whether the database was warm enough to accept writes at the last probe.
+ *  Gates the sync queue only — it must never decide the app's on/offline. */
+let lastWritable = false;
 let inFlight: Promise<boolean> | null = null;
 type Listener = (status: ConnectivityStatus) => void;
 const listeners = new Set<Listener>();
@@ -52,15 +55,21 @@ export const onConnectivityChange = (fn: Listener) => {
 export const reportRequestOutcome = (reachable: boolean, trusted = true) => {
   if (!reachable) {
     lastOkAt = 0;
+    lastWritable = false;
     setStatus("offline");
     return;
   }
   if (!trusted && getConnectivity() === "offline") return;
   lastOkAt = Date.now();
+  // A successful write proves the database accepted it — strongest evidence
+  // that the DB is warm. The health probe overrides this with its own verdict.
+  if (trusted) lastWritable = true;
   setStatus("online");
 };
 
-/** Hit the health endpoint. Coalesced, so concurrent callers share one probe. */
+/** Hit the health endpoint. Coalesced, so concurrent callers share one probe.
+ *  Returns whether the DB is writable (the sync queue's gate) while reporting
+ *  online whenever the API answers — reachability and writability are decoupled. */
 export const probeApi = async (): Promise<boolean> => {
   if (inFlight) return inFlight;
 
@@ -72,10 +81,14 @@ export const probeApi = async (): Promise<boolean> => {
   inFlight = (async () => {
     try {
       const { data } = await probeClient.get(HEALTH_URL);
-      // The API can answer while its database is down: reads may still be served
-      // from cache, but queued writes must keep waiting.
+      // The API answered — the phone is online even if MongoDB is still warming
+      // up on a cold serverless lambda. That 200 is the connectivity signal;
+      // `writable` only decides whether queued writes can be attempted.
       const writable = data?.data?.writable !== false;
-      reportRequestOutcome(writable);
+      reportRequestOutcome(true);
+      // reportRequestOutcome optimistically marks a trusted success writable;
+      // the probe's own DB answer is authoritative.
+      lastWritable = writable;
       return writable;
     } catch {
       reportRequestOutcome(false);
@@ -88,13 +101,15 @@ export const probeApi = async (): Promise<boolean> => {
   return inFlight;
 };
 
-/** True when the API answered recently; re-probes when that evidence is stale. */
+/** True when the DB can accept writes again; re-probes when evidence is stale. */
 export const isApiReachable = async (): Promise<boolean> => {
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     reportRequestOutcome(false);
     return false;
   }
-  if (Date.now() - lastOkAt < FRESHNESS_MS) return true;
+  if (getConnectivity() === "offline") return probeApi();
+  // Fresh evidence while online: reuse the last probe's writable verdict.
+  if (Date.now() - lastOkAt < FRESHNESS_MS) return lastWritable;
   return probeApi();
 };
 

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
+import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
 import LanguageToggle from "../../components/shared/LanguageToggle";
@@ -154,6 +155,7 @@ const OnboardingPage = () => {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setActiveBusiness = useBusinessStore((s) => s.setActiveBusiness);
 
   // ✅ Fix: শুধু defaultBusiness (string | undefined) dependency — object নয়
   useEffect(() => {
@@ -287,6 +289,9 @@ const OnboardingPage = () => {
       if (user && token) {
         setAuth({ ...user, defaultBusiness: business._id, onboardingCompleted: true }, token);
       }
+      // Select the freshly created business straight away so the first page the
+      // user lands on (dashboard or a deep-link) never renders without one.
+      setActiveBusiness(business);
 
       clearDraft();
       setStep(3);
