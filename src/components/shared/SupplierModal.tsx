@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { supplierService, type ISupplier } from "../../services/supplier.service";
+import { supplierService, type ISupplier, type ISupplierPayload } from "../../services/supplier.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
@@ -54,6 +54,10 @@ const SupplierModal = ({ open, onClose, onSuccess, editing }: Props) => {
   const { t } = useTranslation();
   const schema = React.useMemo(() => buildSchema(t), [t]);
 
+  const canEditOpeningBalance = editing
+    ? editing.totalPurchases === 0 && editing.totalPaid === 0
+    : true;
+
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", phone: "", email: "", address: "", openingBalance: 0, notes: "" },
@@ -77,7 +81,11 @@ const SupplierModal = ({ open, onClose, onSuccess, editing }: Props) => {
     try {
       let result: ISupplier;
       if (editing) {
-        result = await supplierService.update(editing._id, data);
+        const updatePayload: Partial<ISupplierPayload> = { ...data };
+        // The field is disabled and skipped by react-hook-form, but strip it here
+        // too so a locked opening balance never reaches the API.
+        if (!canEditOpeningBalance) delete updatePayload.openingBalance;
+        result = await supplierService.update(editing._id, updatePayload);
         toast.success(t("supplier.updated"));
       } else {
         result = await supplierService.create({ ...data, businessId: activeBusiness._id });
@@ -124,16 +132,25 @@ const SupplierModal = ({ open, onClose, onSuccess, editing }: Props) => {
             <input {...register("address")} placeholder={t("customer.addressPlaceholder")} style={inputCss()} />
           </Field>
 
-          {!editing && (
-            <Field label={t("supplier.openingBalance")} error={errors.openingBalance?.message}>
-              <input
-                type="number" inputMode="decimal" min="0" step="0.01"
-                {...register("openingBalance", { valueAsNumber: true })}
-                placeholder={t("common.zero")}
-                style={inputCss(!!errors.openingBalance)}
-              />
-            </Field>
-          )}
+          <Field label={t("supplier.openingBalance")} error={errors.openingBalance?.message}>
+            <input
+              type="number" inputMode="decimal" min="0" step="0.01"
+              disabled={!canEditOpeningBalance}
+              {...register("openingBalance", { valueAsNumber: true })}
+              placeholder={t("common.zero")}
+              style={inputCss(!!errors.openingBalance)}
+            />
+            {editing && !canEditOpeningBalance && (
+              <p className="mt-1 text-xs" style={{ color: "#f59e0b" }}>
+                {t("supplier.openingBalanceLocked")}
+              </p>
+            )}
+            {editing && canEditOpeningBalance && (
+              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                {t("supplier.openingBalanceEditHint")}
+              </p>
+            )}
+          </Field>
 
           <Field label={t("common.notes")} error={errors.notes?.message}>
             <textarea {...register("notes")} placeholder={t("customer.notesPlaceholder")} rows={2} style={inputCss()} />

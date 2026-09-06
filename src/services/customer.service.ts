@@ -131,11 +131,16 @@ export const customerService = {
       return customerRepo.put(withMeta(data.data as ICustomer));
     }
 
-    const updated = await customerRepo.update(id, (record) => ({
-      ...record,
-      ...payload,
-      syncStatus: "pending",
-    }));
+    const openingBalance = payload.openingBalance;
+    const updated = await customerRepo.update(id, (record) => {
+      const next = { ...record, ...payload, syncStatus: "pending" as const };
+      // Mirrors the server: totalDue = openingBalance + totalSales - totalPaid.
+      if (openingBalance !== undefined) {
+        const parsed = Number(openingBalance) || 0;
+        next.totalDue = record.totalDue + parsed - (record.openingBalance ?? 0);
+      }
+      return next;
+    });
 
     await enqueueAndFlush({
       businessId: current.business,
