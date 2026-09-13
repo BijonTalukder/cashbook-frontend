@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import {
   Plus, TrendingUp, TrendingDown, ArrowLeftRight,
@@ -54,12 +55,47 @@ const TxnRow = ({
   isMass?: boolean;
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  // Menu position is computed from the trigger's bounding rect each time it
+  // opens. Portalling out of the row is the only way to escape the card's
+  // `overflow-hidden` clipping — the absolute-positioned dropdown was
+  // getting sliced at the card edge, hiding the Edit / Delete rows.
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const { t } = useTranslation();
   const { money, date: fmtDate } = useFormat();
   const meta = TYPE_META[txn.type];
   const settle = SETTLE_META[txn.settlementStatus];
   const SettleIcon = settle.icon;
   const canSettle = ["pending", "partial"].includes(txn.settlementStatus);
+
+  const openMenu = () => {
+    const btn = triggerRef.current;
+    if (!btn) { setMenuOpen((p) => !p); return; }
+    const rect = btn.getBoundingClientRect();
+    setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    setMenuOpen((p) => !p);
+  };
+
+  // The portal lives at <body>, so it doesn't move with the page. Recompute
+  // its anchor on every scroll/resize, otherwise the menu drifts away from
+  // the trigger row as the user keeps scrolling. Don't close on scroll —
+  // some browsers fire a scroll event right after a button click (focus
+  // scroll, ripple scroll), which would yank the menu closed immediately.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const reposition = () => {
+      const btn = triggerRef.current;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    };
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [menuOpen]);
 
   return (
     <div
@@ -149,20 +185,25 @@ const TxnRow = ({
       {/* ── Action menu ─────────────────────────────── */}
       <div className="relative flex-shrink-0">
         <button
-          onClick={() => setMenuOpen((p) => !p)}
+          ref={triggerRef}
+          onClick={openMenu}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
           className="w-10 h-10 flex items-center justify-center rounded-lg transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
           style={{ color: "var(--text-muted)", background: "var(--surface-3)" }}
         >
           <MoreVertical size={14} />
         </button>
 
-        {menuOpen && (
+        {menuOpen && menuPos && createPortal(
           <>
-            {/* Backdrop */}
-            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+            <div className="fixed inset-0 z-[290]" onClick={() => setMenuOpen(false)} />
             <div
-              className="absolute right-0 top-full mt-1 w-40 rounded-xl overflow-hidden z-50"
+              role="menu"
+              className="fixed w-40 rounded-xl overflow-hidden z-[295]"
               style={{
+                top: menuPos.top,
+                right: menuPos.right,
                 background: "var(--bg-elevated)",
                 border: "1px solid var(--border-strong)",
                 boxShadow: "var(--shadow-elevated)",
@@ -209,7 +250,8 @@ const TxnRow = ({
                 <Trash2 size={13} /> {t("common.delete")}
               </button>
             </div>
-          </>
+          </>,
+          document.body,
         )}
       </div>
     </div>
