@@ -181,9 +181,27 @@ export const createRepo = <T extends { _id: string; business: string }>(
       ? existing.filter((row) => !seen.has(row._id) && row.syncStatus === "synced")
       : [];
 
+    // Skip the version bump when nothing actually changed — otherwise the
+    // fire-and-forget refresh that `getAll` kicks off after a warm cache
+    // loops forever against any page that lists `dataVersion` in its deps.
+    const changed =
+      stale.length > 0 ||
+      merged.some((row) => {
+        const prev = byId.get(row._id);
+        if (!prev) return true;
+        // Status flips (e.g. pending → synced after the queue drains) are
+        // exactly the signal subscribers want, so they trigger a bump even
+        // when the visible payload is unchanged.
+        return (
+          JSON.stringify(stripMeta(prev)) !== JSON.stringify(stripMeta(row)) ||
+          prev.syncStatus !== row.syncStatus ||
+          prev.syncError !== row.syncError
+        );
+      });
+
     await idbPutMany(store, merged);
     await Promise.all(stale.map((row) => idbDelete(store, row._id)));
-    bumpDataVersion();
+    if (changed) bumpDataVersion();
 
     // Rows the server did not return but that still have unsynced work — a
     // sale rung up offline, a product created moments ago — stay in the result.
