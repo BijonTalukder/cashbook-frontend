@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ShoppingCart, ChevronRight } from "lucide-react";
+import { Plus, ShoppingCart, ChevronRight, Download } from "lucide-react";
 import { toast } from "sonner";
 import { saleService, type ISale } from "../../services/sale.service";
 import { useBusinessStore } from "../../store/businessStore";
@@ -85,6 +85,11 @@ const SalesPage = () => {
           ) : (
             sales.map((s) => {
               const meta = STATUS_META[s.status];
+              const handleDownloadInvoice = (e: React.MouseEvent) => {
+                e.stopPropagation();
+                e.preventDefault();
+                navigate(`/sales/${s._id}/invoice`);
+              };
               return (
                 <button
                   key={s._id}
@@ -115,6 +120,16 @@ const SalesPage = () => {
                     </p>
                     <p className="text-[10px] font-medium" style={{ color: meta.color }}>{t(meta.labelKey)}</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadInvoice}
+                    aria-label={t("common.download")}
+                    title={t("invoice.downloadInvoice")}
+                    className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center press"
+                    style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                  >
+                    <Download size={15} />
+                  </button>
                   <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
                 </button>
               );

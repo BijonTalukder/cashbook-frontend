@@ -7,6 +7,7 @@ import { businessService, type PaymentMethod, type BusinessSubType } from "../..
 import { useTranslation } from "../../i18n/useTranslation";
 import { enumLabel, paymentMethodLabel } from "../../i18n/labels";
 import { CURRENCIES, toCurrency } from "../../utils/currency";
+import ImageUploader from "../../components/shared/ImageUploader";
 
 const C = {
   card: "var(--surface-1)",
@@ -41,6 +42,7 @@ const BusinessSettingsPage = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(activeBusiness?.paymentMethods ?? ["cash", "bank"]);
   const [openingBalance, setOpeningBalance] = useState(String(activeBusiness?.openingBalance ?? ""));
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (!activeBusiness) return;
@@ -77,7 +79,7 @@ const BusinessSettingsPage = () => {
         businessType: businessType as BusinessSubType,
         phone: phone || undefined,
         address: address || undefined,
-        logoUrl: logoUrl || undefined,
+        logoUrl: logoUrl,
         currency,
         invoiceSettings: { prefix: invoicePrefix || "INV", nextNumber: activeBusiness.invoiceSettings?.nextNumber ?? 1 },
         paymentMethods,
@@ -173,7 +175,13 @@ const BusinessSettingsPage = () => {
 
           <div>
             <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{t("businessSettings.logoUrl")}</label>
-            <input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder={t("product.urlPlaceholder")} style={inputCss} />
+            <ImageUploader
+              value={logoUrl}
+              onChange={(url) => setLogoUrl(url)}
+              onUploadingChange={setUploadingLogo}
+              folder="business_logos"
+              disabled={saving}
+            />
           </div>
 
           <div>
@@ -213,12 +221,12 @@ const BusinessSettingsPage = () => {
 
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || uploadingLogo}
             className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
-            {saving && <Loader2 size={14} className="animate-spin" />}
-            {t("common.saveChanges")}
+            {(saving || uploadingLogo) && <Loader2 size={14} className="animate-spin" />}
+            {uploadingLogo ? t("product.uploading") : t("common.saveChanges")}
           </button>
         </div>
       </div>

@@ -1,0 +1,309 @@
+/* ============================================================
+   হিসাব বই — Cinematic 3D Ad
+   Fully responsive: desktop letterboxes to 16:9; mobile
+   fills the phone screen and reframes the 3D camera accordingly.
+   ============================================================ */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #050810;
+  color: #fff;
+  font-family: "Inter", "Hind Siliguri", sans-serif;
+  overflow: hidden;
+  /* Avoid rubber-band scrolling on iOS. */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Letterbox bars — only visible on wide (desktop-ish) screens. */
+.letterbox {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: calc((100vh - 100vh * 9 / 16) / 2);
+  background: #000;
+  z-index: 50;
+  pointer-events: none;
+}
+.letterbox.top { top: 0; }
+.letterbox.bottom { bottom: 0; }
+
+/* Stage — on desktop sized to 16:9, on mobile fills the viewport. */
+.stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+  z-index: 1;
+}
+
+#three-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Vignette */
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center,
+    rgba(0,0,0,0) 55%,
+    rgba(0,0,0,.45) 100%);
+  z-index: 4;
+}
+
+/* Curtain (fade-to-black for cuts) */
+.curtain {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  transition: opacity 320ms cubic-bezier(.2, 0, 0, 1);
+}
+.curtain.up { opacity: 1; }
+
+/* Text layer */
+.text-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  padding: 0 6vw;
+  text-align: center;
+}
+
+.text-layer.pos-top    { justify-content: flex-start; padding-top: 10vh; }
+.text-layer.pos-bottom { justify-content: flex-end;   padding-bottom: 10vh; }
+.text-layer.pos-mid    { justify-content: center; }
+
+/* Headline — the ONLY thing shown at a time. Font sizes use clamp() so
+   they scale between a sensible minimum (readable on phones) and a
+   maximum (cinematic on desktop) without ever overflowing. */
+.headline {
+  font-family: "Hind Siliguri", sans-serif;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.01em;
+  line-height: 1.1;
+  margin: 0;
+  text-shadow: 0 4px 30px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.5);
+  max-width: min(92vw, 1400px);
+  /* Keep long Bangla lines from blowing past the screen. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.headline .w {
+  display: inline-block;
+  white-space: pre;
+  opacity: 0;
+  transform: translateY(22px);
+  filter: blur(8px);
+}
+
+/* clamp(MIN, PREF, MAX) — scales smoothly across all viewports. */
+.headline.hero  { font-size: clamp(36px, 9.5vw, 140px); font-weight: 700; }
+.headline.big   { font-size: clamp(30px, 7.5vw, 110px); font-weight: 700; }
+.headline.med   { font-size: clamp(24px, 5.8vw, 86px);  font-weight: 600; }
+.headline.micro { font-size: clamp(16px, 3.2vw, 48px);  font-weight: 500; letter-spacing: .02em; color: #e2e8f0; }
+
+/* Accent colour via inline span, but a class for consistency. */
+.headline .accent {
+  font-family: "DM Serif Display", "Hind Siliguri", serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #34d399;
+  font-size: 1.15em;
+  line-height: .95;
+  vertical-align: -.02em;
+}
+.headline .accent-gold {
+  font-family: "DM Serif Display", "Hind Siliguri", serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #fbbf24;
+  font-size: 1.15em;
+}
+
+/* Brand mark (bottom-right, always visible after intro). */
+.brand-mark {
+  position: absolute;
+  right: clamp(12px, 2vw, 36px);
+  bottom: clamp(12px, 2vw, 28px);
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, .8vw, 10px);
+  font-family: "Hind Siliguri", sans-serif;
+  font-weight: 600;
+  font-size: clamp(13px, 1.4vw, 22px);
+  color: rgba(255,255,255,.85);
+  z-index: 12;
+  opacity: 0;
+  transition: opacity 600ms ease;
+  text-shadow: 0 2px 12px rgba(0,0,0,.6);
+}
+.brand-mark.show { opacity: 1; }
+.brand-mark .brand-dot {
+  width: clamp(7px, .8vw, 10px);
+  height: clamp(7px, .8vw, 10px);
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 14px rgba(16,185,129,.8);
+}
+
+/* Cue markers — hidden in production UI, logged to console only. */
+.cues {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+.cues div { white-space: nowrap; }
+
+/* Intro overlay (recording launcher) — fills the screen, mobile-friendly. */
+.intro {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #0a1628 0%, #050810 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: opacity 600ms ease, visibility 600ms;
+  padding: 5vw;
+}
+.intro.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.intro-inner {
+  text-align: center;
+  padding: clamp(16px, 4vw, 40px);
+  max-width: min(92vw, 720px);
+  width: 100%;
+}
+
+.intro .pill {
+  display: inline-block;
+  padding: clamp(6px, 1vw, 8px) clamp(12px, 2vw, 18px);
+  border-radius: 999px;
+  background: rgba(16,185,129,.15);
+  color: #34d399;
+  font-weight: 700;
+  font-size: clamp(11px, 1.1vw, 14px);
+  letter-spacing: .08em;
+  margin-bottom: clamp(16px, 3vw, 24px);
+}
+
+.intro h1 {
+  font-family: "DM Serif Display", serif;
+  font-size: clamp(40px, 11vw, 92px);
+  font-weight: 400;
+  margin: 0 0 clamp(8px, 1.5vw, 12px);
+  letter-spacing: -.02em;
+  color: #fff;
+  line-height: 1.05;
+}
+
+.intro .sub {
+  font-family: "Inter", sans-serif;
+  font-size: clamp(12px, 2vw, 22px);
+  font-weight: 700;
+  letter-spacing: clamp(.15em, .3vw, .35em);
+  color: #34d399;
+  margin: 0 0 clamp(18px, 3vw, 28px);
+}
+
+.intro .desc {
+  font-size: clamp(12px, 1.5vw, 17px);
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0 0 clamp(24px, 4vw, 36px);
+}
+
+.intro .play-btn {
+  padding: clamp(14px, 1.8vw, 20px) clamp(32px, 4vw, 56px);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #022c22;
+  font-weight: 800;
+  font-size: clamp(15px, 1.8vw, 22px);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 16px 40px rgba(16,185,129,.4);
+  font-family: inherit;
+  transition: transform .2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.intro .play-btn:hover { transform: translateY(-2px); }
+.intro .play-btn:active { transform: translateY(0); }
+
+/* ------------------------------------------------------------
+   Responsive rules
+   ------------------------------------------------------------ */
+
+/* Wide (desktop, 16:9 or wider) — letterbox bars visible. */
+@media (min-aspect-ratio: 16/9) {
+  .stage {
+    width: min(100vw, calc(100vh * 16 / 9));
+    height: min(100vh, calc(100vw * 9 / 16));
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .letterbox { display: block; }
+}
+
+/* Narrow / portrait (phones) — stage fills the viewport, no bars.
+   Typography is already scaled via clamp() above; this block tightens
+   things up further for very tall phone screens. */
+@media (max-aspect-ratio: 16/9) {
+  .stage { width: 100vw; height: 100vh; top: 0; left: 0; transform: none; }
+  .letterbox { display: none !important; }
+
+  .text-layer              { padding: 0 5vw; }
+  .text-layer.pos-top      { padding-top: 8vh; }
+  .text-layer.pos-bottom   { padding-bottom: 8vh; }
+}
+
+/* Tiny phones — extra-compact intro. */
+@media (max-width: 380px) {
+  .intro-inner { padding: 12px; }
+  .intro .pill { margin-bottom: 12px; }
+  .intro h1    { margin-bottom: 6px; }
+  .intro .sub  { margin-bottom: 14px; }
+  .intro .desc { margin-bottom: 20px; }
+}
+
+/* Landscape phones (short + wide) — fill the screen, no bars. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .letterbox { display: none !important; }
+  .stage { width: 100vw; height: 100vh; top: 0; left: 0; transform: none; }
+  .intro-inner { padding: 12px clamp(40px, 8vw, 120px); max-width: 720px; }
+  .intro h1 { font-size: clamp(32px, 7vh, 60px); }
+  .intro .sub { font-size: clamp(11px, 2.2vh, 16px); margin-bottom: 14px; }
+  .intro .desc { font-size: clamp(11px, 2vh, 14px); margin-bottom: 16px; }
+  .intro .play-btn { padding: 10px 28px; font-size: 14px; }
+}

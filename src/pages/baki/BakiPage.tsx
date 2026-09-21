@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { HandCoins, ArrowDownCircle, ArrowUpCircle, ChevronRight } from "lucide-react";
+import { HandCoins, ArrowDownCircle, ArrowUpCircle, ChevronRight, Download } from "lucide-react";
+import { toast } from "sonner";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { supplierService, type ISupplier } from "../../services/supplier.service";
 import { useBusinessStore } from "../../store/businessStore";
@@ -9,6 +10,8 @@ import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { useRefreshHandler } from "../../native/refresh";
 import LoadFailedState from "../../components/shared/LoadFailedState";
+import ReportHeader from "../../components/shared/ReportHeader";
+import { printElementAsReport } from "../../utils/printReport";
 import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
@@ -30,6 +33,23 @@ const BakiPage = () => {
   const [payableFailed, setPayableFailed] = useState(false);
   const [tab, setTab] = useState<"receive" | "pay">(searchParams.get("tab") === "pay" ? "pay" : "receive");
   const [payModal, setPayModal] = useState<{ mode: "receive" | "pay"; party: { id: string; name: string; due: number } } | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPdf = async () => {
+    if (!printRef.current) return;
+    const hasData = tab === "receive" ? customers.length > 0 : suppliers.length > 0;
+    if (!hasData) {
+      toast.error(t("ledger.nothingToExport"));
+      return;
+    }
+    try {
+      await printElementAsReport(printRef.current, {
+        title: `${tab === "receive" ? "Receivables" : "Payables"} — ${activeBusiness?.name ?? "Report"}`,
+      });
+    } catch {
+      toast.error(t("common.error"));
+    }
+  };
 
   const load = async () => {
     if (!activeBusiness) return;
@@ -70,9 +90,20 @@ const BakiPage = () => {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-          {t("baki.title")}
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
+            {t("baki.title")}
+          </h1>
+          <button
+            onClick={handleDownloadPdf}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium press"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+            title={t("common.download")}
+            aria-label={t("common.download")}
+          >
+            <Download size={13} /> {t("common.download")}
+          </button>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl p-4" style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
@@ -172,6 +203,91 @@ const BakiPage = () => {
                 <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
               </div>
             ))
+          )}
+        </div>
+
+        {/* Off-screen printable report. Positioned absolutely so it never
+            affects layout, but kept in the DOM so the print iframe can
+            clone it. */}
+        <div
+          ref={printRef}
+          className="p-6"
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            top: 0,
+            width: "800px",
+            background: "#ffffff",
+            color: "#111827",
+            border: "1px solid #e5e7eb",
+            borderRadius: 16,
+          }}
+          aria-hidden="true"
+        >
+          <ReportHeader
+            reportTitle={tab === "receive" ? t("baki.willReceive") : t("baki.willPay")}
+            reportMeta={tab === "receive" ? t("baki.title") : t("baki.title")}
+          />
+          {tab === "receive" ? (
+            <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e5e7eb", color: "#6b7280" }}>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.party")}</th>
+                  <th className="text-right py-2 font-medium">{t("ledger.csv.amount")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customers.map((c) => (
+                  <tr key={c._id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                    <td className="py-2">{c.name}</td>
+                    <td className="py-2 text-right" style={{ color: "#ef4444", fontWeight: 600 }}>
+                      {money(c.totalDue)}
+                    </td>
+                  </tr>
+                ))}
+                <tr>
+                  <td className="py-2 font-semibold" style={{ borderTop: "1px solid #e5e7eb" }}>
+                    {t("common.total")}
+                  </td>
+                  <td
+                    className="py-2 text-right font-bold"
+                    style={{ color: "#ef4444", borderTop: "1px solid #e5e7eb" }}
+                  >
+                    {money(totalReceivable)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e5e7eb", color: "#6b7280" }}>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.party")}</th>
+                  <th className="text-right py-2 font-medium">{t("ledger.csv.amount")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {suppliers.map((s) => (
+                  <tr key={s._id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                    <td className="py-2">{s.name}</td>
+                    <td className="py-2 text-right" style={{ color: "#ef4444", fontWeight: 600 }}>
+                      {money(s.totalPayable)}
+                    </td>
+                  </tr>
+                ))}
+                <tr>
+                  <td className="py-2 font-semibold" style={{ borderTop: "1px solid #e5e7eb" }}>
+                    {t("common.total")}
+                  </td>
+                  <td
+                    className="py-2 text-right font-bold"
+                    style={{ color: "#ef4444", borderTop: "1px solid #e5e7eb" }}
+                  >
+                    {money(totalPayable)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           )}
         </div>
       </div>

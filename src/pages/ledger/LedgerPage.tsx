@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Filter, ArrowLeftRight, ArrowDownCircle, ArrowUpCircle, Download } from "lucide-react";
+import { Filter, ArrowLeftRight, ArrowDownCircle, ArrowUpCircle, Download, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { transactionService, type ITransaction } from "../../services/transaction.service";
 import { customerService, type ICustomer } from "../../services/customer.service";
@@ -11,6 +11,8 @@ import { useFormat } from "../../i18n/useFormat";
 import { enumLabel, paymentMethodLabel } from "../../i18n/labels";
 import { useRefreshHandler } from "../../native/refresh";
 import LoadFailedState from "../../components/shared/LoadFailedState";
+import ReportHeader from "../../components/shared/ReportHeader";
+import { printElementAsReport } from "../../utils/printReport";
 import { toastLoadFailure } from "../../offline/notify";
 
 const C = {
@@ -32,6 +34,7 @@ const LedgerPage = () => {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [showFilters, setShowFilters] = useState(!!searchParams.get("sourceType"));
+  const printRef = useRef<HTMLDivElement>(null);
 
   const [type, setType] = useState("");
   const [sourceType, setSourceType] = useState(searchParams.get("sourceType") ?? "");
@@ -121,6 +124,21 @@ const LedgerPage = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadPdf = async () => {
+    if (transactions.length === 0) {
+      toast.error(t("ledger.nothingToExport"));
+      return;
+    }
+    if (!printRef.current) return;
+    try {
+      await printElementAsReport(printRef.current, {
+        title: `Ledger — ${activeBusiness?.name ?? "Report"}`,
+      });
+    } catch {
+      toast.error(t("common.error"));
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
@@ -129,6 +147,15 @@ const LedgerPage = () => {
             {t("ledger.title")}
           </h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownloadPdf}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all"
+              style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
+              title={t("common.download")}
+              aria-label={t("common.download")}
+            >
+              <FileText size={13} /> {t("common.download")}
+            </button>
             <button
               onClick={exportCsv}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all"
@@ -261,6 +288,67 @@ const LedgerPage = () => {
             ))
           )}
         </div>
+
+        {/* Off-screen printable report — kept off-screen but in the DOM so
+            the print iframe can clone it. Hidden from the page via
+            absolute positioning + zero size. */}
+        {transactions.length > 0 && (
+          <div
+            ref={printRef}
+            className="p-6"
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              top: 0,
+              width: "800px",
+              background: "#ffffff",
+              color: "#111827",
+              border: "1px solid #e5e7eb",
+              borderRadius: 16,
+            }}
+            aria-hidden="true"
+          >
+            <ReportHeader
+              reportTitle={t("ledger.title")}
+              reportMeta={
+                startDate || endDate
+                  ? `${startDate || "…"} → ${endDate || "…"}`
+                  : fmtDate(new Date().toISOString(), "short")
+              }
+            />
+            <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e5e7eb", color: "#6b7280" }}>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.date")}</th>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.type")}</th>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.source")}</th>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.party")}</th>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.category")}</th>
+                  <th className="text-left py-2 font-medium">{t("ledger.csv.paymentMethod")}</th>
+                  <th className="text-right py-2 font-medium">{t("ledger.csv.amount")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((txn) => (
+                  <tr key={txn._id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                    <td className="py-2">{fmtDate(txn.date)}</td>
+                    <td className="py-2">{enumLabel(t, "txn", txn.type)}</td>
+                    <td className="py-2">{txn.source ? enumLabel(t, "source", txn.source.type) : ""}</td>
+                    <td className="py-2">{txn.customer?.name ?? txn.supplier?.name ?? ""}</td>
+                    <td className="py-2">{txn.category?.name ?? ""}</td>
+                    <td className="py-2">{txn.paymentMethod ? paymentMethodLabel(t, txn.paymentMethod) : ""}</td>
+                    <td
+                      className="py-2 text-right"
+                      style={{ color: txn.type === "income" ? "#10b981" : "#ef4444", fontWeight: 600 }}
+                    >
+                      {money(txn.type === "income" ? txn.amount : -txn.amount, { signed: true })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

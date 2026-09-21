@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1080, initial-scale=1" />
+<title>হিসাব বই — Cinematic Ad (9:16 Reels)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Reels stage: 1080x1920 (9:16). One scene owns the stage. -->
+  <main id="stage" class="stage">
+    <div id="sceneRoot"></div>
+
+    <!-- Curtain: full-screen black, used for cinematic cut transitions. -->
+    <div id="curtain" class="curtain" aria-hidden="true"></div>
+
+    <!-- Text layer: one headline at a time, strict enter/hold/exit. -->
+    <div id="textLayer" class="text-layer" aria-hidden="true"></div>
+
+    <!-- Cue markers (sound design timing). Hidden, useful in post. -->
+    <div id="cues" class="cues" aria-hidden="true"></div>
+
+    <!-- Soft top/bottom fade for Reels chrome (username, captions). -->
+    <div class="reels-fade reels-fade-top"></div>
+    <div class="reels-fade reels-fade-bottom"></div>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>

@@ -84,6 +84,7 @@ export const router = createBrowserRouter([
           { path: "/purchases", element: page(() => import("../pages/purchase/PurchasesPage")) },
           { path: "/purchases/new", element: page(() => import("../pages/purchase/NewPurchasePage")) },
           { path: "/purchases/:id", element: page(() => import("../pages/purchase/PurchaseDetailPage")) },
+          { path: "/purchases/:id/invoice", element: page(() => import("../pages/purchase/PurchaseInvoicePage")) },
           { path: "/expenses", element: page(() => import("../pages/expense/ExpensesPage")) },
           { path: "/baki", element: page(() => import("../pages/baki/BakiPage")) },
           { path: "/ledger", element: page(() => import("../pages/ledger/LedgerPage")) },

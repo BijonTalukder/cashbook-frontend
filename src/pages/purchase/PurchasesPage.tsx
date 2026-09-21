@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Package, ChevronRight } from "lucide-react";
+import { Plus, Package, ChevronRight, Download } from "lucide-react";
 import { purchaseService, type IPurchase } from "../../services/purchase.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
@@ -88,6 +88,11 @@ const PurchasesPage = () => {
           ) : (
             purchases.map((p) => {
               const meta = STATUS_META[p.status];
+              const handleDownloadInvoice = (e: React.MouseEvent) => {
+                e.stopPropagation();
+                e.preventDefault();
+                navigate(`/purchases/${p._id}/invoice`);
+              };
               return (
                 <button
                   key={p._id}
@@ -114,6 +119,16 @@ const PurchasesPage = () => {
                     </p>
                     <p className="text-[10px] font-medium" style={{ color: meta.color }}>{t(meta.labelKey)}</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadInvoice}
+                    aria-label={t("common.download")}
+                    title={t("invoice.downloadInvoice")}
+                    className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center press"
+                    style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                  >
+                    <Download size={15} />
+                  </button>
                   <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
                 </button>
               );

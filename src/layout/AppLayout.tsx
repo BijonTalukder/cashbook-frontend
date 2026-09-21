@@ -5,6 +5,7 @@ import {
   UtensilsCrossed, Settings, LogOut, HandCoins,
   ChevronLeft, ArrowLeft, FileText, Calculator, MoreHorizontal,
   User, Trash2, X, Contact, Truck, Package, ShoppingCart, ShoppingBag, Receipt, ScrollText, BarChart3,
+  Check,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useBackHandler } from "../native/hooks";
@@ -20,6 +21,7 @@ import ThemeToggle from "../components/shared/ThemeToggle";
 import LanguageToggle from "../components/shared/LanguageToggle";
 import SyncStatusIndicator from "../components/shared/SyncStatusIndicator";
 import { useTranslation } from "../i18n/useTranslation";
+import { useOfflineStore } from "../store/offlineStore";
 import { toast } from "sonner";
 
 const C = {
@@ -146,6 +148,20 @@ const AppLayout = () => {
       (!n.hideForBusiness || !isBusinessMode) &&
       (!n.businessModeOnly || isBusinessMode),
   );
+
+  /* Sync status — read straight from the store so the logo badge reflects
+     the live state without an extra subscribe in SyncStatusIndicator. */
+  const connectivity = useOfflineStore((s) => s.connectivity);
+  const syncing = useOfflineStore((s) => s.syncing);
+  const pending = useOfflineStore((s) => s.pending);
+  const failed = useOfflineStore((s) => s.failed);
+  const conflicts = useOfflineStore((s) => s.conflicts);
+  const allSynced =
+    failed === 0 &&
+    conflicts === 0 &&
+    pending === 0 &&
+    !syncing &&
+    connectivity !== "offline";
 
   // Bottom nav: first 4 fixed + "More" opens a left drawer for the rest
   const bottomMain = visibleNav.slice(0, 4);
@@ -277,26 +293,41 @@ const AppLayout = () => {
 
       {/* ── Desktop Sidebar ──────────────────────── */}
       <aside
-        className="hidden lg:flex w-60 flex-col flex-shrink-0 min-h-screen sticky top-0"
+        className="hidden lg:flex w-60 flex-col flex-shrink-0 h-screen sticky top-0"
         style={{ background: C.sidebar, borderRight: `1px solid ${C.border}` }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 pt-7 pb-5">
-          <div className="w-8 h-8 bg-emerald-400 rounded-lg flex items-center justify-center">
-            <TrendingUp size={15} className="text-emerald-950" />
+        <div className="flex items-center justify-between gap-3 px-6 pt-7 pb-5 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 bg-emerald-400 rounded-lg flex items-center justify-center flex-shrink-0">
+              <TrendingUp size={15} className="text-emerald-950" />
+            </div>
+            <span className="font-bold text-lg truncate" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
+              {t("app.name")}
+            </span>
           </div>
-          <span className="font-bold text-lg" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("app.name")}
-          </span>
+          {/* Sync status icon — only visible when everything is in sync and we
+              are online. No label, no menu: a passive Check that the user can
+              hover/tap for the tooltip. */}
+          {allSynced && (
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+              title={t("offline.allSynced")}
+              aria-label={t("offline.allSynced")}
+              style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}
+            >
+              <Check size={14} />
+            </div>
+          )}
         </div>
 
         {/* Business switcher */}
-        <div className="px-3 mb-4">
+        <div className="px-3 mb-4 flex-shrink-0">
           <BusinessSwitcher onSelect={() => navigate("/transactions")} />
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 space-y-0.5">
+        <nav className="flex-1 min-h-0 px-3 space-y-0.5 overflow-y-auto overscroll-contain" style={{ scrollbarWidth: "thin" }}>
           {[...visibleNav, { to: "/settings", icon: Settings, labelKey: "nav.settings" }].map(({ to, icon: Icon, labelKey }) => {
             const active = isActive(to);
             return (
@@ -323,15 +354,14 @@ const AppLayout = () => {
           })}
         </nav>
 
-        {/* Connection, appearance & language */}
-        <div className="px-3 mt-3 space-y-2">
-          <SyncStatusIndicator variant="row" />
+        {/* Appearance & language (sync status now lives on the logo, top-right) */}
+        <div className="px-3 mt-3 space-y-2 flex-shrink-0">
           <ThemeToggle variant="row" />
           <LanguageToggle variant="row" />
         </div>
 
         {/* User */}
-        <div className="p-3 mt-2" style={{ borderTop: `1px solid ${C.border}` }}>
+        <div className="p-3 mt-2 flex-shrink-0" style={{ borderTop: `1px solid ${C.border}` }}>
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl group">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"

@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Check, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { productService, type IProduct } from "../../services/product.service";
+import { categoryService, type ICategory } from "../../services/category.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
 import Sheet from "../ui/Sheet";
+import ImageUploader from "./ImageUploader";
 
 const buildSchema = (t: TFunction) =>
   z.object({
@@ -54,10 +56,16 @@ interface Props {
 const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
   const { activeBusiness } = useBusinessStore();
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [creatingCategory, setCreatingCategory] = useState(false);
   const { t } = useTranslation();
   const schema = React.useMemo(() => buildSchema(t), [t]);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "", sku: "", category: "", purchasePrice: 0, sellingPrice: 0,
@@ -67,6 +75,9 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
 
   useEffect(() => {
     if (!open) return;
+    setUploadingImage(false);
+    setIsAddingCategory(false);
+    setNewCategoryName("");
     reset({
       name: editing?.name ?? "",
       sku: editing?.sku ?? "",
@@ -78,7 +89,61 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
       unit: editing?.unit ?? "pcs",
       imageUrl: editing?.imageUrl ?? "",
     });
-  }, [open, editing, reset]);
+
+    if (activeBusiness?._id) {
+      setLoadingCategories(true);
+      categoryService
+        .getByBusiness(activeBusiness._id)
+        .then((data) => setCategories(data || []))
+        .catch(() => {})
+        .finally(() => setLoadingCategories(false));
+    }
+  }, [open, editing, reset, activeBusiness]);
+
+  const currentCategory = watch("category");
+
+  const categoryOptions = React.useMemo(() => {
+    const list = [...categories];
+    if (
+      currentCategory &&
+      !list.some((c) => c.name.toLowerCase() === currentCategory.toLowerCase())
+    ) {
+      list.unshift({ _id: `custom-${currentCategory}`, name: currentCategory });
+    }
+    return list;
+  }, [categories, currentCategory]);
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name || !activeBusiness) return;
+
+    setCreatingCategory(true);
+    try {
+      const created = await categoryService.create({
+        name,
+        businessId: activeBusiness._id,
+      });
+
+      setCategories((prev) => {
+        if (prev.some((c) => c.name.toLowerCase() === created.name.toLowerCase())) {
+          return prev;
+        }
+        return [...prev, created].sort((a, b) => a.name.localeCompare(b.name));
+      });
+
+      setValue("category", created.name, { shouldValidate: true, shouldDirty: true });
+      toast.success(t("product.categoryCreated"));
+      setNewCategoryName("");
+      setIsAddingCategory(false);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        t("common.unknownError");
+      toast.error(msg);
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     if (!activeBusiness) return;
@@ -128,7 +193,108 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
               <input {...register("sku")} placeholder={t("product.skuPlaceholder")} style={inputCss()} />
             </Field>
             <Field label={t("product.category")} error={errors.category?.message}>
-              <input {...register("category")} placeholder={t("product.categoryPlaceholder")} style={inputCss()} />
+              {!isAddingCategory ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex-1 min-w-0">
+                    <select
+                      {...register("category")}
+                      disabled={submitting}
+                      style={{
+                        ...inputCss(!!errors.category),
+                        paddingRight: "30px",
+                      }}
+                      className="appearance-none cursor-pointer truncate"
+                    >
+                      <option value="">
+                        {loadingCategories ? t("common.loading") : t("product.selectCategory")}
+                      </option>
+                      {categoryOptions.map((cat) => (
+                        <option key={cat._id} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      <ChevronDown size={14} />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    title={t("product.addCategory")}
+                    onClick={() => {
+                      setIsAddingCategory(true);
+                      setNewCategoryName("");
+                    }}
+                    disabled={submitting}
+                    className="flex-shrink-0 w-10 h-[42px] rounded-xl flex items-center justify-center press transition-all"
+                    style={{
+                      background: "rgba(16, 185, 129, 0.12)",
+                      color: "#10b981",
+                      border: "1px solid rgba(16, 185, 129, 0.25)",
+                    }}
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void handleCreateCategory();
+                      } else if (e.key === "Escape") {
+                        setIsAddingCategory(false);
+                      }
+                    }}
+                    placeholder={t("product.newCategoryPlaceholder")}
+                    disabled={creatingCategory}
+                    style={{
+                      ...inputCss(),
+                      padding: "8px 10px",
+                      fontSize: "13px",
+                    }}
+                    className="min-w-0 flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleCreateCategory()}
+                    disabled={creatingCategory || !newCategoryName.trim()}
+                    className="flex-shrink-0 w-8 h-[38px] rounded-lg flex items-center justify-center press disabled:opacity-50"
+                    style={{ background: "#10b981", color: "#022c22" }}
+                    title="Add"
+                  >
+                    {creatingCategory ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <Check size={14} />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingCategory(false);
+                      setNewCategoryName("");
+                    }}
+                    disabled={creatingCategory}
+                    className="flex-shrink-0 w-8 h-[38px] rounded-lg flex items-center justify-center press"
+                    style={{
+                      background: "rgba(239, 68, 68, 0.1)",
+                      color: "#ef4444",
+                    }}
+                    title="Cancel"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
             </Field>
           </div>
 
@@ -159,18 +325,27 @@ const ProductModal = ({ open, onClose, onSuccess, editing }: Props) => {
             </Field>
           </div>
 
-          <Field label={t("product.imageUrl")} error={errors.imageUrl?.message}>
-            <input {...register("imageUrl")} placeholder={t("product.urlPlaceholder")} style={inputCss()} />
+          <Field label={t("product.uploadImage")} error={errors.imageUrl?.message}>
+            <ImageUploader
+              value={watch("imageUrl")}
+              onChange={(url) => setValue("imageUrl", url, { shouldValidate: true, shouldDirty: true })}
+              onUploadingChange={setUploadingImage}
+              disabled={submitting}
+            />
           </Field>
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || uploadingImage}
             className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold press disabled:opacity-60"
             style={{ background: "#10b981", color: "#022c22" }}
           >
-            {submitting && <Loader2 size={14} className="animate-spin" />}
-            {editing ? t("common.saveChanges") : t("product.add")}
+            {(submitting || uploadingImage) && <Loader2 size={14} className="animate-spin" />}
+            {uploadingImage
+              ? t("product.uploading")
+              : editing
+              ? t("common.saveChanges")
+              : t("product.add")}
           </button>
         </form>
     </Sheet>

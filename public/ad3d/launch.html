@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1920, initial-scale=1" />
+  <title>হিসাব বই — Cinematic 3D Ad</title>
+  <style>
+    html, body { margin: 0; padding: 0; min-height: 100%; background: #050810; color: #fff; font-family: "Inter", "Hind Siliguri", sans-serif; }
+    .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 24px; padding: 40px; box-sizing: border-box; }
+    h1 { font-family: "DM Serif Display", serif; font-size: 48px; margin: 0; letter-spacing: -.02em; }
+    p  { color: #94a3b8; max-width: 720px; text-align: center; line-height: 1.6; }
+    .pill { display:inline-block; padding:6px 14px; border-radius:999px; background:rgba(16,185,129,.15); color:#34d399; font-weight:700; font-size:14px; }
+    a.btn {
+      padding: 18px 40px; border-radius: 999px;
+      background: linear-gradient(135deg, #10b981, #34d399);
+      color: #022c22; font-weight: 800; font-size: 22px; text-decoration: none;
+      box-shadow: 0 16px 40px rgba(16,185,129,.4);
+    }
+    a.btn:hover { transform: translateY(-2px); transition: transform .2s; }
+    .meta { color: #475569; font-size: 14px; text-align: center; }
+    .preview {
+      width: 360px; height: 202px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #022c22, #000);
+      box-shadow: 0 30px 60px rgba(0,0,0,.6), 0 0 0 4px #050709;
+      position: relative;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview .play { font-size: 64px; color: rgba(255,255,255,.85); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="pill">16:9 · 1920×1080 · Three.js · FROM CHAOS TO CONTROL</div>
+    <h1>হিসাব বই — Cinematic 3D Ad</h1>
+    <p>A 2-minute, WebGL-rendered, director-grade advertisement for Hisab Boi. Pure procedural Three.js — no asset files, no bundler. Open the ad page in a 1920×1080 window, hit play, and start screen capture.</p>
+    <div class="preview"><div class="play">▶</div></div>
+    <a class="btn" href="./index.html">▶ প্লে অ্যাড</a>
+    <div class="meta">Procedural geometry · canvas textures · PBR materials · soft PCF shadows · 60 FPS target</div>
+  </div>
+</body>
+</html>

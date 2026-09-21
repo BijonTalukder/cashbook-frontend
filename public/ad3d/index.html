@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>হিসাব বই — Cinematic 3D Ad (FROM CHAOS TO CONTROL)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./styles.css?v=4" />
+</head>
+<body>
+  <!-- Stage: 1920x1080 (16:9). Letterboxed so it renders cleanly in any browser window. -->
+  <div class="letterbox top"></div>
+  <div class="letterbox bottom"></div>
+
+  <main id="stage" class="stage">
+    <canvas id="three-canvas"></canvas>
+
+    <!-- Curtain: fade-to-black for cinematic cuts. -->
+    <div id="curtain" class="curtain" aria-hidden="true"></div>
+
+    <!-- Typography layer: ONE headline at a time, strict enter/hold/exit. -->
+    <div id="textLayer" class="text-layer" aria-hidden="true"></div>
+
+    <!-- Cue markers (sound design timing). Hidden, useful in post. -->
+    <div id="cues" class="cues" aria-hidden="true"></div>
+
+    <!-- Brand bar at bottom right (always present, very subtle). -->
+    <div class="brand-mark" aria-hidden="true">
+      <span class="brand-dot"></span>
+      <span class="brand-name">হিসাব বই</span>
+    </div>
+
+    <!-- Vignette for cinematic feel. -->
+    <div class="vignette" aria-hidden="true"></div>
+  </main>
+
+  <!-- Recording launcher overlay (click to start). -->
+  <div id="intro" class="intro">
+    <div class="intro-inner">
+      <div class="pill">16:9 · 1920×1080 · Three.js</div>
+      <h1>হিসাব বই</h1>
+      <p class="sub">FROM CHAOS TO CONTROL</p>
+      <p class="desc">A director-grade, WebGL-rendered 2-minute cinematic advertisement.<br/>Open this page in a 1920×1080 window, hit play, and start screen capture.</p>
+      <button id="playBtn" class="play-btn">▶ প্লে অ্যাড</button>
+    </div>
+  </div>
+
+  <!-- Define the scene registry FIRST so scene scripts can call Scenes.register() at parse-time. -->
+  <script>
+    window.Scenes = window.Scenes || {
+      _all: [],
+      register(id, label, factory) { this._all.push({ id, label, factory }); },
+    };
+  </script>
+
+  <!-- Three.js r148 (last release with quiet UMD build). -->
+  <script src="https://unpkg.com/three@0.148.0/build/three.min.js?v=2"></script>
+
+  <!-- App scripts in dependency order. Cache-bust query prevents stale browser caches. -->
+  <script src="./js/lib/typography.js?v=3"></script>
+  <script src="./js/lib/curtain.js?v=3"></script>
+  <script src="./js/lib/cues.js?v=3"></script>
+  <script src="./js/lib/materials.js?v=3"></script>
+  <script src="./js/lib/geometry.js?v=3"></script>
+  <script src="./js/lib/lighting.js?v=3"></script>
+  <script src="./js/lib/camera.js?v=3"></script>
+  <script src="./js/lib/director.js?v=3"></script>
+
+  <script src="./js/scenes/shopScene.js?v=3"></script>
+  <script src="./js/scenes/chaosScene.js?v=3"></script>
+  <script src="./js/scenes/revealScene.js?v=3"></script>
+  <script src="./js/scenes/appIntroScene.js?v=3"></script>
+  <script src="./js/scenes/customerDueScene.js?v=3"></script>
+  <script src="./js/scenes/transactionScene.js?v=3"></script>
+  <script src="./js/scenes/expenseScene.js?v=3"></script>
+  <script src="./js/scenes/dashboardScene.js?v=3"></script>
+  <script src="./js/scenes/montageScene.js?v=3"></script>
+  <script src="./js/scenes/morphScene.js?v=3"></script>
+  <script src="./js/scenes/peaceScene.js?v=3"></script>
+  <script src="./js/scenes/heroScene.js?v=3"></script>
+
+  <script src="./js/main.js?v=4"></script>
+</body>
+</html>
