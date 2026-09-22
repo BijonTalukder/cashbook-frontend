@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, ArrowRight, TrendingUp } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, TrendingUp, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { authService } from "../../services/auth.service";
 import { useAuthStore } from "../../store/authStore";
@@ -24,6 +24,7 @@ const LoginPage = () => {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const { t } = useTranslation();
   const schema = useMemo(() => buildSchema(t), [t]);
 
@@ -35,14 +36,12 @@ const LoginPage = () => {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
+    setLoginError(null);
     try {
       const res = await authService.login(data);
       setAuth(res.data.user, res.data.token);
       toast.success(t("auth.welcomeBack", { name: res.data.user.firstName }));
 
-      // ✅ Fix: defaultBusiness আছে কিনা দেখে navigate করো
-      // GuestRoute এও handle করা আছে, কিন্তু explicit navigate better UX
-      navigate("/dashboard", { replace: true });
       if (
         res.data.user?.onboardingCompleted &&
         res.data.user?.defaultBusiness
@@ -52,11 +51,15 @@ const LoginPage = () => {
         navigate("/onboarding", { replace: true });
       }
     } catch (err: unknown) {
+      const axiosError = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
       const message =
-        err instanceof Error
-          ? err.message
-          : ((err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ?? t("auth.loginFailed"));
+        axiosError.response?.data?.message ||
+        axiosError.message ||
+        t("auth.loginFailed");
+      setLoginError(message);
       toast.error(message);
     } finally {
       setLoading(false);
@@ -179,6 +182,12 @@ const LoginPage = () => {
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {loginError && (
+              <div className="p-3.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm flex items-start gap-2.5">
+                <AlertCircle size={18} className="flex-shrink-0 mt-0.5 text-red-400" />
+                <span className="leading-snug">{loginError}</span>
+              </div>
+            )}
             <div>
               <label className="block text-sm text-slate-400 mb-2">
                 {t("auth.emailAddress")}

@@ -34,8 +34,18 @@ api.interceptors.response.use(
     reportRequestOutcome(!!error.response);
 
     if (error.response?.status === 401) {
-      localStorage.removeItem("auth-storage");
-      window.location.href = "/login";
+      const isAuthRequest =
+        error.config?.url?.includes("/auth/login") ||
+        error.config?.url?.includes("/auth/register");
+      const isAuthPage =
+        typeof window !== "undefined" &&
+        (window.location.pathname === "/login" ||
+          window.location.pathname === "/register");
+
+      if (!isAuthRequest && !isAuthPage) {
+        localStorage.removeItem("auth-storage");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   },
