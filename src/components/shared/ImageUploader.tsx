@@ -3,6 +3,7 @@ import { UploadCloud, Image as ImageIcon, Trash2, Loader2, Link2, AlertCircle } 
 import { toast } from "sonner";
 import { uploadToCloudinary, validateImageFile, isCloudinaryConfigured } from "../../services/cloudinary.service";
 import { useTranslation } from "../../i18n/useTranslation";
+import { haptic } from "../../native/bridge";
 
 interface ImageUploaderProps {
   value?: string;
@@ -36,11 +37,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     const validation = validateImageFile(file);
     if (!validation.valid) {
+      haptic("warning");
       toast.error(validation.error || t("product.uploadFailed"));
       return;
     }
 
     if (!configured) {
+      haptic("warning");
       toast.error(t("product.missingCloudinaryConfig"));
       setShowDirectUrl(true);
       return;
@@ -62,8 +65,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       onChange(uploadedUrl);
       setPreviewOverride(null);
+      haptic("success");
       toast.success(t("product.uploadSuccess"));
     } catch (err: unknown) {
+      haptic("error");
       const msg = err instanceof Error ? err.message : t("product.uploadFailed");
       toast.error(msg);
       // Revert preview if we didn't have an existing value
@@ -111,6 +116,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
+    haptic("light");
     setPreviewOverride(null);
     onChange("");
     if (fileInputRef.current) {
@@ -186,7 +192,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <button
                   type="button"
                   disabled={disabled}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => {
+                    haptic("light");
+                    fileInputRef.current?.click();
+                  }}
                   className="text-xs font-medium px-2.5 py-1 rounded-lg press"
                   style={{
                     background: "rgba(16, 185, 129, 0.15)",
@@ -218,8 +227,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`flex flex-col items-center justify-center p-5 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 ${
+          onClick={() => {
+            haptic("light");
+            fileInputRef.current?.click();
+          }}
+          className={`flex flex-col items-center justify-center p-5 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 press ${
             isDragging ? "border-emerald-500 scale-[0.99]" : "hover:border-neutral-400 dark:hover:border-neutral-500"
           }`}
           style={{

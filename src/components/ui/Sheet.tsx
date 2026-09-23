@@ -103,9 +103,12 @@ const Sheet = ({
      sheet instead of scrolling it. */
   const canDrag = () => !isDesktop && dismissible;
 
+  const thresholdPassed = useRef(false);
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (!canDrag()) return;
     if ((scrollRef.current?.scrollTop ?? 0) > 0) return;
+    thresholdPassed.current = false;
     drag.current = {
       active: true,
       startY: e.clientY,
@@ -119,6 +122,12 @@ const Sheet = ({
     if (!drag.current.active) return;
     const dy = e.clientY - drag.current.startY;
     drag.current.lastY = e.clientY;
+    if (dy >= DISMISS_DISTANCE && !thresholdPassed.current) {
+      thresholdPassed.current = true;
+      haptic("selection");
+    } else if (dy < DISMISS_DISTANCE && thresholdPassed.current) {
+      thresholdPassed.current = false;
+    }
     // Resist upward drags instead of letting the sheet fly off the top.
     setDragY(dy > 0 ? dy : dy / 6);
   };
@@ -128,6 +137,7 @@ const Sheet = ({
     const dy = e.clientY - drag.current.startY;
     const dt = Math.max(1, e.timeStamp - drag.current.startT);
     drag.current.active = false;
+    thresholdPassed.current = false;
 
     if (dy > DISMISS_DISTANCE || dy / dt > DISMISS_VELOCITY) {
       setDragY(0);

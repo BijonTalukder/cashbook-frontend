@@ -227,6 +227,7 @@ const FloatingAI = () => {
 
   /* Select business */
   const handleSelectBusiness = async (biz: IBusiness) => {
+    haptic("selection");
     setSelected(biz);
     setGreeting(true);
     setStep("chat");
@@ -249,6 +250,7 @@ const FloatingAI = () => {
   const handleSend = async (overrideText?: string) => {
     const text = (overrideText ?? input).trim();
     if (!text || thinking || !selected) return;
+    haptic("medium");
     setInput("");
     const newMsgs: Message[] = [
       ...messages,
@@ -310,6 +312,7 @@ const FloatingAI = () => {
   };
 
   const handleReset = () => {
+    haptic("light");
     setStep("select");
     setSelected(null);
     setMessages([]);
@@ -317,6 +320,7 @@ const FloatingAI = () => {
     lastPayloadRef.current = null;
   };
   const handleClose = () => {
+    haptic("light");
     setOpen(false);
     setTimeout(handleReset, 300);
   };

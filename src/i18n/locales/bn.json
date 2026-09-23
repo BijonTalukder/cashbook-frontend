@@ -1359,6 +1359,8 @@
     "support": "সহায়তা ও মতামত",
     "supportSection": {
       "desc": "আমরা এক বার্তা দূরে",
+      "facebookDesc": "আপডেট, পরামর্শ ও সহায়তার জন্য আমাদের ফেসবুক পেজে যুক্ত থাকুন",
+      "facebookTitle": "ফেসবুক পেজ",
       "handle": "t.me/hisabboi",
       "openTelegram": "টেলিগ্রাম খুলুন",
       "telegramDesc": "সাহায্য, আপডেট ও মতামত জানাতে @hisabboi-এ যোগ দিন",

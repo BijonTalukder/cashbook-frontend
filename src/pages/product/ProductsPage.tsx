@@ -95,7 +95,11 @@ const ProductsPage = () => {
             {t("product.title")}
           </h1>
           <button
-            onClick={() => { setEditing(null); setModalOpen(true); }}
+            onClick={() => {
+              haptic("medium");
+              setEditing(null);
+              setModalOpen(true);
+            }}
             className="flex items-center gap-2 px-4 h-11 rounded-xl text-sm font-semibold flex-shrink-0 press"
             style={{ background: "#10b981", color: "#022c22" }}
           >
@@ -115,7 +119,10 @@ const ProductsPage = () => {
             />
           </div>
           <button
-            onClick={() => setLowStockOnly((v) => !v)}
+            onClick={() => {
+              haptic("selection");
+              setLowStockOnly((v) => !v);
+            }}
             className="flex items-center gap-1.5 px-3.5 h-11 rounded-xl text-xs font-medium flex-shrink-0 press"
             style={{
               background: lowStockOnly ? "rgba(239,68,68,0.1)" : C.card,

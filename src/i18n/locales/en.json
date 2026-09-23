@@ -1359,6 +1359,8 @@
     "support": "Support & Feedback",
     "supportSection": {
       "desc": "We're one message away",
+      "facebookDesc": "Follow our Facebook page for updates, tips and support",
+      "facebookTitle": "Facebook page",
       "handle": "t.me/hisabboi",
       "openTelegram": "Open Telegram",
       "telegramDesc": "Join @hisabboi for help, updates and to share your feedback",

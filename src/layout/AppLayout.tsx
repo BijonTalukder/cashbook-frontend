@@ -233,6 +233,7 @@ const AppLayout = () => {
   const touchStartY = useRef<number>(0);
   const swipeActive = useRef(false);
   const [swipeProgress, setSwipeProgress] = useState(0); // 0–1
+  const drawerStartX = useRef<number>(0);
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
@@ -257,7 +258,10 @@ const AppLayout = () => {
       const dx = e.changedTouches[0].clientX - touchStartX.current;
       setSwipeProgress(0);
       swipeActive.current = false;
-      if (dx > 80) navigate(-1);
+      if (dx > 80) {
+        haptic("light");
+        navigate(-1);
+      }
     };
 
     window.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -495,7 +499,7 @@ const AppLayout = () => {
                   ].map(({ icon: Icon, label, action, danger }) => (
                     <button
                       key={label}
-                      onClick={action}
+                      onClick={() => { haptic("selection"); action(); }}
                       className="w-full flex items-center gap-3 px-4 h-12 text-sm text-left row-press"
                       style={{ color: danger ? "#ef4444" : "var(--text-secondary)" }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-3)"; }}
@@ -599,6 +603,14 @@ const AppLayout = () => {
           />
           <div
             className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] w-[80vw] max-w-[320px] flex flex-col rounded-r-3xl"
+            onTouchStart={(e) => { drawerStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const dx = drawerStartX.current - e.changedTouches[0].clientX;
+              if (dx > 50) {
+                haptic("light");
+                setShowMore(false);
+              }
+            }}
             style={{
               background: "var(--bg-elevated)",
               borderRight: "1px solid var(--border-strong)",
@@ -621,8 +633,8 @@ const AppLayout = () => {
                 </span>
               </div>
               <button
-                onClick={() => setShowMore(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg"
+                onClick={() => { haptic("light"); setShowMore(false); }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg press"
                 style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
               >
                 <X size={16} />
@@ -643,8 +655,8 @@ const AppLayout = () => {
                         <NavLink
                           key={to}
                           to={to}
-                          onClick={() => setShowMore(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm"
+                          onClick={() => { haptic("selection"); setShowMore(false); }}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm press-sm"
                           style={{
                             background: active ? "var(--nav-active-bg)" : "transparent",
                             color: active ? "#10b981" : "var(--text-secondary)",
@@ -665,8 +677,8 @@ const AppLayout = () => {
             <div className="flex-shrink-0 px-3 py-3" style={{ borderTop: "1px solid var(--border-light)" }}>
               <NavLink
                 to="/settings"
-                onClick={() => setShowMore(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mb-1"
+                onClick={() => { haptic("selection"); setShowMore(false); }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mb-1 press-sm"
                 style={{
                   background: isActive("/settings") ? "var(--nav-active-bg)" : "transparent",
                   color: isActive("/settings") ? "#10b981" : "var(--text-secondary)",
@@ -676,8 +688,8 @@ const AppLayout = () => {
                 <Settings size={18} /> {t("nav.settings")}
               </NavLink>
               <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm"
+                onClick={() => { haptic("light"); handleLogout(); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm press-sm"
                 style={{ color: "#ef4444" }}
               >
                 <LogOut size={18} /> {t("nav.logout")}

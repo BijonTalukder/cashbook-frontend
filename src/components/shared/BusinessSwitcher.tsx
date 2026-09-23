@@ -149,6 +149,7 @@ const BusinessSwitcher = ({ onSelect, variant = "chip" }: BusinessSwitcherProps)
   const addButton = (
     <button
       onClick={() => {
+        haptic("light");
         setOpen(false);
         navigate("/business/new");
       }}

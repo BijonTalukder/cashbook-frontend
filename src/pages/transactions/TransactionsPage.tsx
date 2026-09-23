@@ -22,6 +22,7 @@ import { useFormat } from "../../i18n/useFormat";
 import { plural } from "../../i18n/labels";
 import LoadFailedState from "../../components/shared/LoadFailedState";
 import { toastLoadFailure } from "../../offline/notify";
+import { haptic } from "../../native/bridge";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -313,9 +314,22 @@ const TransactionsPage = () => {
     }
   }, [searchParams]);
 
-  const openAdd = (type: TxnType) => { setEditing(null); setDefaultType(type); setModalOpen(true); };
-  const openEdit = (txn: ITransaction) => { setEditing(txn); setDefaultType(txn.type); setModalOpen(true); };
-  const openSettle = (txn: ITransaction) => setSettling(txn);
+  const openAdd = (type: TxnType) => {
+    haptic("medium");
+    setEditing(null);
+    setDefaultType(type);
+    setModalOpen(true);
+  };
+  const openEdit = (txn: ITransaction) => {
+    haptic("light");
+    setEditing(txn);
+    setDefaultType(txn.type);
+    setModalOpen(true);
+  };
+  const openSettle = (txn: ITransaction) => {
+    haptic("light");
+    setSettling(txn);
+  };
 
   const handleSuccess = (txn: ITransaction) => {
     if (editing) {
@@ -452,7 +466,10 @@ const TransactionsPage = () => {
             return (
               <button
                 key={value}
-                onClick={() => setTypeFilter(value as TxnType | "")}
+                onClick={() => {
+                  haptic("selection");
+                  setTypeFilter(value as TxnType | "");
+                }}
                 className="px-3.5 h-9 flex-shrink-0 rounded-xl text-xs font-medium press whitespace-nowrap"
                 style={{
                   background: isActive ? `${color}15` : C.card,

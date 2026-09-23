@@ -4,7 +4,7 @@ import {
   User, Building2, Lock, LogOut, Trash2, ChevronRight,
   Check, Loader2, Eye, EyeOff, Camera, Shield,
   Bell, Palette, Globe, CreditCard, AlertTriangle,
-  Home, X, Store, Send, ExternalLink,
+  Home, X, Store, Send, Facebook, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
@@ -15,7 +15,12 @@ import LanguageToggle from "../../components/shared/LanguageToggle";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { enumLabel } from "../../i18n/labels";
-import { TELEGRAM_URL, TELEGRAM_HANDLE } from "../../config/links";
+import {
+  TELEGRAM_URL,
+  TELEGRAM_HANDLE,
+  FACEBOOK_URL,
+  FACEBOOK_HANDLE,
+} from "../../config/links";
 
 /* ─── Design tokens ───────────────────────────────────── */
 const C = {
@@ -483,32 +488,61 @@ const SupportSection = () => {
         desc={t("settings.supportSection.desc")}
       />
 
-      <a
-        href={TELEGRAM_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all"
-        style={{ background: "rgba(56,151,222,0.08)", border: "1px solid rgba(56,151,222,0.2)" }}
-      >
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "rgba(56,151,222,0.15)", color: "#3897de" }}
+      <div className="space-y-3">
+        <a
+          href={TELEGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all press"
+          style={{ background: "rgba(56,151,222,0.08)", border: "1px solid rgba(56,151,222,0.2)" }}
         >
-          <Send size={16} />
-        </div>
-        <div className="flex-1 min-w-0 text-left">
-          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-            {t("settings.supportSection.telegramTitle")}
-          </p>
-          <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-            {t("settings.supportSection.telegramDesc")}
-          </p>
-          <p className="text-[11px] mt-0.5 font-medium" style={{ color: "#3897de" }}>
-            {TELEGRAM_HANDLE}
-          </p>
-        </div>
-        <ExternalLink size={14} style={{ color: "var(--text-faint)" }} />
-      </a>
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(56,151,222,0.15)", color: "#3897de" }}
+          >
+            <Send size={16} />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+              {t("settings.supportSection.telegramTitle")}
+            </p>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+              {t("settings.supportSection.telegramDesc")}
+            </p>
+            <p className="text-[11px] mt-0.5 font-medium" style={{ color: "#3897de" }}>
+              {TELEGRAM_HANDLE}
+            </p>
+          </div>
+          <ExternalLink size={14} style={{ color: "var(--text-faint)" }} />
+        </a>
+
+        <a
+          href={FACEBOOK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all press"
+          style={{ background: "rgba(24,119,242,0.08)", border: "1px solid rgba(24,119,242,0.2)" }}
+        >
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(24,119,242,0.15)", color: "#1877f2" }}
+          >
+            <Facebook size={16} />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+              {t("settings.supportSection.facebookTitle")}
+            </p>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+              {t("settings.supportSection.facebookDesc")}
+            </p>
+            <p className="text-[11px] mt-0.5 font-medium" style={{ color: "#1877f2" }}>
+              {FACEBOOK_HANDLE}
+            </p>
+          </div>
+          <ExternalLink size={14} style={{ color: "var(--text-faint)" }} />
+        </a>
+      </div>
     </div>
   );
 };

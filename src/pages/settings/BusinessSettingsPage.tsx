@@ -8,6 +8,7 @@ import { useTranslation } from "../../i18n/useTranslation";
 import { enumLabel, paymentMethodLabel } from "../../i18n/labels";
 import { CURRENCIES, toCurrency } from "../../utils/currency";
 import ImageUploader from "../../components/shared/ImageUploader";
+import { haptic } from "../../native/bridge";
 
 const C = {
   card: "var(--surface-1)",
@@ -58,6 +59,7 @@ const BusinessSettingsPage = () => {
   }, [activeBusiness?._id]);
 
   const toggleMethod = (m: PaymentMethod) => {
+    haptic("selection");
     setPaymentMethods((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
   };
 
@@ -67,12 +69,21 @@ const BusinessSettingsPage = () => {
 
   const handleSave = async () => {
     if (!activeBusiness) return;
-    if (!name.trim()) { toast.error(t("businessSettings.nameRequired")); return; }
-    if (paymentMethods.length === 0) { toast.error(t("businessSettings.methodRequired")); return; }
+    if (!name.trim()) {
+      haptic("warning");
+      toast.error(t("businessSettings.nameRequired"));
+      return;
+    }
+    if (paymentMethods.length === 0) {
+      haptic("warning");
+      toast.error(t("businessSettings.methodRequired"));
+      return;
+    }
 
     const parsedOpeningBalance = Number(openingBalance) || 0;
 
     setSaving(true);
+    haptic("medium");
     try {
       const updated = await businessService.updateBusiness(activeBusiness._id, {
         name: name.trim(),
@@ -86,8 +97,10 @@ const BusinessSettingsPage = () => {
         openingBalance: canEditOpeningBalance && parsedOpeningBalance !== openingBalanceNum ? parsedOpeningBalance : undefined,
       });
       setActiveBusiness(updated);
+      haptic("success");
       toast.success(t("businessSettings.updated"));
     } catch (err: unknown) {
+      haptic("error");
       const msg = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message ?? t("businessSettings.updateFailed");
       toast.error(msg);

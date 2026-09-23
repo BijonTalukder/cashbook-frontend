@@ -36,7 +36,10 @@ const ConfirmHost = () => {
         <div className="flex gap-2.5">
           <button
             type="button"
-            onClick={() => settle(false)}
+            onClick={() => {
+              haptic("light");
+              settle(false);
+            }}
             className="flex-1 rounded-xl py-3.5 text-sm font-semibold press"
             style={{ background: "var(--surface-3)", color: "var(--text-secondary)" }}
           >
