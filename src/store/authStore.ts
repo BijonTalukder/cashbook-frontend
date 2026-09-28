@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { IUser } from "../types/auth.types";
+import { signOutFirebase } from "../config/firebase";
 
 interface AuthState {
   user: IUser | null;
@@ -16,7 +17,10 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      logout: () => {
+        void signOutFirebase();
+        set({ user: null, token: null });
+      },
       isAuthenticated: () => !!get().token,
     }),
     { name: "auth-storage" },

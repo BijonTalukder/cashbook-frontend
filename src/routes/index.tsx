@@ -6,12 +6,14 @@ import OnboardingRoute from "./OnboardingRoute";
 import AppLayout from "../layout/AppLayout";
 import ScreenFallback from "../components/ui/ScreenFallback";
 import RouteError from "../components/ui/RouteError";
+import { logAnalyticsEvent } from "../config/firebase";
 
 /* Auth screens stay in the entry chunk — they are the cold-start destination
    for a logged-out user, and a spinner there would be the first thing anyone
    ever sees of the app. */
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 
 /**
  * Everything else is split.
@@ -39,6 +41,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "/login", element: <LoginPage /> },
       { path: "/register", element: <RegisterPage /> },
+      { path: "/forgot-password", element: <ForgotPasswordPage /> },
     ],
   },
 
@@ -107,3 +110,12 @@ export const router = createBrowserRouter([
   /* ── Fallback ────────────────────────────────────────── */
   { path: "*", element: <Navigate to="/login" replace /> },
 ]);
+
+/* Firebase Analytics only measures the initial page load — SPA route changes
+   have to be reported manually. */
+router.subscribe((state) => {
+  logAnalyticsEvent("page_view", {
+    page_path: state.location.pathname + state.location.search,
+    page_title: typeof document !== "undefined" ? document.title : "",
+  });
+});
