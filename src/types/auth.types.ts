@@ -22,6 +22,38 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface GoogleLoginPayload {
+  idToken: string;
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface VerifyOtpPayload {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  success: boolean;
+  message: string;
+  data: {
+    resetToken: string;
+  };
+}
+
+export interface ResetPasswordPayload {
+  resetToken: string;
+  password: string;
+}
+
+export interface SimpleResponse {
+  success: boolean;
+  message: string;
+  data: null;
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;

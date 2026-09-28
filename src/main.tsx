@@ -2,12 +2,16 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
+import { initFirebaseAnalytics } from "./config/firebase";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 );
+
+/* Firebase Analytics — client-only, best-effort (never blocks first paint). */
+void initFirebaseAnalytics();
 
 /**
  * Retire the boot splash once the first frame has actually painted.
