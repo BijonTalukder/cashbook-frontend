@@ -10,9 +10,13 @@ import OfflineAnnouncer from "./components/shared/OfflineAnnouncer";
 import ConfirmHost from "./components/ui/ConfirmDialog";
 import { installNativeHooks, isNativeApp, setSystemBars } from "./native/bridge";
 import { useThemeStore } from "./store/themeStore";
+import { useAndroidFcm } from "./hooks/useAndroidFcm";
 
 function App() {
   const theme = useThemeStore((s) => s.theme);
+
+  // No-op outside the WebView shell.
+  useAndroidFcm();
 
   // Connectivity watching, queue recovery and the sync triggers all start here,
   // before the first route renders, so a reload with pending work picks it up.
