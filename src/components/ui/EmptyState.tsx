@@ -17,6 +17,9 @@ export interface EmptyStateProps {
     onClick: () => void;
     icon?: LucideIcon;
   };
+  /** Convenience shortcut for primary action */
+  actionLabel?: string;
+  onAction?: () => void;
   /** Secondary action */
   secondaryAction?: {
     label: string;
@@ -35,9 +38,16 @@ export const EmptyState = ({
   title,
   description,
   action,
+  actionLabel,
+  onAction,
   secondaryAction,
   className,
 }: EmptyStateProps) => {
+  const primaryAction =
+    action ||
+    (actionLabel && onAction
+      ? { label: actionLabel, onClick: onAction }
+      : undefined);
   return (
     <div
       className={cn(
@@ -63,21 +73,21 @@ export const EmptyState = ({
       )}
 
       {/* Actions */}
-      {(action || secondaryAction) && (
+      {(primaryAction || secondaryAction) && (
         <div className="flex flex-col sm:flex-row items-center gap-2.5 mt-5 w-full max-w-xs justify-center">
-          {action && (
+          {primaryAction && (
             <Button
               variant="primary"
               size="md"
               block
               onClick={() => {
                 haptic("medium");
-                action.onClick();
+                primaryAction.onClick();
               }}
               className="gap-2"
             >
-              {action.icon && <action.icon className="w-4 h-4" />}
-              {action.label}
+              {primaryAction.icon && <primaryAction.icon className="w-4 h-4" />}
+              {primaryAction.label}
             </Button>
           )}
 

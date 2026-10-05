@@ -5,6 +5,8 @@ import { haptic } from "../../native/bridge";
 export interface NativeCardProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Enables touch press-state scaling and haptic tap feedback */
   clickable?: boolean;
+  /** Alias for clickable */
+  interactive?: boolean;
   /** Visual surface variant: 'elevated' (soft shadow), 'outlined' (border only), 'filled' (surface-2 tint) */
   variant?: "elevated" | "outlined" | "filled";
   /** Optional custom padding override */
@@ -22,6 +24,7 @@ export interface NativeCardProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 export const NativeCard = ({
   clickable = false,
+  interactive,
   variant = "elevated",
   noPadding = false,
   className,
@@ -29,8 +32,10 @@ export const NativeCard = ({
   onClick,
   ...rest
 }: NativeCardProps) => {
+  const isClickable = clickable || interactive || Boolean(onClick);
+
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (clickable) {
+    if (isClickable) {
       haptic("light");
     }
     onClick?.(e);
@@ -47,13 +52,13 @@ export const NativeCard = ({
 
   return (
     <div
-      role={clickable ? "button" : undefined}
-      tabIndex={clickable ? 0 : undefined}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
       onClick={handleClick}
       className={cn(
         "relative rounded-2xl transition-all duration-100 ease-out overflow-hidden text-neutral-900 dark:text-neutral-100",
         variantStyles[variant],
-        clickable && [
+        isClickable && [
           "cursor-pointer select-none",
           "active:scale-[0.985] active:bg-neutral-50 dark:active:bg-neutral-800/60",
           "-webkit-tap-highlight-color-transparent",

@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { haptic } from "../../native/bridge";
 
-export interface ListItemProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface ListItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** Leading icon or visual element */
   leading?: React.ReactNode;
   /** Primary label / title */

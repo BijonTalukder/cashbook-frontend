@@ -26,13 +26,16 @@ export const SkeletonRow = () => (
   </div>
 );
 
-export const SkeletonList = ({ rows = 5 }: { rows?: number }) => (
-  <div>
-    {Array.from({ length: rows }, (_, i) => (
-      <SkeletonRow key={i} />
-    ))}
-  </div>
-);
+export const SkeletonList = ({ rows, count = 5 }: { rows?: number; count?: number }) => {
+  const numRows = rows ?? count;
+  return (
+    <div>
+      {Array.from({ length: numRows }, (_, i) => (
+        <SkeletonRow key={i} />
+      ))}
+    </div>
+  );
+};
 
 export const SkeletonCard = ({ className = "" }: { className?: string }) => (
   <div
