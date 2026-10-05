@@ -29,6 +29,17 @@ export const useBackHandler = (active: boolean, onBack: () => void): void => {
 let lockCount = 0;
 let savedScrollY = 0;
 
+/** Force resets body scroll lock if orphaned by an unmounted overlay or route change */
+export const forceUnlockBodyScroll = (): void => {
+  lockCount = 0;
+  if (typeof document !== "undefined") {
+    document.body.classList.remove("sheet-open");
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+  }
+};
+
 export const useBodyScrollLock = (locked: boolean): void => {
   useEffect(() => {
     if (!locked) return;
@@ -43,7 +54,7 @@ export const useBodyScrollLock = (locked: boolean): void => {
     lockCount++;
 
     return () => {
-      lockCount--;
+      lockCount = Math.max(0, lockCount - 1);
       if (lockCount === 0) {
         document.body.classList.remove("sheet-open");
         document.body.style.position = "";
@@ -54,6 +65,7 @@ export const useBodyScrollLock = (locked: boolean): void => {
     };
   }, [locked]);
 };
+
 
 /** Stable haptic trigger for event handlers. */
 export const useHaptic = () =>

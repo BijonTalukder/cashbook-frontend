@@ -9,6 +9,8 @@ import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
 import Sheet from "../ui/Sheet";
+import NativeInput from "../ui/Input";
+import Button from "../ui/Button";
 
 const buildSchema = (t: TFunction) =>
   z.object({
@@ -20,26 +22,6 @@ const buildSchema = (t: TFunction) =>
     notes: z.string().optional(),
   });
 type FormData = z.infer<ReturnType<typeof buildSchema>>;
-
-const C = {
-  overlay: "var(--overlay-scrim)", card: "var(--bg-elevated)",
-  border: "var(--border)", input: "var(--surface-2)",
-  inputBorder: "var(--border-strong)",
-};
-const inputCss = (err?: boolean): React.CSSProperties => ({
-  width: "100%", background: C.input,
-  border: `1px solid ${err ? "#f87171" : C.inputBorder}`,
-  borderRadius: "12px", padding: "10px 14px",
-  color: "var(--text-primary)", fontSize: "14px", outline: "none",
-});
-
-const Field = ({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) => (
-  <div>
-    <label className="block text-xs mb-1.5" style={{ color: "var(--text-muted)" }}>{label}</label>
-    {children}
-    {error && <p className="mt-1 text-xs" style={{ color: "#f87171" }}>{error}</p>}
-  </div>
-);
 
 interface Props {
   open: boolean;
@@ -58,7 +40,12 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
     ? editing.totalSales === 0 && editing.totalPaid === 0
     : true;
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", phone: "", email: "", address: "", openingBalance: 0, notes: "" },
   });
@@ -82,8 +69,6 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
       let result: ICustomer;
       if (editing) {
         const updatePayload: Partial<ICustomerPayload> = { ...data };
-        // The field is disabled and skipped by react-hook-form, but strip it here
-        // too so a locked opening balance never reaches the API.
         if (!canEditOpeningBalance) delete updatePayload.openingBalance;
         result = await customerService.update(editing._id, updatePayload);
         toast.success(t("customer.updated"));
@@ -94,8 +79,9 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
       onSuccess(result);
       onClose();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? t("common.unknownError");
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        t("common.unknownError");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -106,66 +92,87 @@ const CustomerModal = ({ open, onClose, onSuccess, editing }: Props) => {
 
   return (
     <Sheet open={open} onClose={onClose} size="md" title={editing ? t("customer.edit") : t("customer.add")}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <NativeInput
+          label={t("common.name")}
+          placeholder={t("customer.namePlaceholder")}
+          error={errors.name?.message}
+          required
+          autoFocus
+          enterKeyHint="next"
+          {...register("name")}
+        />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Field label={t("common.name")} error={errors.name?.message}>
-            <input {...register("name")} placeholder={t("customer.namePlaceholder")} style={inputCss(!!errors.name)} />
-          </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <NativeInput
+            label={t("common.phone")}
+            placeholder={t("customer.phonePlaceholder")}
+            error={errors.phone?.message}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            enterKeyHint="next"
+            {...register("phone")}
+          />
+          <NativeInput
+            label={t("common.email")}
+            placeholder={t("customer.emailPlaceholder")}
+            error={errors.email?.message}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            enterKeyHint="next"
+            {...register("email")}
+          />
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label={t("common.phone")} error={errors.phone?.message}>
-              <input
-                {...register("phone")}
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder={t("customer.phonePlaceholder")}
-                style={inputCss()}
-              />
-            </Field>
-            <Field label={t("common.email")} error={errors.email?.message}>
-              <input {...register("email")} placeholder={t("customer.emailPlaceholder")} style={inputCss(!!errors.email)} />
-            </Field>
-          </div>
+        <NativeInput
+          label={t("common.address")}
+          placeholder={t("customer.addressPlaceholder")}
+          error={errors.address?.message}
+          enterKeyHint="next"
+          {...register("address")}
+        />
 
-          <Field label={t("common.address")} error={errors.address?.message}>
-            <input {...register("address")} placeholder={t("customer.addressPlaceholder")} style={inputCss()} />
-          </Field>
+        <div>
+          <NativeInput
+            label={t("customer.openingBalance")}
+            placeholder={t("common.zero")}
+            error={errors.openingBalance?.message}
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="0.01"
+            disabled={!canEditOpeningBalance}
+            helperText={
+              editing && !canEditOpeningBalance
+                ? t("customer.openingBalanceLocked")
+                : editing && canEditOpeningBalance
+                  ? t("customer.openingBalanceEditHint")
+                  : undefined
+            }
+            {...register("openingBalance", { valueAsNumber: true })}
+          />
+        </div>
 
-          <Field label={t("customer.openingBalance")} error={errors.openingBalance?.message}>
-            <input
-              type="number" inputMode="decimal" min="0" step="0.01"
-              disabled={!canEditOpeningBalance}
-              {...register("openingBalance", { valueAsNumber: true })}
-              placeholder={t("common.zero")}
-              style={inputCss(!!errors.openingBalance)}
-            />
-            {editing && !canEditOpeningBalance && (
-              <p className="mt-1 text-xs" style={{ color: "#f59e0b" }}>
-                {t("customer.openingBalanceLocked")}
-              </p>
-            )}
-            {editing && canEditOpeningBalance && (
-              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                {t("customer.openingBalanceEditHint")}
-              </p>
-            )}
-          </Field>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300 select-none">
+            {t("common.notes")}
+          </label>
+          <textarea
+            {...register("notes")}
+            placeholder={t("customer.notesPlaceholder")}
+            rows={2}
+            className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-2.5 text-[16px] text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-3 focus:ring-emerald-500/15 focus:border-emerald-500 transition-all"
+          />
+        </div>
 
-          <Field label={t("common.notes")} error={errors.notes?.message}>
-            <textarea {...register("notes")} placeholder={t("customer.notesPlaceholder")} rows={2} style={inputCss()} />
-          </Field>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold press disabled:opacity-60"
-            style={{ background: "#10b981", color: "#022c22" }}
-          >
-            {submitting && <Loader2 size={14} className="animate-spin" />}
+        <div className="pt-2">
+          <Button type="submit" variant="primary" size="lg" block loading={submitting}>
             {editing ? t("common.saveChanges") : t("customer.add")}
-          </button>
-        </form>
+          </Button>
+        </div>
+      </form>
     </Sheet>
   );
 };

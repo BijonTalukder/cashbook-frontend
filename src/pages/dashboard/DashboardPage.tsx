@@ -475,7 +475,7 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-5xl mx-auto space-y-5">
+      <div className="px-4 pt-5 pb-16 lg:px-8 lg:pt-8 lg:pb-20 max-w-5xl mx-auto space-y-5">
 
         {/* ── Header ──────────────────────────────────── */}
         <div className="flex items-start justify-between">

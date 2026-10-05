@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Plus, Users, Phone, ChevronRight } from "lucide-react";
+import { Search, Plus, Users, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { useBusinessStore } from "../../store/businessStore";
@@ -10,11 +10,12 @@ import { useDataVersion } from "../../store/offlineStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { useRefreshHandler } from "../../native/refresh";
-
-const C = {
-  card: "var(--surface-1)",
-  border: "var(--border)",
-};
+import { NativeInput } from "../../components/ui/Input";
+import { NativeCard } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { ListItem } from "../../components/ui/ListItem";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { SkeletonList } from "../../components/ui/Skeleton";
 
 const CustomersPage = () => {
   const navigate = useNavigate();
@@ -28,7 +29,6 @@ const CustomersPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
-
 
   useEffect(() => {
     if (searchParams.get("new") === "1") {
@@ -62,92 +62,114 @@ const CustomersPage = () => {
   }, [activeBusiness?._id, search, dataVersion]);
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("customer.title")}
-          </h1>
-          <button
+    <div className="min-h-screen pb-12 bg-[var(--bg)]">
+      <div className="px-4 py-5 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-4">
+        {/* Header section with native hierarchy */}
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              {t("customer.title")}
+            </h1>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              {customers.length} {t("customer.title").toLowerCase()}
+            </p>
+          </div>
+
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold press"
-            style={{ background: "#10b981", color: "#022c22" }}
+            className="gap-1.5"
           >
-            <Plus size={15} /> {t("customer.add")}
-          </button>
+            <Plus size={16} /> {t("customer.add")}
+          </Button>
         </div>
 
-        <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-faint)" }} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("common.searchByNameOrPhone")}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
-            style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-primary)" }}
-          />
-        </div>
+        {/* 48px Thumb Search Input */}
+        <NativeInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch("")}
+          clearable
+          placeholder={t("common.searchByNameOrPhone")}
+          leadingIcon={<Search className="w-4 h-4" />}
+          touchSize="md"
+        />
 
-        <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        {/* List Surface */}
+        <NativeCard noPadding variant="elevated">
           {loading ? (
-            <div className="p-4 space-y-2">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
-              ))}
+            <div className="p-4">
+              <SkeletonList count={4} />
             </div>
           ) : customers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                <Users size={20} style={{ color: "var(--text-faint)" }} />
-              </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                {search ? t("customer.notFound") : t("customer.empty")}
-              </p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-                {search ? t("common.tryDifferentSearch") : t("customer.emptyHintFull")}
-              </p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title={search ? t("customer.notFound") : t("customer.empty")}
+              description={search ? t("common.tryDifferentSearch") : t("customer.emptyHintFull")}
+              action={
+                !search
+                  ? {
+                      label: t("customer.add"),
+                      onClick: () => setModalOpen(true),
+                      icon: Plus,
+                    }
+                  : undefined
+              }
+            />
           ) : (
             customers.map((c) => (
-              <button
+              <ListItem
                 key={c._id}
+                clickable
+                chevron
                 onClick={() => navigate(`/customers/${c._id}`)}
-                className="row-press w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 text-left"
-                style={{ borderBottom: "1px solid var(--border-light)" }}
-              >
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-semibold"
-                  style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
-                >
-                  {c.name[0]?.toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
+                leading={
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                    {c.name[0]?.toUpperCase()}
+                  </div>
+                }
+                title={
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{c.name}</p>
+                    <span className="truncate">{c.name}</span>
                     <SyncBadge status={c.syncStatus} compact />
                   </div>
-                  {c.phone && (
-                    <p className="text-[11px] flex items-center gap-1" style={{ color: "var(--text-faint)" }}>
-                      <Phone size={9} /> {c.phone}
+                }
+                subtitle={
+                  c.phone ? (
+                    <span className="flex items-center gap-1">
+                      <Phone size={11} className="shrink-0" />
+                      {c.phone}
+                    </span>
+                  ) : undefined
+                }
+                trailing={
+                  <div className="text-right">
+                    <p
+                      className={`text-sm font-semibold tracking-tight ${
+                        c.totalDue > 0
+                          ? "text-red-500 dark:text-red-400"
+                          : "text-neutral-400 dark:text-neutral-500 font-normal"
+                      }`}
+                    >
+                      {c.totalDue > 0
+                        ? t("customer.totalDue", { amount: money(c.totalDue) })
+                        : t("customer.noDue")}
                     </p>
-                  )}
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-semibold" style={{ color: c.totalDue > 0 ? "#ef4444" : "var(--text-faint)" }}>
-                    {c.totalDue > 0 ? t("customer.totalDue", { amount: money(c.totalDue) }) : t("customer.noDue")}
-                  </p>
-                </div>
-                <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
-              </button>
+                  </div>
+                }
+              />
             ))
           )}
-        </div>
+        </NativeCard>
       </div>
 
       <CustomerModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSuccess={(c) => setCustomers((prev) => [...prev, c].sort((a, b) => a.name.localeCompare(b.name)))}
+        onSuccess={(c) =>
+          setCustomers((prev) => [...prev, c].sort((a, b) => a.name.localeCompare(b.name)))
+        }
       />
     </div>
   );

@@ -149,18 +149,20 @@ html {
     /* Never let a wide child scroll the whole document sideways —
        the single most common "not responsive" symptom. */
     overflow-x: hidden;
+    overflow-y: auto;
     /* Kills WebView pull-to-refresh and the bounce at both ends. */
     overscroll-behavior-y: none;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     scroll-behavior: smooth;
-    height: 100%;
+    min-height: 100%;
 }
 
 body {
     background: var(--bg);
     color: var(--text-primary);
     overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior-y: none;
     min-height: 100%;
     /* Chrome is app furniture, not a document: no accidental selection
@@ -238,21 +240,19 @@ img {
     -webkit-touch-callout: none;
 }
 
-/* Native-feeling thin scrollbars on desktop; invisible on touch. */
-@media (min-width: 1024px) {
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: var(--surface-7);
-        border-radius: 999px;
-    }
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
+/* Native-feeling thin scrollbars; invisible on touch screens */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
-@media (max-width: 1023px) {
+::-webkit-scrollbar-thumb {
+    background: var(--surface-7);
+    border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+@media (pointer: coarse) {
     ::-webkit-scrollbar {
         width: 0;
         height: 0;

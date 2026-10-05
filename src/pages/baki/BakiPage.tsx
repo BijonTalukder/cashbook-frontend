@@ -13,11 +13,11 @@ import LoadFailedState from "../../components/shared/LoadFailedState";
 import ReportHeader from "../../components/shared/ReportHeader";
 import { printElementAsReport } from "../../utils/printReport";
 import { toastLoadFailure } from "../../offline/notify";
-
-const C = {
-  card: "var(--surface-1)",
-  border: "var(--border)",
-};
+import { NativeCard } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { SkeletonList } from "../../components/ui/Skeleton";
 
 const BakiPage = () => {
   const navigate = useNavigate();
@@ -31,8 +31,13 @@ const BakiPage = () => {
   const [loading, setLoading] = useState(true);
   const [receivableFailed, setReceivableFailed] = useState(false);
   const [payableFailed, setPayableFailed] = useState(false);
-  const [tab, setTab] = useState<"receive" | "pay">(searchParams.get("tab") === "pay" ? "pay" : "receive");
-  const [payModal, setPayModal] = useState<{ mode: "receive" | "pay"; party: { id: string; name: string; due: number } } | null>(null);
+  const [tab, setTab] = useState<"receive" | "pay">(
+    searchParams.get("tab") === "pay" ? "pay" : "receive"
+  );
+  const [payModal, setPayModal] = useState<{
+    mode: "receive" | "pay";
+    party: { id: string; name: string; due: number };
+  } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPdf = async () => {
@@ -55,10 +60,6 @@ const BakiPage = () => {
     if (!activeBusiness) return;
     setLoading(true);
 
-    /* The two halves of this screen have different offline capabilities:
-       customers are mirrored to IndexedDB, suppliers are not. Settled
-       separately so a dropped connection costs the user the payables half
-       only — the receivables they are chasing at the counter still show. */
     const [c, s] = await Promise.allSettled([
       customerService.getAll(activeBusiness._id),
       supplierService.getAll(activeBusiness._id),
@@ -78,137 +79,198 @@ const BakiPage = () => {
     setLoading(false);
   };
 
-  // Pull down on this screen to re-fetch it.
   useRefreshHandler(load);
 
-
-  useEffect(() => { load(); }, [activeBusiness?._id]);
+  useEffect(() => {
+    load();
+  }, [activeBusiness?._id]);
 
   const totalReceivable = customers.reduce((sum, c) => sum + c.totalDue, 0);
   const totalPayable = suppliers.reduce((sum, s) => sum + s.totalPayable, 0);
 
+  const tabOptions = [
+    {
+      value: "receive" as const,
+      label: t("baki.willReceive"),
+      badge: customers.length > 0 ? customers.length : undefined,
+    },
+    {
+      value: "pay" as const,
+      label: t("baki.willPay"),
+      badge: suppliers.length > 0 ? suppliers.length : undefined,
+    },
+  ];
+
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("baki.title")}
-          </h1>
-          <button
+    <div className="min-h-screen pb-12 bg-[var(--bg)]">
+      <div className="px-4 py-5 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              {t("baki.title")}
+            </h1>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              {t("bizDashboard.receivableAndPayable")}
+            </p>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleDownloadPdf}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium press"
-            style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
-            title={t("common.download")}
+            className="gap-1.5"
             aria-label={t("common.download")}
           >
-            <Download size={13} /> {t("common.download")}
-          </button>
+            <Download size={14} /> {t("common.download")}
+          </Button>
         </div>
 
+        {/* Balance Metric Cards with Clean Native Styling */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl p-4" style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
-            <p className="text-xs" style={{ color: "rgba(16,185,129,0.8)" }}>{t("baki.willReceive")}</p>
-            <p className="text-xl font-bold mt-1" style={{ color: receivableFailed ? "var(--text-faint)" : "#10b981", fontFamily: "'DM Serif Display', serif" }}>
+          <NativeCard variant="elevated" className="bg-emerald-500/5 dark:bg-emerald-950/20 border-emerald-500/20">
+            <p className="text-[12px] font-medium text-emerald-700 dark:text-emerald-400">
+              {t("baki.willReceive")}
+            </p>
+            <p className="text-xl sm:text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400 tracking-tight font-mono">
               {receivableFailed ? "—" : money(totalReceivable)}
             </p>
-          </div>
-          <div className="rounded-2xl p-4" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
-            <p className="text-xs" style={{ color: "rgba(239,68,68,0.8)" }}>{t("baki.willPay")}</p>
-            <p className="text-xl font-bold mt-1" style={{ color: payableFailed ? "var(--text-faint)" : "#ef4444", fontFamily: "'DM Serif Display', serif" }}>
+          </NativeCard>
+
+          <NativeCard variant="elevated" className="bg-red-500/5 dark:bg-red-950/20 border-red-500/20">
+            <p className="text-[12px] font-medium text-red-700 dark:text-red-400">
+              {t("baki.willPay")}
+            </p>
+            <p className="text-xl sm:text-2xl font-bold mt-1 text-red-600 dark:text-red-400 tracking-tight font-mono">
               {payableFailed ? "—" : money(totalPayable)}
             </p>
-          </div>
+          </NativeCard>
         </div>
 
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "var(--surface-2)", border: "1px solid var(--border-light)" }}>
-          {(["receive", "pay"] as const).map((key) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-              style={{
-                background: tab === key ? (key === "receive" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)") : "transparent",
-                color: tab === key ? (key === "receive" ? "#10b981" : "#ef4444") : "var(--text-faint)",
-              }}
-            >
-              {key === "receive" ? t("baki.willReceive") : t("baki.willPay")}
-            </button>
-          ))}
-        </div>
+        {/* Tactile Native Segmented Control */}
+        <SegmentedControl
+          options={tabOptions}
+          value={tab}
+          onChange={(newTab) => setTab(newTab)}
+          size="md"
+        />
 
-        <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        {/* List Content Container */}
+        <NativeCard noPadding variant="elevated">
           {loading ? (
-            <div className="p-4 space-y-2">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
-              ))}
+            <div className="p-4">
+              <SkeletonList count={4} />
             </div>
           ) : tab === "receive" ? (
             receivableFailed ? (
               <LoadFailedState onRetry={load} />
             ) : customers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                  <HandCoins size={20} style={{ color: "var(--text-faint)" }} />
-                </div>
-                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("baki.noReceivables")}</p>
-                <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("baki.noReceivablesHint")}</p>
-              </div>
+              <EmptyState
+                icon={HandCoins}
+                title={t("baki.noReceivables")}
+                description={t("baki.noReceivablesHint")}
+              />
             ) : (
               customers.map((c) => (
-                <div key={c._id} className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: "1px solid var(--border-light)" }}>
-                  <button onClick={() => navigate(`/customers/${c._id}`)} className="flex-1 min-w-0 text-left flex items-center gap-3">
+                <div
+                  key={c._id}
+                  className="flex items-center justify-between gap-3 px-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/80 last:border-b-0"
+                >
+                  <button
+                    onClick={() => navigate(`/customers/${c._id}`)}
+                    className="flex-1 min-w-0 text-left flex items-center gap-3 select-none active:opacity-75 transition-opacity"
+                  >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{c.name}</p>
-                      <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{t("customer.totalDue", { amount: money(c.totalDue) })}</p>
+                      <p className="text-[15px] font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                        {c.name}
+                      </p>
+                      <p className="text-xs text-red-500 dark:text-red-400 font-semibold tracking-tight mt-0.5">
+                        {t("customer.totalDue", { amount: money(c.totalDue) })}
+                      </p>
                     </div>
                   </button>
-                  <button
-                    onClick={() => setPayModal({ mode: "receive", party: { id: c._id, name: c.name, due: c.totalDue } })}
-                    className="flex items-center gap-1.5 px-3.5 h-9 rounded-lg text-xs font-medium flex-shrink-0 whitespace-nowrap press"
-                    style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
-                  >
-                    <ArrowDownCircle size={12} /> {t("baki.receive")}
-                  </button>
-                  <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() =>
+                        setPayModal({
+                          mode: "receive",
+                          party: { id: c._id, name: c.name, due: c.totalDue },
+                        })
+                      }
+                      className="gap-1.5 h-9 px-3 text-xs"
+                    >
+                      <ArrowDownCircle size={14} /> {t("baki.receive")}
+                    </Button>
+                    <button
+                      onClick={() => navigate(`/customers/${c._id}`)}
+                      className="p-1 text-neutral-400 hover:text-neutral-600"
+                      aria-label="View customer"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
                 </div>
               ))
             )
           ) : payableFailed ? (
             <LoadFailedState onRetry={load} />
           ) : suppliers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                <HandCoins size={20} style={{ color: "var(--text-faint)" }} />
-              </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("baki.noPayables")}</p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("baki.noPayablesHint")}</p>
-            </div>
+            <EmptyState
+              icon={HandCoins}
+              title={t("baki.noPayables")}
+              description={t("baki.noPayablesHint")}
+            />
           ) : (
             suppliers.map((s) => (
-              <div key={s._id} className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: "1px solid var(--border-light)" }}>
-                <button onClick={() => navigate(`/suppliers/${s._id}`)} className="flex-1 min-w-0 text-left flex items-center gap-3">
+              <div
+                key={s._id}
+                className="flex items-center justify-between gap-3 px-4 py-3.5 border-b border-neutral-100 dark:border-neutral-800/80 last:border-b-0"
+              >
+                <button
+                  onClick={() => navigate(`/suppliers/${s._id}`)}
+                  className="flex-1 min-w-0 text-left flex items-center gap-3 select-none active:opacity-75 transition-opacity"
+                >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{s.name}</p>
-                    <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>{t("supplier.totalPayable", { amount: money(s.totalPayable) })}</p>
+                    <p className="text-[15px] font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                      {s.name}
+                    </p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold tracking-tight mt-0.5">
+                      {t("supplier.totalPayable", { amount: money(s.totalPayable) })}
+                    </p>
                   </div>
                 </button>
-                <button
-                  onClick={() => setPayModal({ mode: "pay", party: { id: s._id, name: s.name, due: s.totalPayable } })}
-                  className="flex items-center gap-1.5 px-3.5 h-9 rounded-lg text-xs font-medium flex-shrink-0 whitespace-nowrap press"
-                  style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
-                >
-                  <ArrowUpCircle size={12} /> {t("baki.pay")}
-                </button>
-                <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() =>
+                      setPayModal({
+                        mode: "pay",
+                        party: { id: s._id, name: s.name, due: s.totalPayable },
+                      })
+                    }
+                    className="gap-1.5 h-9 px-3 text-xs"
+                  >
+                    <ArrowUpCircle size={14} /> {t("baki.pay")}
+                  </Button>
+                  <button
+                    onClick={() => navigate(`/suppliers/${s._id}`)}
+                    className="p-1 text-neutral-400 hover:text-neutral-600"
+                    aria-label="View supplier"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
               </div>
             ))
           )}
-        </div>
+        </NativeCard>
 
-        {/* Off-screen printable report. Positioned absolutely so it never
-            affects layout, but kept in the DOM so the print iframe can
-            clone it. */}
+        {/* Off-screen printable report */}
         <div
           ref={printRef}
           className="p-6"
@@ -226,7 +288,7 @@ const BakiPage = () => {
         >
           <ReportHeader
             reportTitle={tab === "receive" ? t("baki.willReceive") : t("baki.willPay")}
-            reportMeta={tab === "receive" ? t("baki.title") : t("baki.title")}
+            reportMeta={t("baki.title")}
           />
           {tab === "receive" ? (
             <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>

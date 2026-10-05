@@ -8,7 +8,7 @@ import {
   Check,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
-import { useBackHandler } from "../native/hooks";
+import { useBackHandler, forceUnlockBodyScroll } from "../native/hooks";
 import { haptic, exitApp, isNativeApp, pushBackHandler } from "../native/bridge";
 import PageTransition from "../components/ui/PageTransition";
 import PullToRefresh from "../components/ui/PullToRefresh";
@@ -186,6 +186,10 @@ const AppLayout = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    forceUnlockBodyScroll();
+  }, [location.pathname]);
 
   const handleLogout = () => { logout(); navigate("/login", { replace: true }); };
 
@@ -518,7 +522,7 @@ const AppLayout = () => {
 
       {/* ── Main Content ────────────────────────── */}
       <main
-        className="flex-1 min-w-0 pb-[calc(var(--bottomnav-total)+0.75rem)] lg:pb-0"
+        className="flex-1 min-w-0 pb-[calc(var(--bottomnav-total)+4.5rem)] lg:pb-16"
         style={{
           paddingLeft: "var(--safe-left)",
           paddingRight: "var(--safe-right)",
