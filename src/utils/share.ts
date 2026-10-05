@@ -49,6 +49,13 @@ export const shareViaEmail = (subject: string, message: string) => {
   )}&body=${encodeURIComponent(message)}`;
 };
 
+/** Opens the SMS application on mobile with prefilled message. */
+export const shareViaSms = (phone?: string, message?: string) => {
+  const encodedMsg = encodeURIComponent(message || "");
+  const target = phone ? `sms:${phone}?body=${encodedMsg}` : `sms:?body=${encodedMsg}`;
+  window.location.href = target;
+};
+
 export const canShareNative = () => typeof navigator.share === "function";
 
 /**
