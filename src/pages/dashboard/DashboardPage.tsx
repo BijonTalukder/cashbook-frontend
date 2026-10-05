@@ -50,6 +50,7 @@ import {
 } from "../../services/transaction.service";
 import mealService from "../../services/meal.service";
 import BusinessDashboardContent from "./BusinessDashboardContent";
+import PersonalDashboardContent from "./PersonalDashboardContent";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { useRefreshHandler } from "../../native/refresh";
@@ -501,6 +502,14 @@ const DashboardPage = () => {
 
         {activeBusiness?.type === "business" ? (
           <BusinessDashboardContent business={activeBusiness} />
+        ) : activeBusiness?.type === "personal" ? (
+          <PersonalDashboardContent
+            business={activeBusiness}
+            onRefresh={() => {
+              fetchBusinesses(true);
+              fetchBusinessData();
+            }}
+          />
         ) : (
           <>
         {/* ── Summary stat cards ───────────────────────── */}
