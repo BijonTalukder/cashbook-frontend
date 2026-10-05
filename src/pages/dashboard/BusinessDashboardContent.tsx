@@ -1,57 +1,147 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ShoppingCart, Package, Receipt, UserPlus, Truck,
-  ArrowDownCircle, ArrowUpCircle, PackagePlus,
-  Wallet, Landmark, TrendingUp, HandCoins,
-  Clock, ArrowLeftRight, ArrowRight, RefreshCw,
+  ShoppingCart,
+  Package,
+  Receipt,
+  UserPlus,
+  Truck,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  PackagePlus,
+  Wallet,
+  Landmark,
+  TrendingUp,
+  HandCoins,
+  Clock,
+  ArrowLeftRight,
+  ArrowRight,
+  RefreshCw,
+  Store,
 } from "lucide-react";
 import {
-  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  CartesianGrid,
 } from "recharts";
-import { dashboardService, type IBusinessSummary } from "../../services/dashboard.service";
+import {
+  dashboardService,
+  type IBusinessSummary,
+} from "../../services/dashboard.service";
 import type { IBusiness } from "../../services/business.service";
 import { customerService, type ICustomer } from "../../services/customer.service";
 import { supplierService, type ISupplier } from "../../services/supplier.service";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { toCurrency } from "../../utils/currency";
-import LoadFailedState from "../../components/shared/LoadFailedState";
 import { toastLoadFailure } from "../../offline/notify";
+import { haptic } from "../../native/bridge";
 
-const C = {
-  card: "var(--surface-1)",
-  border: "var(--border)",
-};
-
-const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
+export const BusinessDashboardContent: React.FC<{ business: IBusiness }> = ({
+  business,
+}) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { money, compact, date: fmtDate, num } = useFormat(
+    toCurrency(business.currency)
+  );
+
   const [summary, setSummary] = useState<IBusinessSummary | null>(null);
   const [topDebtors, setTopDebtors] = useState<ICustomer[]>([]);
   const [topCreditors, setTopCreditors] = useState<ISupplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const { t } = useTranslation();
-  const { money, compact, date: fmtDate } = useFormat(toCurrency(business.currency));
 
   const QUICK_ACTIONS = [
-    { key: "sale", label: t("bizDashboard.addSale"), icon: ShoppingCart, color: "#10b981", onClick: () => navigate("/sales/new") },
-    { key: "purchase", label: t("bizDashboard.addPurchase"), icon: Package, color: "#3b82f6", onClick: () => navigate("/purchases/new") },
-    { key: "expense", label: t("bizDashboard.addExpense"), icon: Receipt, color: "#ef4444", onClick: () => navigate("/expenses?new=1") },
-    { key: "customer", label: t("bizDashboard.addCustomer"), icon: UserPlus, color: "#8b5cf6", onClick: () => navigate("/customers?new=1") },
-    { key: "supplier", label: t("bizDashboard.addSupplier"), icon: Truck, color: "#f59e0b", onClick: () => navigate("/suppliers?new=1") },
-    { key: "receive", label: t("payment.receive"), icon: ArrowDownCircle, color: "#10b981", onClick: () => navigate("/baki") },
-    { key: "pay", label: t("payment.make"), icon: ArrowUpCircle, color: "#ef4444", onClick: () => navigate("/baki") },
-    { key: "product", label: t("bizDashboard.addProduct"), icon: PackagePlus, color: "#3b82f6", onClick: () => navigate("/products?new=1") },
+    {
+      key: "sale",
+      label: t("bizDashboard.addSale"),
+      icon: ShoppingCart,
+      colorClass: "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/sales/new");
+      },
+    },
+    {
+      key: "purchase",
+      label: t("bizDashboard.addPurchase"),
+      icon: Package,
+      colorClass: "bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/purchases/new");
+      },
+    },
+    {
+      key: "expense",
+      label: t("bizDashboard.addExpense"),
+      icon: Receipt,
+      colorClass: "bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/expenses?new=1");
+      },
+    },
+    {
+      key: "receive",
+      label: t("payment.receive"),
+      icon: ArrowDownCircle,
+      colorClass: "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/baki?tab=receive");
+      },
+    },
+    {
+      key: "pay",
+      label: t("payment.make"),
+      icon: ArrowUpCircle,
+      colorClass: "bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/baki?tab=pay");
+      },
+    },
+    {
+      key: "customer",
+      label: t("bizDashboard.addCustomer"),
+      icon: UserPlus,
+      colorClass: "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/customers?new=1");
+      },
+    },
+    {
+      key: "supplier",
+      label: t("bizDashboard.addSupplier"),
+      icon: Truck,
+      colorClass: "bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/suppliers?new=1");
+      },
+    },
+    {
+      key: "product",
+      label: t("bizDashboard.addProduct"),
+      icon: PackagePlus,
+      colorClass: "bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400",
+      onClick: () => {
+        haptic("selection");
+        navigate("/products?new=1");
+      },
+    },
   ];
 
   const load = async (silent = false) => {
     if (!silent) setLoading(true);
 
-    /* allSettled, not all.
-       Customers are mirrored to IndexedDB; the summary and suppliers are not.
-       With Promise.all, the one online-only call that fails offline threw away
-       the debtor list the device could perfectly well have shown from cache. */
     const [summaryRes, customersRes, suppliersRes] = await Promise.allSettled([
       dashboardService.getBusinessSummary(business._id),
       customerService.getAll(business._id),
@@ -64,7 +154,7 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
         customersRes.value
           .filter((c) => c.totalDue > 0)
           .sort((a, b) => b.totalDue - a.totalDue)
-          .slice(0, 3),
+          .slice(0, 3)
       );
     }
     if (suppliersRes.status === "fulfilled") {
@@ -72,12 +162,10 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
         suppliersRes.value
           .filter((s) => s.totalPayable > 0)
           .sort((a, b) => b.totalPayable - a.totalPayable)
-          .slice(0, 3),
+          .slice(0, 3)
       );
     }
 
-    // Only the summary drives the headline figures, so only it decides whether
-    // the numbers are trustworthy.
     const summaryFailed = summaryRes.status === "rejected";
     setFailed(summaryFailed);
     if (summaryFailed && !silent) toastLoadFailure(t("bizDashboard.loadFailed"));
@@ -91,56 +179,138 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
   }, [business._id]);
 
   const statCards = [
-    { key: "todaySales", label: t("bizDashboard.todaySales"), value: summary?.todaySales ?? 0, icon: ShoppingCart, color: "#10b981" },
-    { key: "todayPurchases", label: t("bizDashboard.todayPurchases"), value: summary?.todayPurchases ?? 0, icon: Package, color: "#3b82f6" },
-    { key: "todayExpenses", label: t("bizDashboard.todayExpenses"), value: summary?.todayExpenses ?? 0, icon: Receipt, color: "#ef4444" },
-    { key: "receivable", label: t("bizDashboard.totalReceivable"), value: summary?.totalReceivable ?? 0, icon: HandCoins, color: "#8b5cf6" },
-    { key: "payable", label: t("bizDashboard.totalPayable"), value: summary?.totalPayable ?? 0, icon: HandCoins, color: "#f59e0b" },
-    { key: "cash", label: t("bizDashboard.cashBalance"), value: summary?.cashBalance ?? 0, icon: Wallet, color: "#10b981" },
-    { key: "bank", label: t("bizDashboard.bankBalance"), value: summary?.bankBalance ?? 0, icon: Landmark, color: "#3b82f6" },
-    { key: "profit", label: t("bizDashboard.currentProfit"), value: summary?.currentProfit ?? 0, icon: TrendingUp, color: (summary?.currentProfit ?? 0) >= 0 ? "#10b981" : "#ef4444" },
+    {
+      key: "todaySales",
+      label: t("bizDashboard.todaySales"),
+      value: summary?.todaySales ?? 0,
+      icon: ShoppingCart,
+      colorClass: "text-emerald-600 dark:text-emerald-400",
+      bgClass: "bg-emerald-50 dark:bg-emerald-950/60",
+    },
+    {
+      key: "todayPurchases",
+      label: t("bizDashboard.todayPurchases"),
+      value: summary?.todayPurchases ?? 0,
+      icon: Package,
+      colorClass: "text-blue-600 dark:text-blue-400",
+      bgClass: "bg-blue-50 dark:bg-blue-950/60",
+    },
+    {
+      key: "todayExpenses",
+      label: t("bizDashboard.todayExpenses"),
+      value: summary?.todayExpenses ?? 0,
+      icon: Receipt,
+      colorClass: "text-rose-600 dark:text-rose-400",
+      bgClass: "bg-rose-50 dark:bg-rose-950/60",
+    },
+    {
+      key: "profit",
+      label: t("bizDashboard.currentProfit"),
+      value: summary?.currentProfit ?? 0,
+      icon: TrendingUp,
+      colorClass:
+        (summary?.currentProfit ?? 0) >= 0
+          ? "text-emerald-600 dark:text-emerald-400"
+          : "text-rose-600 dark:text-rose-400",
+      bgClass:
+        (summary?.currentProfit ?? 0) >= 0
+          ? "bg-emerald-50 dark:bg-emerald-950/60"
+          : "bg-rose-50 dark:bg-rose-950/60",
+    },
+    {
+      key: "receivable",
+      label: t("bizDashboard.totalReceivable"),
+      value: summary?.totalReceivable ?? 0,
+      icon: HandCoins,
+      colorClass: "text-purple-600 dark:text-purple-400",
+      bgClass: "bg-purple-50 dark:bg-purple-950/60",
+    },
+    {
+      key: "payable",
+      label: t("bizDashboard.totalPayable"),
+      value: summary?.totalPayable ?? 0,
+      icon: HandCoins,
+      colorClass: "text-amber-600 dark:text-amber-400",
+      bgClass: "bg-amber-50 dark:bg-amber-950/60",
+    },
+    {
+      key: "cash",
+      label: t("bizDashboard.cashBalance"),
+      value: summary?.cashBalance ?? 0,
+      icon: Wallet,
+      colorClass: "text-emerald-600 dark:text-emerald-400",
+      bgClass: "bg-emerald-50 dark:bg-emerald-950/60",
+    },
+    {
+      key: "bank",
+      label: t("bizDashboard.bankBalance"),
+      value: summary?.bankBalance ?? 0,
+      icon: Landmark,
+      colorClass: "text-blue-600 dark:text-blue-400",
+      bgClass: "bg-blue-50 dark:bg-blue-950/60",
+    },
   ];
 
   const maxSales = Math.max(1, ...(summary?.salesOverview.map((d) => d.total) ?? [1]));
 
   return (
-    <div className="space-y-5">
-      {/* ── Refresh ─────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-          {business.name}
-        </h2>
+    <div className="space-y-4 pb-28 text-slate-900 dark:text-neutral-100 max-w-5xl mx-auto">
+      {/* ── Native Business Header ─────────────────────── */}
+      <div className="flex items-center justify-between gap-3 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-4 rounded-3xl shadow-xs">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
+            <Store size={22} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="text-base font-bold text-slate-900 dark:text-neutral-100 truncate leading-tight">
+                {business.name}
+              </h1>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 shrink-0">
+                {business.businessType || business.type}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 truncate mt-0.5">
+              {business.address || business.phone || t("businessType.business")}
+            </p>
+          </div>
+        </div>
+
         <button
-          onClick={() => load(true)}
-          className="w-9 h-9 flex items-center justify-center rounded-xl transition-all"
-          style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
+          type="button"
+          onClick={() => {
+            haptic("light");
+            load(true);
+          }}
+          className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700 flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700/80 shadow-xs active:scale-95 transition-all select-none shrink-0"
+          aria-label="Refresh"
         >
-          <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+          <RefreshCw size={15} className={loading ? "animate-spin text-blue-600" : ""} />
         </button>
       </div>
 
-      {/* ── Financial summary ──────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {statCards.map(({ key, label, value, icon: Icon, color }) => (
-          <div key={key} className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs" style={{ color: "var(--text-faint)" }}>{label}</span>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}15`, color }}>
-                <Icon size={13} />
+      {/* ── Financial Summary Grid (100% Dynamic) ──────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        {statCards.map(({ key, label, value, icon: Icon, colorClass, bgClass }) => (
+          <div
+            key={key}
+            className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-slate-500 dark:text-neutral-400 truncate">
+                {label}
+              </span>
+              <div
+                className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${bgClass} ${colorClass}`}
+              >
+                <Icon size={14} />
               </div>
             </div>
+
             {loading ? (
-              <div className="h-6 w-16 rounded animate-pulse" style={{ background: "var(--surface-4)" }} />
+              <div className="h-6 w-20 rounded-md bg-slate-100 dark:bg-neutral-800 animate-pulse mt-1" />
             ) : (
-              <p
-                className="text-xl font-bold leading-none truncate"
-                style={{
-                  fontFamily: "'DM Serif Display', serif",
-                  color: failed ? "var(--text-faint)" : "var(--text-primary)",
-                }}
-              >
-                {/* An em dash, not ৳0 — a figure the app could not fetch is not
-                    the same as a day with no takings. */}
+              <p className="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-neutral-100 truncate leading-tight mt-1">
                 {failed ? "—" : money(value)}
               </p>
             )}
@@ -148,130 +318,188 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
         ))}
       </div>
 
-      {/* ── Quick actions ───────────────────────────────── */}
-      <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>{t("dashboard.quickActions")}</p>
-        <div className="grid grid-cols-4 gap-2">
-          {QUICK_ACTIONS.map(({ key, label, icon: Icon, color, onClick }) => (
+      {/* ── Quick Actions Grid (8 Tactile Tiles) ─────────── */}
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 shadow-xs space-y-3">
+        <p className="text-xs font-bold text-slate-500 dark:text-neutral-400 px-1 uppercase tracking-wider">
+          {t("dashboard.quickActions")}
+        </p>
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+          {QUICK_ACTIONS.map(({ key, label, icon: Icon, colorClass, onClick }) => (
             <button
               key={key}
+              type="button"
               onClick={onClick}
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl press group"
-              style={{ border: "1px solid var(--border-light)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-1)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              className="flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-2xl border border-slate-200/60 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800/60 active:scale-95 transition-all group select-none shadow-xs"
             >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ background: `${color}14`, color }}>
-                <Icon size={15} />
+              <div
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${colorClass}`}
+              >
+                <Icon size={18} />
               </div>
-              <span className="text-xs text-center leading-snug" style={{ color: "var(--text-muted)" }}>{label}</span>
+              <span className="text-[11px] font-semibold text-slate-700 dark:text-neutral-300 text-center leading-tight">
+                {label}
+              </span>
             </button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* ── Recent transactions ───────────────────────── */}
-        <div className="lg:col-span-3 rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: `1px solid ${C.border}` }}>
+        {/* ── Recent Transactions (100% Dynamic) ─────────── */}
+        <div className="lg:col-span-3 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-neutral-800">
             <div className="flex items-center gap-2">
-              <Clock size={13} style={{ color: "var(--text-faint)" }} />
-              <span className="text-xs font-medium" style={{ color: "var(--text-faint)" }}>{t("dashboard.recentTransactions")}</span>
+              <Clock size={16} className="text-slate-400 dark:text-neutral-500" />
+              <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+                {t("dashboard.recentTransactions")}
+              </h2>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                haptic("selection");
+                navigate("/transactions");
+              }}
+              className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+            >
+              {t("personalDashboard.allTxns")}
+            </button>
           </div>
+
           {loading ? (
-            <div className="p-4 space-y-2">
+            <div className="space-y-2 py-2">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-12 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
+                <div
+                  key={i}
+                  className="h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse"
+                />
               ))}
             </div>
-          ) : failed ? (
-            <LoadFailedState onRetry={() => load()} />
-          ) : !summary?.recentTransactions.length ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                <ArrowLeftRight size={16} style={{ color: "var(--text-faint)" }} />
-              </div>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>No transactions yet</p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>Sales, purchases & expenses will show up here</p>
+          ) : !summary?.recentTransactions?.length ? (
+            <div className="py-10 flex flex-col items-center justify-center gap-2 text-center text-slate-400 dark:text-neutral-500">
+              <ArrowLeftRight size={24} className="text-slate-300 dark:text-neutral-600" />
+              <p className="text-xs font-semibold">{t("personalDashboard.noTxnsYet")}</p>
             </div>
           ) : (
-            summary.recentTransactions.map((txn) => (
-              <div
-                key={txn._id}
-                className="flex items-center gap-3 px-5 py-3 transition-all"
-                style={{ borderBottom: "1px solid var(--border-light)" }}
-              >
-                <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{
-                    background: txn.type === "income" ? "#10b98115" : "#ef444415",
-                    color: txn.type === "income" ? "#10b981" : "#ef4444",
-                  }}
-                >
-                  {txn.type === "income" ? <ArrowDownCircle size={14} /> : <ArrowUpCircle size={14} />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {txn.category?.name ?? t("product.uncategorized")}
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>{fmtDate(txn.date, "short")}</p>
-                </div>
-                <p
-                  className="text-sm font-semibold flex-shrink-0"
-                  style={{ color: txn.type === "income" ? "#10b981" : "#ef4444" }}
-                >
-                  {money(txn.type === "income" ? txn.amount : -txn.amount, { signed: true })}
-                </p>
-              </div>
-            ))
+            <div className="divide-y divide-slate-100 dark:divide-neutral-800/80">
+              {summary.recentTransactions.map((txn) => {
+                const isIncome = txn.type === "income";
+                return (
+                  <div
+                    key={txn._id}
+                    className="flex items-center justify-between py-3 hover:bg-slate-50 dark:hover:bg-neutral-800/40 rounded-xl px-2 transition-colors select-none"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${
+                          isIncome
+                            ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400"
+                            : "bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {isIncome ? <ArrowDownCircle size={16} /> : <ArrowUpCircle size={16} />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-neutral-100 truncate">
+                          {txn.category?.name ?? t("product.uncategorized")}
+                        </p>
+                        <p className="text-[11px] text-slate-400 dark:text-neutral-500">
+                          {fmtDate(txn.date, "short")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-sm font-mono font-bold shrink-0 ${
+                        isIncome
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-rose-600 dark:text-rose-400"
+                      }`}
+                    >
+                      {money(isIncome ? txn.amount : -txn.amount, { signed: true })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        {/* ── Outstanding dues ───────────────────────────── */}
-        <div className="lg:col-span-2 rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-          <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.outstandingDues")}</p>
+        {/* ── Outstanding Dues (100% Dynamic) ─────────────── */}
+        <div className="lg:col-span-2 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-neutral-800">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+              {t("bizDashboard.outstandingDues")}
+            </h2>
+            <button
+              type="button"
+              onClick={() => {
+                haptic("selection");
+                navigate("/baki");
+              }}
+              className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+            >
+              {t("common.viewAll")}
+            </button>
+          </div>
+
           {topDebtors.length === 0 && topCreditors.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                <HandCoins size={16} style={{ color: "var(--text-faint)" }} />
-              </div>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.noDues")}</p>
-              <p className="text-xs px-4" style={{ color: "var(--text-faint)" }}>
-                {t("bizDashboard.noDuesHint")}
-              </p>
+            <div className="py-10 flex flex-col items-center justify-center gap-2 text-center text-slate-400 dark:text-neutral-500">
+              <HandCoins size={24} className="text-slate-300 dark:text-neutral-600" />
+              <p className="text-xs font-semibold">{t("bizDashboard.noDues")}</p>
             </div>
           ) : (
             <div className="space-y-3">
               {topDebtors.length > 0 && (
-                <div>
-                  <p className="text-xs mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>{t("baki.willReceive")}</p>
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
+                    {t("baki.willReceive")}
+                  </span>
                   <div className="space-y-1">
                     {topDebtors.map((c) => (
                       <button
                         key={c._id}
-                        onClick={() => navigate(`/customers/${c._id}`)}
-                        className="w-full flex items-center justify-between text-xs py-1"
+                        type="button"
+                        onClick={() => {
+                          haptic("light");
+                          navigate(`/customers/${c._id}`);
+                        }}
+                        className="w-full flex items-center justify-between text-xs py-1.5 px-2 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition-colors"
                       >
-                        <span style={{ color: "var(--text-primary)" }}>{c.name}</span>
-                        <span className="font-semibold" style={{ color: "#10b981" }}>{money(c.totalDue)}</span>
+                        <span className="text-slate-800 dark:text-neutral-200 font-medium truncate">
+                          {c.name}
+                        </span>
+                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                          {money(c.totalDue)}
+                        </span>
                       </button>
                     ))}
                   </div>
                 </div>
               )}
+
               {topCreditors.length > 0 && (
-                <div>
-                  <p className="text-xs mb-1.5 uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>{t("baki.willPay")}</p>
+                <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-neutral-800/80">
+                  <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide">
+                    {t("baki.willPay")}
+                  </span>
                   <div className="space-y-1">
                     {topCreditors.map((s) => (
                       <button
                         key={s._id}
-                        onClick={() => navigate(`/suppliers/${s._id}`)}
-                        className="w-full flex items-center justify-between text-xs py-1"
+                        type="button"
+                        onClick={() => {
+                          haptic("light");
+                          navigate(`/suppliers/${s._id}`);
+                        }}
+                        className="w-full flex items-center justify-between text-xs py-1.5 px-2 rounded-xl hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition-colors"
                       >
-                        <span style={{ color: "var(--text-primary)" }}>{s.name}</span>
-                        <span className="font-semibold" style={{ color: "#ef4444" }}>{money(s.totalPayable)}</span>
+                        <span className="text-slate-800 dark:text-neutral-200 font-medium truncate">
+                          {s.name}
+                        </span>
+                        <span className="font-mono font-bold text-rose-600 dark:text-rose-400 shrink-0">
+                          {money(s.totalPayable)}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -282,55 +510,108 @@ const BusinessDashboardContent = ({ business }: { business: IBusiness }) => {
         </div>
       </div>
 
-      {/* ── Sales overview ──────────────────────────────── */}
-      <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-        <div className="flex items-center justify-between mb-5">
+      {/* ── Sales Overview 7-Day Chart (100% Dynamic) ──── */}
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
               {t("bizDashboard.salesOverview")}
             </h2>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.last7Days")}</p>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              {t("bizDashboard.last7Days")}
+            </p>
           </div>
           <button
-            onClick={() => navigate("/reports")}
-            className="text-xs flex items-center gap-1 transition-all"
-            style={{ color: "#10b981" }}
+            type="button"
+            onClick={() => {
+              haptic("selection");
+              navigate("/reports");
+            }}
+            className="text-xs flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
           >
-            {t("bizDashboard.viewReports")} <ArrowRight size={11} />
+            <span>{t("bizDashboard.viewReports")}</span>
+            <ArrowRight size={13} />
           </button>
         </div>
+
         {loading ? (
-          <div className="h-40 flex items-center justify-center">
-            <RefreshCw size={18} className="animate-spin" style={{ color: "var(--text-faint)" }} />
+          <div className="h-44 flex items-center justify-center">
+            <RefreshCw size={20} className="animate-spin text-slate-400" />
           </div>
-        ) : maxSales <= 1 && summary?.salesOverview.every((d) => d.total === 0) ? (
-          <div className="h-40 flex flex-col items-center justify-center gap-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-              <TrendingUp size={18} style={{ color: "var(--text-faint)" }} />
-            </div>
-            <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("bizDashboard.noSales")}</p>
+        ) : maxSales <= 1 && summary?.salesOverview?.every((d) => d.total === 0) ? (
+          <div className="h-44 flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-neutral-500 text-center">
+            <TrendingUp size={24} className="text-slate-300 dark:text-neutral-600" />
+            <p className="text-xs">{t("bizDashboard.noSales")}</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={summary?.salesOverview} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
+            <BarChart
+              data={summary?.salesOverview || []}
+              margin={{ top: 5, right: 5, bottom: 0, left: -20 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(148, 163, 184, 0.15)"
+                vertical={false}
+              />
               <XAxis
                 dataKey="date"
                 tickFormatter={(v) => fmtDate(v, "short")}
-                tick={{ fill: "var(--text-faint)", fontSize: 11 }}
+                tick={{ fill: "#94a3b8", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
-              <YAxis tick={{ fill: "var(--text-faint)", fontSize: 11 }} axisLine={false} tickLine={false}
-                tickFormatter={(v) => compact(v)} />
+              <YAxis
+                tick={{ fill: "#94a3b8", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => compact(v)}
+              />
               <Tooltip
                 formatter={(v?: number) => [money(v ?? 0), t("bizDashboard.salesSeries")]}
                 labelFormatter={(v) => fmtDate(String(v), "short")}
               />
-              <Bar dataKey="total" name={t("bizDashboard.salesSeries")} fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar
+                dataKey="total"
+                name={t("bizDashboard.salesSeries")}
+                fill="#10b981"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={28}
+              />
             </BarChart>
           </ResponsiveContainer>
         )}
+      </div>
+
+      {/* ── Floating Mobile Operational Dock ────────────── */}
+      <div className="fixed bottom-[calc(var(--bottomnav-h,56px)+var(--safe-bottom,0px)+8px)] sm:bottom-4 left-0 right-0 z-30 px-4 pointer-events-none">
+        <div className="max-w-lg mx-auto flex items-center gap-3 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-neutral-800 p-2 rounded-2xl shadow-xl pointer-events-auto">
+          {/* + New Sale */}
+          <button
+            type="button"
+            onClick={() => {
+              haptic("medium");
+              navigate("/sales/new");
+            }}
+            className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.97] transition-all flex items-center justify-center gap-2 text-white font-bold text-sm shadow-md shadow-emerald-600/20 select-none"
+          >
+            <ShoppingCart size={18} />
+            <span>{t("bizDashboard.addSale")}</span>
+          </button>
+
+          {/* + New Purchase */}
+          <button
+            type="button"
+            onClick={() => {
+              haptic("medium");
+              navigate("/purchases/new");
+            }}
+            className="flex-1 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200/60 dark:border-blue-800/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 active:scale-[0.97] transition-all flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300 font-bold text-sm shadow-xs select-none"
+          >
+            <Package size={18} />
+            <span>{t("bizDashboard.addPurchase")}</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -479,33 +479,31 @@ const DashboardPage = () => {
     <div className="min-h-screen" style={{ background: C.bg }}>
       <div className="px-4 pt-5 pb-16 lg:px-8 lg:pt-8 lg:pb-20 max-w-5xl mx-auto space-y-5">
 
-        {/* ── Header (for generic and business views) ──────────────── */}
-        {activeBusiness?.type !== "personal" &&
-          activeBusiness?.type !== "mass" &&
-          !activeBusiness?.mealEnabled && (
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm mb-0.5" style={{ color: "var(--text-faint)" }}>
-                  {greeting}
-                </p>
-                <h1
-                  className="text-2xl lg:text-3xl font-bold"
-                  style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
-                >
-                  {user?.firstName} {user?.lastName}
-                </h1>
-              </div>
-              <button
-                onClick={() => { fetchBusinesses(true); fetchBusinessData(); }}
-                className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
-                style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
+        {/* ── Header (for generic views only when no business active) ──── */}
+        {!activeBusiness && (
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm mb-0.5" style={{ color: "var(--text-faint)" }}>
+                {greeting}
+              </p>
+              <h1
+                className="text-2xl lg:text-3xl font-bold"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
               >
-                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
-              </button>
+                {user?.firstName} {user?.lastName}
+              </h1>
             </div>
-          )}
+            <button
+              onClick={() => { fetchBusinesses(true); fetchBusinessData(); }}
+              className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
+              style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
+            >
+              <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+            </button>
+          </div>
+        )}
 
-        {activeBusiness?.type === "business" ? (
+        {activeBusiness?.type === "business" || activeBusiness?.type === "company" ? (
           <BusinessDashboardContent business={activeBusiness} />
         ) : activeBusiness?.type === "personal" ? (
           <PersonalDashboardContent
@@ -592,11 +590,6 @@ const DashboardPage = () => {
             </div>
           ))}
         </div>
-
-        {/* ── Meal Widget (mass type only) ─────────────── */}
-        {isMass && activeBusiness && (
-          <MealDashboardWidget businessId={activeBusiness._id} />
-        )}
 
         {/* ── Monthly chart ────────────────────────────── */}
         {activeBusiness && (
