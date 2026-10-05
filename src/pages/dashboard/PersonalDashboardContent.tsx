@@ -1,8 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Landmark, ShoppingBag, Zap, Send } from "lucide-react";
 import type { IBusiness } from "../../services/business.service";
-import { transactionService, type ITransaction } from "../../services/transaction.service";
+import {
+  transactionService,
+  type ITransaction,
+  type IPendingDue,
+} from "../../services/transaction.service";
+import { useAuthStore } from "../../store/authStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { toCurrency } from "../../utils/currency";
@@ -19,6 +23,7 @@ import {
   SavingsTargetWidget,
   PersonalDuesCard,
   ExpenseCategoriesCard,
+  type IExpenseCategoryItem,
   RecentTxnsList,
   FloatingActionDock,
 } from "./personal";
@@ -28,10 +33,20 @@ interface Props {
   onRefresh?: () => void;
 }
 
+const CATEGORY_COLORS = [
+  { colorClass: "bg-blue-600 dark:bg-blue-500", dotColorClass: "bg-blue-600 dark:bg-blue-500" },
+  { colorClass: "bg-sky-400 dark:bg-sky-500", dotColorClass: "bg-sky-400 dark:bg-sky-500" },
+  { colorClass: "bg-amber-400 dark:bg-amber-500", dotColorClass: "bg-amber-400 dark:bg-amber-500" },
+  { colorClass: "bg-rose-500 dark:bg-rose-400", dotColorClass: "bg-rose-500 dark:bg-rose-400" },
+  { colorClass: "bg-emerald-500 dark:bg-emerald-400", dotColorClass: "bg-emerald-500 dark:bg-emerald-400" },
+  { colorClass: "bg-purple-500 dark:bg-purple-400", dotColorClass: "bg-purple-500 dark:bg-purple-400" },
+];
+
 export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh }) => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const { t } = useTranslation();
-  const { date: fmtDate } = useFormat(toCurrency(business.currency));
+  const { monthName } = useFormat(toCurrency(business.currency));
 
   // Time range filter
   const [timeRange, setTimeRange] = useState<TimeRange>("month");
@@ -45,10 +60,10 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
   const [showTxnModal, setShowTxnModal] = useState(false);
   const [modalType, setModalType] = useState<"income" | "expense" | "transfer">("income");
 
-  // Summary and transactions data
-  const [recentTxns, setRecentTxns] = useState<ITransaction[]>([]);
-  const [totalIncome, setTotalIncome] = useState<number>(65000);
-  const [totalExpense, setTotalExpense] = useState<number>(22500);
+  // Dynamic data states
+  const [allTxns, setAllTxns] = useState<ITransaction[]>([]);
+  const [pendingDues, setPendingDues] = useState<IPendingDue[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const toggleBalance = () => {
     haptic("light");
@@ -65,102 +80,169 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
     setShowTxnModal(true);
   };
 
-  // Load real transactions and summary if available
-  useEffect(() => {
-    let cancelled = false;
-    const year = new Date().getFullYear();
-    const thisMonth = new Date().getMonth() + 1;
+  // Fetch real data
+  const fetchData = useCallback(async () => {
+    if (!business?._id) return;
+    setLoading(true);
+    try {
+      const [txnsRes, duesRes] = await Promise.allSettled([
+        transactionService.getAll(business._id, { limit: "150" }),
+        transactionService.getPendingDues(business._id),
+      ]);
 
-    Promise.allSettled([
-      transactionService.getMonthlySummary(business._id, year),
-      transactionService.getAll(business._id, { page: "1", limit: "5" }),
-    ]).then(([summaryRes, txnsRes]) => {
-      if (cancelled) return;
-      if (summaryRes.status === "fulfilled" && summaryRes.value?.months) {
-        const monthData = summaryRes.value.months.find((m) => m.month === thisMonth);
-        if (monthData && (monthData.income > 0 || monthData.expense > 0)) {
-          setTotalIncome(monthData.income);
-          setTotalExpense(monthData.expense);
-        }
+      if (txnsRes.status === "fulfilled") {
+        setAllTxns(txnsRes.value.transactions || []);
       }
-      if (txnsRes.status === "fulfilled" && txnsRes.value?.transactions?.length > 0) {
-        setRecentTxns(txnsRes.value.transactions);
+      if (duesRes.status === "fulfilled") {
+        setPendingDues(duesRes.value || []);
       }
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    } catch {
+      // handled gracefully
+    } finally {
+      setLoading(false);
+    }
   }, [business._id]);
 
-  // Balances
-  const cashBalance = business.cashBalance ?? 12500;
-  const mfsBalance = 15000;
-  const bankBalance = business.bankBalance ?? 15000;
-  const totalBalance = cashBalance + mfsBalance + bankBalance;
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  // Savings target calculations
-  const savingsTarget = 40000;
-  const currentSaved = 26000;
+  // Dynamically filter transactions based on active TimeRange
+  const filteredTxns = useMemo(() => {
+    const now = new Date();
+    return allTxns.filter((t) => {
+      if (!t.date) return true;
+      const d = new Date(t.date);
+      if (timeRange === "today") {
+        return d.toDateString() === now.toDateString();
+      }
+      if (timeRange === "7d") {
+        return now.getTime() - d.getTime() <= 7 * 86400000;
+      }
+      if (timeRange === "30d") {
+        return now.getTime() - d.getTime() <= 30 * 86400000;
+      }
+      if (timeRange === "month") {
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }
+      if (timeRange === "year") {
+        return d.getFullYear() === now.getFullYear();
+      }
+      return true;
+    });
+  }, [allTxns, timeRange]);
 
-  // Personal Dues
-  const receivableTotal = 3500;
-  const payableTotal = 1200;
+  // Compute dynamic total income and total expense for the active range
+  const { totalIncome, totalExpense } = useMemo(() => {
+    let inc = 0;
+    let exp = 0;
+    filteredTxns.forEach((tx) => {
+      if (tx.type === "income") inc += tx.amount;
+      else if (tx.type === "expense") exp += tx.amount;
+    });
+    return { totalIncome: inc, totalExpense: exp };
+  }, [filteredTxns]);
 
-  // Seed fallback transactions if no real transactions recorded yet
-  const displayTxns = useMemo(() => {
-    if (recentTxns.length > 0) {
-      return recentTxns.slice(0, 4);
+  // Dynamic Expense Category Breakdown
+  const expenseCategories: IExpenseCategoryItem[] = useMemo(() => {
+    const expenses = filteredTxns.filter((t) => t.type === "expense");
+    if (expenses.length === 0 || totalExpense === 0) return [];
+
+    const map = new Map<string, number>();
+    expenses.forEach((tx) => {
+      const name = tx.category?.name || t("personalDashboard.others");
+      map.set(name, (map.get(name) || 0) + tx.amount);
+    });
+
+    const sorted = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+    const topCategories = sorted.slice(0, 4);
+    const remaining = sorted.slice(4).reduce((sum, item) => sum + item[1], 0);
+
+    const items: IExpenseCategoryItem[] = topCategories.map(([name, amount], index) => {
+      const percentage = Math.round((amount / totalExpense) * 100);
+      const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+      return {
+        name,
+        amount,
+        percentage,
+        colorClass: color.colorClass,
+        dotColorClass: color.dotColorClass,
+      };
+    });
+
+    if (remaining > 0) {
+      const percentage = Math.round((remaining / totalExpense) * 100);
+      const color = CATEGORY_COLORS[4];
+      items.push({
+        name: t("personalDashboard.others"),
+        amount: remaining,
+        percentage,
+        colorClass: color.colorClass,
+        dotColorClass: color.dotColorClass,
+      });
     }
-    return [
-      {
-        _id: "seed_1",
-        title: t("personalDashboard.salaryDeposit") + " (TechCorp)",
-        account: "City Bank",
-        date: fmtDate(new Date().toISOString(), "short"),
-        amount: 50000,
-        type: "income" as const,
-        icon: Landmark,
-      },
-      {
-        _id: "seed_2",
-        title: t("personalDashboard.groceryShop") + " (Shwapno)",
-        account: "bKash",
-        date: fmtDate(new Date(Date.now() - 86400000).toISOString(), "short"),
-        amount: 2450,
-        type: "expense" as const,
-        icon: ShoppingBag,
-      },
-      {
-        _id: "seed_3",
-        title: t("personalDashboard.electricityBill") + " (DESCO)",
-        account: "Nagad",
-        date: fmtDate(new Date(Date.now() - 86400000 * 2).toISOString(), "short"),
-        amount: 1150,
-        type: "expense" as const,
-        icon: Zap,
-      },
-      {
-        _id: "seed_4",
-        title: t("personalDashboard.friendLoan") + " (Farhan)",
-        account: "Cash",
-        date: fmtDate(new Date(Date.now() - 86400000 * 3).toISOString(), "short"),
-        amount: 2000,
-        type: "expense" as const,
-        icon: Send,
-      },
-    ];
-  }, [recentTxns, t, fmtDate]);
+
+    return items;
+  }, [filteredTxns, totalExpense, t]);
+
+  // Dynamic Balances
+  const cashBalance = business.cashBalance ?? 0;
+  const bankBalance = business.bankBalance ?? 0;
+
+  // Calculate MFS balance dynamically from transactions
+  const mfsBalance = useMemo(() => {
+    let mfs = 0;
+    allTxns.forEach((tx) => {
+      const method = (tx.paymentMethod || "").toLowerCase();
+      if (method.includes("bkash") || method.includes("nagad") || method.includes("mfs")) {
+        if (tx.type === "income") mfs += tx.amount;
+        else if (tx.type === "expense") mfs -= tx.amount;
+      }
+    });
+    return Math.max(mfs, 0);
+  }, [allTxns]);
+
+  const totalBalance = cashBalance + bankBalance + mfsBalance;
+
+  // Dynamic Dues Calculation from pending dues API
+  const { receivableTotal, payableTotal } = useMemo(() => {
+    let rec = 0;
+    let pay = 0;
+    pendingDues.forEach((due) => {
+      if (user?._id && due.to?._id === user._id) {
+        rec += due.amount;
+      } else if (user?._id && due.from?._id === user._id) {
+        pay += due.amount;
+      } else {
+        // General pending dues
+        rec += due.amount;
+      }
+    });
+    return { receivableTotal: rec, payableTotal: pay };
+  }, [pendingDues, user?._id]);
+
+  // Dynamic Savings Target
+  const savingsTarget = Math.max(totalIncome > 0 ? Math.round(totalIncome * 0.4) : 10000, 10000);
+  const currentSaved = Math.max(totalIncome - totalExpense, 0);
+
+  // Period label for headers
+  const periodLabel = useMemo(() => {
+    if (timeRange === "today") return t("personalDashboard.today");
+    if (timeRange === "7d") return t("personalDashboard.days7");
+    if (timeRange === "30d") return t("personalDashboard.days30");
+    if (timeRange === "year") return t("personalDashboard.year");
+    return monthName(new Date().getMonth(), "long");
+  }, [timeRange, t, monthName]);
 
   return (
     <div className="space-y-4 pb-28 text-slate-900 dark:text-neutral-100">
       {/* 1. Profile & Active Business Header */}
-      <PersonalHeader business={business} onRefresh={onRefresh} />
+      <PersonalHeader business={business} onRefresh={onRefresh || fetchData} />
 
       {/* 2. Time Range Pill Filter */}
       <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
 
-      {/* 3. Hero Balance Card with Privacy Toggle */}
+      {/* 3. Hero Balance Card (100% Dynamic) */}
       <HeroBalanceCard
         totalBalance={totalBalance}
         cashBalance={cashBalance}
@@ -171,63 +253,68 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
         onToggleHide={toggleBalance}
       />
 
-      {/* 4. Income vs Expense Dual Cards */}
+      {/* 4. Income / Expense Cards (100% Dynamic) */}
       <IncomeExpenseCards
         totalIncome={totalIncome}
         totalExpense={totalExpense}
         currency={business.currency}
         balanceHidden={balanceHidden}
+        periodLabel={periodLabel}
       />
 
-      {/* 5. Streamlined 4 Quick Action Handlers */}
+      {/* 5. 4-Button Quick Action Grid */}
       <QuickActionGrid
         onAddIncome={() => handleOpenTxn("income")}
         onAddExpense={() => handleOpenTxn("expense")}
         onTransfer={() => handleOpenTxn("transfer")}
-        onOpenDues={() => navigate("/baki")}
+        onOpenDues={() => navigate("/dues")}
       />
 
-      {/* 6. Monthly Savings Target Widget */}
+      {/* 6. Savings Target Widget (100% Dynamic) */}
       <SavingsTargetWidget
-        currentSaved={currentSaved}
         targetAmount={savingsTarget}
+        currentSaved={currentSaved}
         currency={business.currency}
       />
 
-      {/* 7. Personal Dues & Receivables (ধার-দেনা) */}
+      {/* 7. Personal Dues Card (100% Dynamic) */}
       <PersonalDuesCard
         receivableTotal={receivableTotal}
         payableTotal={payableTotal}
         currency={business.currency}
-        onSendReminder={() => navigate("/baki?tab=receive")}
-        onPayNow={() => navigate("/baki?tab=pay")}
-        onViewAll={() => navigate("/baki")}
+        onViewAll={() => navigate("/dues")}
       />
 
-      {/* 8. Expense Categories Breakdown */}
-      <ExpenseCategoriesCard currency={business.currency} />
+      {/* 8. Expense Categories Card (100% Dynamic) */}
+      <ExpenseCategoriesCard
+        currency={business.currency}
+        categories={expenseCategories}
+        periodLabel={periodLabel}
+        onViewAnalysis={() => navigate("/reports")}
+      />
 
-      {/* 9. Recent Transactions Feed */}
+      {/* 9. Recent Transactions Feed (100% Dynamic) */}
       <RecentTxnsList
-        transactions={displayTxns}
+        transactions={allTxns.slice(0, 5)}
         currency={business.currency}
         onViewAll={() => navigate("/transactions")}
       />
 
-      {/* 10. Floating Sticky Quick Action Dock */}
+      {/* 10. Floating Sticky Action Dock */}
       <FloatingActionDock
         onAddIncome={() => handleOpenTxn("income")}
         onAddExpense={() => handleOpenTxn("expense")}
       />
 
-      {/* Transaction Modal */}
+      {/* Rapid Transaction Entry Modal */}
       {showTxnModal && (
         <TxnModal
           open={showTxnModal}
-          onClose={() => setShowTxnModal(false)}
           defaultType={modalType}
+          onClose={() => setShowTxnModal(false)}
           onSuccess={() => {
             setShowTxnModal(false);
+            fetchData();
             onRefresh?.();
           }}
         />

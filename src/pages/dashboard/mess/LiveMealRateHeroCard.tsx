@@ -21,19 +21,24 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
   totalBazaar,
   totalMeals,
   budgetAmount,
-  todayMeals = 14.5,
-  todayBreakfast = 3.5,
-  todayLunch = 5.5,
-  todayDinner = 5.5,
-  daysPassed = 24,
+  todayMeals = 0,
+  todayBreakfast = 0,
+  todayLunch = 0,
+  todayDinner = 0,
+  daysPassed = 1,
   cashFund,
 }) => {
   const { t } = useTranslation();
   const { money, num } = useFormat();
 
-  // Budget calculations
-  const effectiveBudget = budgetAmount && budgetAmount > 0 ? budgetAmount : Math.max(totalBazaar * 1.2, 32000);
-  const budgetPercent = Math.min(Math.round((totalBazaar / effectiveBudget) * 100), 100);
+  // Dynamic budget calculations
+  const effectiveBudget = budgetAmount && budgetAmount > 0
+    ? budgetAmount
+    : Math.max(totalBazaar, 1000);
+
+  const budgetPercent = effectiveBudget > 0
+    ? Math.min(Math.round((totalBazaar / effectiveBudget) * 100), 100)
+    : 0;
 
   const isSafeFund = cashFund >= 0;
 
@@ -111,11 +116,15 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
             {num(todayMeals, { maximumFractionDigits: 1 })} টি
           </span>
           <span className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-            {t("messDashboard.todaysMealSplit", {
-              b: num(todayBreakfast),
-              l: num(todayLunch),
-              d: num(todayDinner),
-            })}
+            {todayMeals > 0 ? (
+              t("messDashboard.todaysMealSplit", {
+                b: num(todayBreakfast, { maximumFractionDigits: 1 }),
+                l: num(todayLunch, { maximumFractionDigits: 1 }),
+                d: num(todayDinner, { maximumFractionDigits: 1 }),
+              })
+            ) : (
+              "০ টি মিল"
+            )}
           </span>
         </div>
 

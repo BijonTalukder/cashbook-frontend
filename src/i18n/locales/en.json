@@ -1648,7 +1648,9 @@
     "salaryDeposit": "Salary Deposit",
     "groceryShop": "Grocery Shopping",
     "electricityBill": "Electricity Bill",
-    "friendLoan": "Loan to Friend"
+    "friendLoan": "Loan to Friend",
+    "noTxnsYet": "No transactions recorded yet",
+    "noExpensesRecorded": "No expenses recorded in this period"
   },
   "messDashboard": {
     "title": "Mess Dashboard",

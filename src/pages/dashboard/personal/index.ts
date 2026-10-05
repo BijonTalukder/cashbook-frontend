@@ -5,6 +5,6 @@ export { IncomeExpenseCards } from "./IncomeExpenseCards";
 export { QuickActionGrid } from "./QuickActionGrid";
 export { SavingsTargetWidget } from "./SavingsTargetWidget";
 export { PersonalDuesCard } from "./PersonalDuesCard";
-export { ExpenseCategoriesCard } from "./ExpenseCategoriesCard";
+export { ExpenseCategoriesCard, type IExpenseCategoryItem } from "./ExpenseCategoriesCard";
 export { RecentTxnsList } from "./RecentTxnsList";
 export { FloatingActionDock } from "./FloatingActionDock";

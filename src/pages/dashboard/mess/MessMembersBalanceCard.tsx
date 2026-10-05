@@ -91,8 +91,14 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
       </div>
 
       {/* Member Ledger Cards List */}
-      <div className="flex flex-col gap-2.5">
-        {members.slice(0, 4).map((m, idx) => {
+      {members.length === 0 ? (
+        <div className="py-6 text-center text-slate-400 dark:text-neutral-500 text-xs flex flex-col items-center gap-1.5">
+          <Users size={24} className="text-slate-300 dark:text-neutral-600" />
+          <span>{t("members.emptyDesc")}</span>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {members.slice(0, 4).map((m, idx) => {
           const isRefund = m.balance > 0.01;
           const isDue = m.balance < -0.01;
           const isEven = !isRefund && !isDue;
@@ -193,6 +199,7 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
           );
         })}
       </div>
+      )}
 
       {/* View All Members Navigation Button */}
       <button

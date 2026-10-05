@@ -1648,7 +1648,9 @@
     "salaryDeposit": "বেতন জমা",
     "groceryShop": "মুদি বাজার",
     "electricityBill": "বিদ্যুৎ বিল",
-    "friendLoan": "বন্ধুকে ধার দেওয়া"
+    "friendLoan": "বন্ধুকে ধার দেওয়া",
+    "noTxnsYet": "কোনো সাম্প্রতিক লেনদেন নেই",
+    "noExpensesRecorded": "এই সময়ে কোনো খরচের হিসাব নেই"
   },
   "messDashboard": {
     "title": "মেস ড্যাশবোর্ড",
