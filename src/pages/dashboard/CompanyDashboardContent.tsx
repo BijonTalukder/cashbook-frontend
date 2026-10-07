@@ -367,7 +367,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
             <TrendingUp size={18} />
           </div>
           <span className="text-[11px] font-semibold text-slate-800 dark:text-neutral-200 leading-tight">
-            + রাজস্ব / আয়
+            + {t("txn.income")}
           </span>
         </button>
 
