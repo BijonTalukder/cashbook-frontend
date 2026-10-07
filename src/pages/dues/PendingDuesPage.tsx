@@ -9,6 +9,7 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useBusinessStore } from "../../store/businessStore";
@@ -22,6 +23,7 @@ import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { plural } from "../../i18n/labels";
 import { haptic } from "../../native/bridge";
+import { shareViaWhatsApp } from "../../utils/share";
 
 /* ─── Avatar ──────────────────────────────────────────── */
 const Avatar = ({
@@ -138,6 +140,21 @@ const DueCard = ({
               >
                 <CheckCircle2 size={14} />
                 <span>{t("dues.markPaid")}</span>
+              </button>
+            )}
+            {isMeTo && (
+              <button
+                type="button"
+                onClick={() => {
+                  haptic("light");
+                  const debtorName = due.from.firstName || "বন্ধু";
+                  const msg = `আসসালামু আলাইকুম ${debtorName},\nহিসাববই অ্যাপে আপনার কাছে ${money(due.amount)} টাকা বকেয়া রয়েছে। অনুগ্রহ করে হিসাবটি পরিশোধ করুন। ধন্যবাদ!`;
+                  shareViaWhatsApp(msg);
+                }}
+                className="flex-1 h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white shadow-xs active:scale-95 transition-all select-none"
+              >
+                <Share2 size={14} />
+                <span>{t("personalDashboard.sendReminder")}</span>
               </button>
             )}
             <button

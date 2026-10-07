@@ -16,8 +16,6 @@ interface PersonalDuesCardProps {
   topReceivables?: IPersonalDueRow[];
   topPayables?: IPersonalDueRow[];
   currency?: string;
-  onSendReminder?: () => void;
-  onPayNow?: () => void;
   onViewAll?: () => void;
 }
 
@@ -27,8 +25,6 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
   topReceivables = [],
   topPayables = [],
   currency,
-  onSendReminder,
-  onPayNow,
   onViewAll,
 }) => {
   const { t } = useTranslation();
@@ -57,13 +53,19 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
 
       <div className="grid grid-cols-2 gap-3">
         {/* I will get (Receivable) */}
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 shadow-xs border border-slate-200/80 dark:border-neutral-800 space-y-2 flex flex-col justify-between">
+        <div
+          onClick={() => {
+            haptic("light");
+            onViewAll?.();
+          }}
+          className="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 shadow-xs border border-slate-200/80 dark:border-neutral-800 space-y-2 flex flex-col justify-between cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-800/80 transition-all select-none group"
+        >
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
                 {t("personalDashboard.iWillGet")}
               </span>
-              <ArrowDownLeft size={15} className="text-emerald-500" />
+              <ArrowDownLeft size={15} className="text-emerald-500 group-hover:scale-110 transition-transform" />
             </div>
             <p className="text-[16px] sm:text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-1">
               {money(receivableTotal)}
@@ -84,27 +86,22 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
               )}
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              onSendReminder?.();
-            }}
-            className="w-full mt-2 py-1.5 rounded-xl bg-slate-100 dark:bg-neutral-800 text-blue-600 dark:text-blue-400 text-[11px] font-bold hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors active:scale-95"
-          >
-            {t("personalDashboard.sendReminder")}
-          </button>
         </div>
 
         {/* I will give (Payable) */}
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 shadow-xs border border-slate-200/80 dark:border-neutral-800 space-y-2 flex flex-col justify-between">
+        <div
+          onClick={() => {
+            haptic("light");
+            onViewAll?.();
+          }}
+          className="bg-white dark:bg-neutral-900 rounded-2xl p-3.5 shadow-xs border border-slate-200/80 dark:border-neutral-800 space-y-2 flex flex-col justify-between cursor-pointer hover:border-rose-300 dark:hover:border-rose-800/80 transition-all select-none group"
+        >
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
                 {t("personalDashboard.iWillGive")}
               </span>
-              <ArrowUpRight size={15} className="text-rose-500" />
+              <ArrowUpRight size={15} className="text-rose-500 group-hover:scale-110 transition-transform" />
             </div>
             <p className="text-[16px] sm:text-lg font-mono font-bold text-rose-600 dark:text-rose-400 mt-1">
               {money(payableTotal)}
@@ -125,17 +122,6 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
               )}
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              onPayNow?.();
-            }}
-            className="w-full mt-2 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-[11px] font-bold hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors active:scale-95"
-          >
-            {t("personalDashboard.payNow")}
-          </button>
         </div>
       </div>
     </section>

@@ -17,7 +17,6 @@ import {
   BusinessHeader,
   type DatePeriod,
   BusinessHeroBalanceCard,
-  VoiceAssistantCard,
   BusinessKpiGrid,
   BusinessQuickActionGrid,
   DailyPerformanceStrip,
@@ -194,14 +193,7 @@ export const BusinessDashboardContent: React.FC<Props> = ({
         refreshing={refreshing}
       />
 
-      {/* 3. Voice Ledger Assistant Micro-bar (Interactive) */}
-      <VoiceAssistantCard
-        onVoiceResult={() => {
-          navigate("/sales/new");
-        }}
-      />
-
-      {/* 4. Core Retail KPIs (2x2 Balanced Grid - 100% Dynamic) */}
+      {/* 3. Core Retail KPIs (2x2 Balanced Grid - 100% Dynamic) */}
       <BusinessKpiGrid
         todaySales={summary?.todaySales ?? 0}
         todayPurchases={summary?.todayPurchases ?? 0}
