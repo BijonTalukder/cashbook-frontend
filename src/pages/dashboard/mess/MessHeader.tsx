@@ -5,7 +5,6 @@ import {
   Calendar,
   ShieldCheck,
   RefreshCw,
-  Home,
 } from "lucide-react";
 import { useTranslation } from "../../../i18n/useTranslation";
 import { useFormat } from "../../../i18n/useFormat";
@@ -24,7 +23,6 @@ interface MessHeaderProps {
 }
 
 export const MessHeader: React.FC<MessHeaderProps> = ({
-  businessName,
   branchName,
   managerName,
   activeMembersCount,
@@ -40,49 +38,9 @@ export const MessHeader: React.FC<MessHeaderProps> = ({
   const formattedMonth = `${monthName(selectedDate.getMonth(), "long")} ${num(selectedDate.getFullYear())}`;
 
   return (
-    <section className="space-y-3">
-      {/* Top Mess Identity & Quick Refresh */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
-            <Home size={20} />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-base font-bold text-slate-900 dark:text-neutral-100 truncate leading-tight">
-                {businessName || t("messDashboard.defaultMessName")}
-              </h1>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 shrink-0">
-                {t("messDashboard.badge")}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-neutral-400 truncate">
-              {branchName || t("messDashboard.defaultBranch")}
-            </p>
-          </div>
-        </div>
-
-        {onRefresh && (
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              onRefresh();
-            }}
-            disabled={refreshing}
-            className="w-10 h-10 rounded-xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800/80 shadow-xs active:scale-95 transition-all select-none shrink-0"
-            aria-label="Refresh"
-          >
-            <RefreshCw
-              size={16}
-              className={refreshing ? "animate-spin text-indigo-600" : ""}
-            />
-          </button>
-        )}
-      </div>
-
+    <section className="space-y-2.5">
       {/* Month Selector & Active Members Bar */}
-      <div className="flex items-center justify-between bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-2 shadow-xs">
+      <div className="flex items-center justify-between bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-2 sm:p-2.5 shadow-xs">
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -116,11 +74,31 @@ export const MessHeader: React.FC<MessHeaderProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-neutral-800/90 px-2.5 py-1 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold text-slate-700 dark:text-neutral-200">
-            {t("messDashboard.activeMembers", { count: num(activeMembersCount) })}
-          </span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-neutral-800/90 px-2.5 py-1 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-semibold text-slate-700 dark:text-neutral-200">
+              {t("messDashboard.activeMembers", { count: num(activeMembersCount) })}
+            </span>
+          </div>
+
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={() => {
+                haptic("light");
+                onRefresh();
+              }}
+              disabled={refreshing}
+              className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700 flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700 active:scale-95 transition-all select-none shadow-xs shrink-0"
+              aria-label="Refresh"
+            >
+              <RefreshCw
+                size={13}
+                className={refreshing ? "animate-spin text-indigo-600 dark:text-indigo-400" : ""}
+              />
+            </button>
+          )}
         </div>
       </div>
 
@@ -142,3 +120,5 @@ export const MessHeader: React.FC<MessHeaderProps> = ({
     </section>
   );
 };
+
+export default MessHeader;

@@ -322,14 +322,9 @@ const PendingDuesPage = () => {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
               {t("dues.title")}
             </h1>
-            {activeBusiness && (
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-                {t("dues.subtitle", {
-                  business: activeBusiness.name,
-                  count: num(dues.length),
-                })}
-              </p>
-            )}
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              {num(dues.length)}টি বকেয়া হিসাব
+            </p>
           </div>
           <button
             type="button"

@@ -364,19 +364,14 @@ const TransactionsPage = () => {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
               {t("transactions.title")}
             </h1>
-            {activeBusiness && (
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-                {plural(t, "transactions.subtitle", total, {
-                  business: activeBusiness.name,
-                  count: num(total),
-                })}
-                {isMass && (
-                  <span className="text-purple-600 dark:text-purple-400 font-semibold ml-1">
-                    {t("transactions.messTag")}
-                  </span>
-                )}
-              </p>
-            )}
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              {num(total)}টি লেনদেন
+              {isMass && (
+                <span className="text-purple-600 dark:text-purple-400 font-semibold ml-1">
+                  {t("transactions.messTag")}
+                </span>
+              )}
+            </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">

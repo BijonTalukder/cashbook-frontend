@@ -991,14 +991,9 @@ const MembersPage = () => {
             >
               {t("members.title")}
             </h1>
-            {activeBusiness && (
-              <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                {plural(t, "members.subtitle", members.length, {
-                  business: activeBusiness.name,
-                  count: num(members.length),
-                })}
-              </p>
-            )}
+            <p className="text-xs mt-0.5 text-slate-500 dark:text-neutral-400">
+              {num(members.length)} জন সদস্য
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <button

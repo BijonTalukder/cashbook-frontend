@@ -247,15 +247,9 @@ const MessSummaryPage = () => {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1
-              className="text-2xl font-bold"
-              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
-            >
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
               {t("mess.title")}
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-              {activeBusiness.name}
-            </p>
           </div>
           <button
             onClick={load}

@@ -104,7 +104,7 @@ const ProfitLossPage = () => {
               {t("profitLoss.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {activeBusiness?.name} • {range.from} হতে {range.to}
+              {range.from} হতে {range.to}
             </p>
           </div>
           <button

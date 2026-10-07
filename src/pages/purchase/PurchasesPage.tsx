@@ -106,7 +106,7 @@ const PurchasesPage = () => {
               {t("purchase.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {activeBusiness?.name} • {num(stats.count)}টি চালান
+              {num(stats.count)}টি ক্রয় চালান
             </p>
           </div>
           <button

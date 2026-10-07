@@ -182,7 +182,7 @@ const LedgerPage = () => {
               {t("ledger.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {activeBusiness?.name} • {num(transactions.length)}টি এন্ট্রি
+              {num(transactions.length)}টি খতিয়ান এন্ট্রি
             </p>
           </div>
 
