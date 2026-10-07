@@ -50,6 +50,7 @@ import {
 import BusinessDashboardContent from "./BusinessDashboardContent";
 import PersonalDashboardContent from "./PersonalDashboardContent";
 import MessDashboardContent from "./MessDashboardContent";
+import CompanyDashboardContent from "./CompanyDashboardContent";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { useRefreshHandler } from "../../native/refresh";
@@ -375,8 +376,16 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {activeBusiness?.type === "business" || activeBusiness?.type === "company" ? (
+        {activeBusiness?.type === "business" ? (
           <BusinessDashboardContent
+            business={activeBusiness}
+            onRefresh={() => {
+              fetchBusinesses(true);
+              fetchBusinessData();
+            }}
+          />
+        ) : activeBusiness?.type === "company" ? (
+          <CompanyDashboardContent
             business={activeBusiness}
             onRefresh={() => {
               fetchBusinesses(true);

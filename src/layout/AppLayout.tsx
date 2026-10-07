@@ -47,8 +47,8 @@ const navItems = [
   { to: "/purchases", icon: ShoppingBag, labelKey: "nav.purchases", businessModeOnly: true, group: "inventory" },
   { to: "/expenses", icon: Receipt, labelKey: "nav.expenses", businessModeOnly: true, group: "money" },
   { to: "/baki", icon: HandCoins, labelKey: "nav.baki", businessModeOnly: true, group: "sales" },
-  { to: "/ledger", icon: ScrollText, labelKey: "nav.ledger", businessModeOnly: true, group: "money" },
-  { to: "/reports", icon: BarChart3, labelKey: "nav.reports", businessModeOnly: true, group: "money" },
+  { to: "/ledger", icon: ScrollText, labelKey: "nav.ledger", businessModeOnly: true, allowCompany: true, group: "money" },
+  { to: "/reports", icon: BarChart3, labelKey: "nav.reports", businessModeOnly: true, allowCompany: true, group: "money" },
   // More Business Mode-only items are appended as their pages land
   // Settings is always shown in the drawer's footer separately
 ];
@@ -142,11 +142,12 @@ const AppLayout = () => {
 
   const isMass = activeBusiness?.type === "mass" || activeBusiness?.mealEnabled;
   const isBusinessMode = activeBusiness?.type === "business";
+  const isCompany = activeBusiness?.type === "company";
   const visibleNav = navItems.filter(
     (n) =>
       (!n.massOnly || !!isMass) &&
       (!n.hideForBusiness || !isBusinessMode) &&
-      (!n.businessModeOnly || isBusinessMode),
+      (!n.businessModeOnly || isBusinessMode || (n.allowCompany && isCompany)),
   );
 
   /* Sync status — read straight from the store so the logo badge reflects
@@ -180,32 +181,30 @@ const AppLayout = () => {
     const path = location.pathname;
     const isNewMass = newBiz.type === "mass" || newBiz.mealEnabled;
     const isNewBusiness = newBiz.type === "business";
+    const isNewCompany = newBiz.type === "company";
 
-    // Pages that only exist for Business mode
-    const businessOnlyPaths = [
+    // Pages that only exist for Retail Business mode (POS, products, sales)
+    const retailOnlyPaths = [
       "/customers",
       "/suppliers",
       "/products",
       "/sales",
       "/purchases",
-      "/expenses",
       "/baki",
-      "/ledger",
-      "/reports",
     ];
 
     // Pages that only exist for Mess mode
     const massOnlyPaths = ["/meals", "/mess"];
 
-    // Pages that are hidden in Business mode (personal mode only)
+    // Pages that are hidden in Retail Business mode
     const nonBusinessPaths = ["/transactions", "/dues"];
 
-    const isBusinessOnly = businessOnlyPaths.some((p) => path.startsWith(p));
+    const isRetailOnly = retailOnlyPaths.some((p) => path.startsWith(p));
     const isMassOnly = massOnlyPaths.some((p) => path.startsWith(p));
     const isNonBusinessOnly = nonBusinessPaths.some((p) => path.startsWith(p));
 
     if (
-      (!isNewBusiness && isBusinessOnly) ||
+      (!isNewBusiness && isRetailOnly) ||
       (!isNewMass && isMassOnly) ||
       (isNewBusiness && isNonBusinessOnly) ||
       path.includes("/new")
