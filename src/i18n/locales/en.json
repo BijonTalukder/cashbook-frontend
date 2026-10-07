@@ -126,7 +126,7 @@
     "noReceivablesHint": "Nobody owes you money right now",
     "pay": "Pay",
     "receive": "Receive",
-    "title": "Baki (Dues)",
+    "title": "Dues",
     "willPay": "I Will Pay",
     "willReceive": "I Will Receive"
   },
@@ -321,7 +321,7 @@
     "edit": "Edit Customer",
     "emailPlaceholder": "email@example.com",
     "empty": "No customers yet",
-    "emptyHint": "Add your first customer to start tracking baki",
+    "emptyHint": "Add your first customer to start tracking dues",
     "emptyHintFull": "Add your first customer to start tracking sales & dues",
     "history": "Transaction History",
     "loadFailed": "Failed to load customers",
@@ -778,7 +778,7 @@
     "totalExpensesThisMonth": "Total expenses this month"
   },
   "nav": {
-    "baki": "Baki",
+    "baki": "Dues",
     "businessSettings": "Business Settings",
     "customers": "Customers",
     "dashboard": "Dashboard",
@@ -1618,7 +1618,7 @@
     "addIncome": "Add Income",
     "addExpense": "Add Expense",
     "transfer": "Transfer",
-    "dues": "Dues (Baki)",
+    "dues": "Dues",
     "savingsGoal": "Monthly Savings Target",
     "savingsSub": "Emergency Fund Deposit",
     "completed": "Completed",

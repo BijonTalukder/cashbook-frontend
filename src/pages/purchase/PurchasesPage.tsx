@@ -21,11 +21,11 @@ const STATUS_META: Record<string, { label: string; badgeClass: string }> = {
     badgeClass: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60",
   },
   partial: {
-    label: "আংশিক বাকি",
+    label: "আংশিক বকেয়া",
     badgeClass: "bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60",
   },
   due: {
-    label: "বাকি",
+    label: "বকেয়া",
     badgeClass: "bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/60",
   },
 };
@@ -138,7 +138,7 @@ const PurchasesPage = () => {
             <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-rose-200/60 dark:border-rose-900/40 shadow-xs">
               <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 mb-1">
                 <AlertCircle className="w-3.5 h-3.5" />
-                <span className="text-[11px] sm:text-xs font-semibold truncate">বাকি দেনা</span>
+                <span className="text-[11px] sm:text-xs font-semibold truncate">বকেয়া দেনা</span>
               </div>
               <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 truncate">
                 {money(stats.totalDue)}
@@ -173,7 +173,7 @@ const PurchasesPage = () => {
               {(
                 [
                   { id: "all", label: "সকল" },
-                  { id: "due", label: "বাকি চালান" },
+                  { id: "due", label: "বকেয়া চালান" },
                   { id: "partial", label: "আংশিক" },
                   { id: "paid", label: "পরিশোধিত" },
                 ] as const
@@ -284,7 +284,7 @@ const PurchasesPage = () => {
                     <div className="mt-1 flex items-center justify-end gap-1.5">
                       {p.dueAmount > 0 && (
                         <span className="text-[10px] font-mono font-bold text-rose-600 dark:text-rose-400">
-                          বাকি: {money(p.dueAmount)}
+                          বকেয়া: {money(p.dueAmount)}
                         </span>
                       )}
                       <span

@@ -62,7 +62,7 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
               <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[10px] font-bold">
                 {salesGrowth !== undefined
                   ? `${salesGrowth >= 0 ? "+" : ""}${num(salesGrowth)}% বিক্রি`
-                  : "নগদ ও বাকি"}
+                  : "নগদ ও বকেয়া"}
               </span>
             </div>
           </div>
@@ -90,11 +90,11 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
           </div>
         </div>
 
-        {/* KPI 3: Due Receivable (Baki Paona) */}
+        {/* KPI 3: Due Receivable (Bokeya Paona) */}
         <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-3.5 sm:p-4 rounded-3xl shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400 truncate">
-              কাস্টমার বাকি পাব
+              কাস্টমার বকেয়া পাব
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <ArrowDownLeft size={16} />
@@ -106,7 +106,7 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
             </span>
             <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 truncate">
               {debtorCount > 0
-                ? `${num(debtorCount)} জন খরিদ্দার বাকি`
+                ? `${num(debtorCount)} জন খরিদ্দার বকেয়া`
                 : "কাস্টমার পাওনা"}
             </p>
           </div>
@@ -128,7 +128,7 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
             </span>
             <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 truncate">
               {creditorCount > 0
-                ? `${num(creditorCount)} জন সাপ্লায়ার বাকি`
+                ? `${num(creditorCount)} জন সাপ্লায়ার বকেয়া`
                 : "মহাজন দেনা"}
             </p>
           </div>

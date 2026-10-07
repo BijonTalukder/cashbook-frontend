@@ -27,7 +27,7 @@ export const BusinessFloatingDock: React.FC<BusinessFloatingDockProps> = ({
           <span>+ নতুন বিক্রি (POS)</span>
         </button>
 
-        {/* বাকি আদায় (+) */}
+        {/* বকেয়া আদায় (+) */}
         <button
           type="button"
           onClick={() => {
@@ -37,7 +37,7 @@ export const BusinessFloatingDock: React.FC<BusinessFloatingDockProps> = ({
           className="w-full h-12 rounded-xl bg-slate-900 hover:bg-black dark:bg-neutral-800 dark:hover:bg-neutral-700 active:scale-[0.97] transition-all flex items-center justify-center gap-2 text-white font-bold text-xs sm:text-sm shadow-md select-none"
         >
           <HandCoins size={18} />
-          <span>বাকি আদায় (+)</span>
+          <span>বকেয়া আদায় (+)</span>
         </button>
       </div>
     </div>

@@ -54,7 +54,7 @@ export const BusinessQuickActionGrid: React.FC<BusinessQuickActionGridProps> = (
     },
     {
       key: "baki",
-      label: "বাকির খাতা",
+      label: "বকেয়ার খাতা",
       icon: BookOpen,
       colorClass:
         "bg-purple-50 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white",

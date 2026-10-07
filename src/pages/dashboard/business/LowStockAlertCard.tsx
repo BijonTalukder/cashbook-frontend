@@ -37,7 +37,7 @@ export const LowStockAlertCard: React.FC<LowStockAlertCardProps> = ({
 
   const itemsSummary = lowStockProducts
     .slice(0, 3)
-    .map((p) => `${p.name} (বাকি ${num(p.stock)} ${p.unit || "টি"})`)
+    .map((p) => `${p.name} (অবশিষ্ট ${num(p.stock)} ${p.unit || "টি"})`)
     .join(" • ");
 
   return (

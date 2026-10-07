@@ -49,7 +49,7 @@ export const DailyPerformanceStrip: React.FC<DailyPerformanceStripProps> = ({
         {/* Due Sales */}
         <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 p-2.5 rounded-2xl flex flex-col justify-center">
           <span className="text-[11px] text-slate-500 dark:text-neutral-400 block font-medium truncate">
-            বাকি বিক্রি
+            বকেয়া বিক্রি
           </span>
           <span className="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-neutral-100 block mt-0.5 truncate">
             {money(dueSales)}

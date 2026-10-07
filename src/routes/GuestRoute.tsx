@@ -8,7 +8,7 @@ const GuestRoute = () => {
   // ✅ token আছে + onboarding হয়ে গেছে → dashboard
   if (token && defaultBusiness) return <Navigate to="/dashboard" replace />;
 
-  // ✅ token আছে কিন্তু onboarding বাকি → onboarding
+  // ✅ token আছে কিন্তু onboarding অসম্পূর্ণ/বকেয়া → onboarding
   if (token) return <Navigate to="/onboarding" replace />;
 
   return <Outlet />;
