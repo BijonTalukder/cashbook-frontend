@@ -35,7 +35,7 @@ const C = {
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, labelKey: "nav.dashboard", group: "overview" },
   { to: "/transactions", icon: ArrowLeftRight, labelKey: "nav.transactions", hideForBusiness: true, group: "money" },
-  { to: "/members", icon: Users, labelKey: "nav.members", group: "team" },
+  { to: "/members", icon: Users, labelKey: "nav.members", hideForPersonal: true, group: "team" },
   { to: "/meals", icon: UtensilsCrossed, labelKey: "nav.meals", massOnly: true, group: "mess" },
   { to: "/mess", icon: Calculator, labelKey: "nav.mess", massOnly: true, group: "mess" },
   { to: "/invoices", icon: FileText, labelKey: "nav.invoices", group: "sales" },
@@ -143,10 +143,12 @@ const AppLayout = () => {
   const isMass = activeBusiness?.type === "mass" || activeBusiness?.mealEnabled;
   const isBusinessMode = activeBusiness?.type === "business";
   const isCompany = activeBusiness?.type === "company";
+  const isPersonal = activeBusiness?.type === "personal";
   const visibleNav = navItems.filter(
     (n) =>
       (!n.massOnly || !!isMass) &&
       (!n.hideForBusiness || !isBusinessMode) &&
+      (!n.hideForPersonal || !isPersonal) &&
       (!n.businessModeOnly || isBusinessMode || (n.allowCompany && isCompany)),
   );
 
@@ -182,6 +184,7 @@ const AppLayout = () => {
     const isNewMass = newBiz.type === "mass" || newBiz.mealEnabled;
     const isNewBusiness = newBiz.type === "business";
     const isNewCompany = newBiz.type === "company";
+    const isNewPersonal = newBiz.type === "personal";
 
     // Pages that only exist for Retail Business mode (POS, products, sales)
     const retailOnlyPaths = [
@@ -202,10 +205,12 @@ const AppLayout = () => {
     const isRetailOnly = retailOnlyPaths.some((p) => path.startsWith(p));
     const isMassOnly = massOnlyPaths.some((p) => path.startsWith(p));
     const isNonBusinessOnly = nonBusinessPaths.some((p) => path.startsWith(p));
+    const isPersonalRestricted = path.startsWith("/members");
 
     if (
       (!isNewBusiness && isRetailOnly) ||
       (!isNewMass && isMassOnly) ||
+      (isNewPersonal && isPersonalRestricted) ||
       (isNewBusiness && isNonBusinessOnly) ||
       path.includes("/new")
     ) {

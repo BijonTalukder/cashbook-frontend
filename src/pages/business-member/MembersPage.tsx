@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   UserPlus,
@@ -887,11 +888,19 @@ const PendingInviteRow = ({
 
 /* ─── Members Page ────────────────────────────────────── */
 const MembersPage = () => {
+  const navigate = useNavigate();
   const { activeBusiness } = useBusinessStore();
   const currentUserId = useAuthStore((s) => s.user?._id ?? "");
   const currentUserRole = useAuthStore((s) => s.user?.role ?? "");
   const { t } = useTranslation();
   const { num } = useFormat();
+
+  // Personal accounts do not support team members
+  useEffect(() => {
+    if (activeBusiness?.type === "personal") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [activeBusiness?.type, navigate]);
 
   const [members, setMembers] = useState<IMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -907,7 +916,7 @@ const MembersPage = () => {
   const canInvite = isOwner || isAdmin;
 
   const fetchMembers = useCallback(async () => {
-    if (!activeBusiness) return;
+    if (!activeBusiness || activeBusiness.type === "personal") return;
     setLoading(true);
     try {
       const data = await businessMembersService.getMembers(activeBusiness._id);
@@ -921,7 +930,7 @@ const MembersPage = () => {
 
   /** Pending invites carry the shareable link, so a failed email is recoverable. */
   const fetchPendingInvites = useCallback(async () => {
-    if (!activeBusiness || !canInvite) {
+    if (!activeBusiness || activeBusiness.type === "personal" || !canInvite) {
       setPendingInvites([]);
       return;
     }
@@ -941,6 +950,10 @@ const MembersPage = () => {
   useEffect(() => {
     fetchPendingInvites();
   }, [fetchPendingInvites]);
+
+  if (activeBusiness?.type === "personal") {
+    return null;
+  }
 
   const handleCancelInvite = async (invite: IInvitationDetail) => {
     try {

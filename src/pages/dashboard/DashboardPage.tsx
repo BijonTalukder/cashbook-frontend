@@ -723,7 +723,9 @@ const DashboardPage = () => {
                   {[
                     { label: t("txn.income"), icon: TrendingUp, color: "#10b981", to: "/transactions?type=income" },
                     { label: t("txn.expense"), icon: TrendingDown, color: "#ef4444", to: "/transactions?type=expense" },
-                    { label: t("nav.members"), icon: Users, color: "#3b82f6", to: "/members" },
+                    ...(activeBusiness.type !== "personal"
+                      ? [{ label: t("nav.members"), icon: Users, color: "#3b82f6", to: "/members" }]
+                      : []),
                     ...(isMass
                       ? [{ label: t("nav.meals"), icon: UtensilsCrossed, color: "#8b5cf6", to: "/meals" }]
                       : [{ label: t("nav.transactions"), icon: Wallet, color: "#f59e0b", to: "/transactions" }]
