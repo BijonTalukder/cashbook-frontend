@@ -9,28 +9,41 @@ export interface IMealTrendPoint {
 }
 
 interface MealTrendsChartCardProps {
-  trendData?: IMealTrendPoint[];
-  avgPerDay?: number;
+  trendData: IMealTrendPoint[];
+  avgPerDay: number;
 }
 
 export const MealTrendsChartCard: React.FC<MealTrendsChartCardProps> = ({
-  trendData = [
-    { dayLabelKey: "daySat", count: 18 },
-    { dayLabelKey: "daySun", count: 17.5 },
-    { dayLabelKey: "dayMon", count: 19 },
-    { dayLabelKey: "dayTue", count: 18.5 },
-    { dayLabelKey: "dayWed", count: 20 },
-    { dayLabelKey: "dayThu", count: 19 },
-    { dayLabelKey: "dayFri", count: 22.5 },
-  ],
-  avgPerDay = 19.2,
+  trendData,
+  avgPerDay,
 }) => {
   const { t } = useTranslation();
   const { num } = useFormat();
 
+  // Empty state — caller forgot to fetch, or no meals recorded in the last 7 days.
+  if (!trendData || trendData.length === 0) {
+    return (
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <TrendingUp size={18} />
+            </div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+              {t("messDashboard.last7DaysTrends")}
+            </h2>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 dark:text-neutral-500 py-4 text-center">
+          {t("messDashboard.noMealTrends")}
+        </p>
+      </div>
+    );
+  }
+
   // Normalize counts to SVG heights (0 to 60)
-  const maxVal = Math.max(...trendData.map((d) => d.count), 25);
-  const minVal = Math.min(...trendData.map((d) => d.count), 10);
+  const maxVal = Math.max(...trendData.map((d) => d.count), 1);
+  const minVal = Math.min(...trendData.map((d) => d.count), 0);
   const range = maxVal - minVal || 1;
 
   const points = trendData.map((d, index) => {

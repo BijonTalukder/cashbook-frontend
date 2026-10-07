@@ -25,13 +25,13 @@ export interface IMessMemberItem {
 
 interface MessMembersBalanceCardProps {
   members: IMessMemberItem[];
-  messName?: string;
+  messName: string;
   onViewAllMembers: () => void;
 }
 
 export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
   members,
-  messName = "HisabBoi Mess",
+  messName,
   onViewAllMembers,
 }) => {
   const { t } = useTranslation();
@@ -166,11 +166,11 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
               </div>
 
               {/* Inline Action for Due Members */}
-              {isDue && (
+              {isDue && m.overdueDays !== undefined && (
                 <div className="flex items-center justify-between pt-1 border-t border-slate-200/40 dark:border-neutral-700/40 text-xs">
                   <span className="text-[11px] text-slate-400 dark:text-neutral-500">
                     {t("messDashboard.delayedDays", {
-                      days: num(m.overdueDays || 3),
+                      days: num(m.overdueDays),
                     })}
                   </span>
 

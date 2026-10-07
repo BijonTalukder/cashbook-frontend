@@ -21,7 +21,6 @@ import {
   ArrowDownRight,
   ArrowLeftRight,
   Clock,
-  Loader2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -48,7 +47,6 @@ import {
   transactionService,
   type ITransaction,
 } from "../../services/transaction.service";
-import mealService from "../../services/meal.service";
 import BusinessDashboardContent from "./BusinessDashboardContent";
 import PersonalDashboardContent from "./PersonalDashboardContent";
 import MessDashboardContent from "./MessDashboardContent";
@@ -108,132 +106,6 @@ const ROLE_META: Record<
   admin: { icon: ShieldCheck, labelKey: "role.admin", color: "#3b82f6" },
   member: { icon: Users, labelKey: "role.member", color: "#10b981" },
   viewer: { icon: Eye, labelKey: "role.viewer", color: "#64748b" },
-};
-
-/* ─── Meal Dashboard Widget ───────────────────────────── */
-const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { num, monthName } = useFormat();
-  const [data, setData] = useState<{ total: number; days: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    mealService.getSummary(businessId)
-      .then((res) => { if (!cancelled) setData(res); })
-      .catch(() => {/* silent */ })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [businessId]);
-
-  const currentMonth = monthName(new Date().getMonth(), "long");
-  const avg = data?.days ? Math.round((data.total / data.days) * 10) / 10 : 0;
-
-  return (
-    <button
-      onClick={() => navigate("/meals")}
-      className="w-full text-left rounded-2xl p-5 press group relative overflow-hidden"
-      style={{
-        background: "rgba(139,92,246,0.06)",
-        border: "1px solid rgba(139,92,246,0.2)",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.1)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.06)";
-      }}
-    >
-      {/* top shimmer line */}
-      <div
-        className="absolute top-0 left-8 right-8 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.5), transparent)" }}
-      />
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(139,92,246,0.15)", color: "#8b5cf6" }}
-          >
-            <UtensilsCrossed size={16} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{t("mealWidget.title")}</p>
-            <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-              {t("mealWidget.monthLabel", { month: currentMonth })}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span
-            className="text-xs px-2 py-0.5 rounded-full font-medium"
-            style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}
-          >
-            {t("mealWidget.tag")}
-          </span>
-          <ChevronRight
-            size={14}
-            style={{ color: "#8b5cf6" }}
-            className="group-hover:translate-x-0.5 transition-transform"
-          />
-        </div>
-      </div>
-
-      {/* Stats */}
-      {loading ? (
-        <div className="flex items-center gap-2 py-1">
-          <Loader2 size={14} className="animate-spin" style={{ color: "#8b5cf6" }} />
-          <span className="text-xs" style={{ color: "var(--text-faint)" }}>{t("common.loading")}</span>
-        </div>
-      ) : (
-        <div className="flex items-end gap-6">
-          {/* Total meals */}
-          <div>
-            <p
-              className="text-3xl font-bold leading-none"
-              style={{ color: "#8b5cf6", fontFamily: "'DM Serif Display', serif" }}
-            >
-              {num(data?.total ?? 0)}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
-              {t("mealWidget.totalMeals")}
-            </p>
-          </div>
-
-          {/* Days */}
-          <div className="mb-0.5">
-            <p className="text-xl font-bold leading-none"
-              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-              {num(data?.days ?? 0)}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{t("mealWidget.days")}</p>
-          </div>
-
-          {/* Avg */}
-          <div className="mb-0.5">
-            <p className="text-xl font-bold leading-none"
-              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-              {num(avg, { maximumFractionDigits: 1 })}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{t("mealWidget.avgPerDay")}</p>
-          </div>
-
-          {/* CTA */}
-          <div className="flex-1 flex justify-end mb-0.5">
-            <div
-              className="text-xs px-2.5 py-1.5 rounded-xl font-medium transition-all group-hover:scale-105"
-              style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa" }}
-            >
-              {t("mealWidget.details")}
-            </div>
-          </div>
-        </div>
-      )}
-    </button>
-  );
 };
 
 /* ─── Business Card ───────────────────────────────────── */
@@ -504,7 +376,13 @@ const DashboardPage = () => {
         )}
 
         {activeBusiness?.type === "business" || activeBusiness?.type === "company" ? (
-          <BusinessDashboardContent business={activeBusiness} />
+          <BusinessDashboardContent
+            business={activeBusiness}
+            onRefresh={() => {
+              fetchBusinesses(true);
+              fetchBusinessData();
+            }}
+          />
         ) : activeBusiness?.type === "personal" ? (
           <PersonalDashboardContent
             business={activeBusiness}

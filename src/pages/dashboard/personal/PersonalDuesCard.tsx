@@ -5,9 +5,16 @@ import { useFormat } from "../../../i18n/useFormat";
 import { toCurrency } from "../../../utils/currency";
 import { haptic } from "../../../native/bridge";
 
+export interface IPersonalDueRow {
+  name: string;
+  amount: number;
+}
+
 interface PersonalDuesCardProps {
   receivableTotal: number;
   payableTotal: number;
+  topReceivables?: IPersonalDueRow[];
+  topPayables?: IPersonalDueRow[];
   currency?: string;
   onSendReminder?: () => void;
   onPayNow?: () => void;
@@ -17,6 +24,8 @@ interface PersonalDuesCardProps {
 export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
   receivableTotal,
   payableTotal,
+  topReceivables = [],
+  topPayables = [],
   currency,
   onSendReminder,
   onPayNow,
@@ -60,14 +69,19 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
               {money(receivableTotal)}
             </p>
             <div className="space-y-1 text-[11px] text-slate-700 dark:text-neutral-300 border-t border-slate-100 dark:border-neutral-800 pt-2 mt-2">
-              <div className="flex justify-between">
-                <span>ফারহান</span>
-                <span className="font-mono font-semibold">৳ ২,০০০</span>
-              </div>
-              <div className="flex justify-between">
-                <span>তানভীর</span>
-                <span className="font-mono font-semibold">৳ ১,৫০০</span>
-              </div>
+              {topReceivables.length === 0 ? (
+                <div className="flex justify-between text-slate-400 dark:text-neutral-500">
+                  <span>{t("personalDashboard.noReceivables")}</span>
+                  <span className="font-mono font-semibold">৳ ০</span>
+                </div>
+              ) : (
+                topReceivables.slice(0, 3).map((row, idx) => (
+                  <div key={`${row.name}-${idx}`} className="flex justify-between">
+                    <span className="truncate">{row.name}</span>
+                    <span className="font-mono font-semibold">{money(row.amount, { decimals: 0 })}</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -96,14 +110,19 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
               {money(payableTotal)}
             </p>
             <div className="space-y-1 text-[11px] text-slate-700 dark:text-neutral-300 border-t border-slate-100 dark:border-neutral-800 pt-2 mt-2">
-              <div className="flex justify-between">
-                <span>সিয়াম (লাঞ্চ)</span>
-                <span className="font-mono font-semibold">৳ ১,২০০</span>
-              </div>
-              <div className="flex justify-between text-slate-400 dark:text-neutral-500">
-                <span>অন্য কেউ নেই</span>
-                <span className="font-mono font-semibold">৳ ০</span>
-              </div>
+              {topPayables.length === 0 ? (
+                <div className="flex justify-between text-slate-400 dark:text-neutral-500">
+                  <span>{t("personalDashboard.noPayables")}</span>
+                  <span className="font-mono font-semibold">৳ ০</span>
+                </div>
+              ) : (
+                topPayables.slice(0, 3).map((row, idx) => (
+                  <div key={`${row.name}-${idx}`} className="flex justify-between">
+                    <span className="truncate">{row.name}</span>
+                    <span className="font-mono font-semibold">{money(row.amount, { decimals: 0 })}</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

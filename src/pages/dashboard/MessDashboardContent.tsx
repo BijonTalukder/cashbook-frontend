@@ -61,7 +61,6 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
   const [messSummary, setMessSummary] = useState<ApiMessSummary | null>(null);
   const [mealSummary, setMealSummary] = useState<{ total: number; days: number } | null>(null);
   const [monthMeals, setMonthMeals] = useState<Record<string, IMealDay>>({});
-  const [recentBazaarTxn, setRecentBazaarTxn] = useState<ITransaction | null>(null);
   const [businessMembers, setBusinessMembers] = useState<IMember[]>([]);
   const [allTxns, setAllTxns] = useState<ITransaction[]>([]);
 
@@ -78,7 +77,7 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
         const [messRes, mealSumRes, monthMealsRes, txnsRes, membersRes] = await Promise.allSettled([
           api.get("/mess/summary", { params: { businessId: business._id, year, month } }),
           mealService.getSummary(business._id),
-          mealService.getMonthMeals(business._id, year, month + 1),
+          mealService.getMonthMeals(business._id, year, month),
           transactionService.getAll(business._id, { page: "1", limit: "50" }),
           businessMembersService.getMembers(business._id),
         ]);
@@ -98,14 +97,6 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
         if (txnsRes.status === "fulfilled") {
           const txns = txnsRes.value.transactions || [];
           setAllTxns(txns);
-          const bazaarTxn = txns.find(
-            (t) =>
-              t.type === "expense" &&
-              (t.category?.name?.toLowerCase().includes("bazaar") ||
-                t.category?.name?.toLowerCase().includes("food") ||
-                true)
-          );
-          setRecentBazaarTxn(bazaarTxn || null);
         }
 
         if (membersRes.status === "fulfilled") {
@@ -140,16 +131,37 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
     setSelectedDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
+  // Month window for the fallback transaction filters.
+  const monthStart = useMemo(
+    () => new Date(year, month, 1, 0, 0, 0, 0),
+    [year, month],
+  );
+  const monthEnd = useMemo(
+    () => new Date(year, month + 1, 0, 23, 59, 59, 999),
+    [year, month],
+  );
+
+  const txnsInSelectedMonth = useMemo(
+    () =>
+      allTxns.filter((t) => {
+        if (!t.date) return false;
+        const d = new Date(t.date);
+        return d >= monthStart && d <= monthEnd;
+      }),
+    [allTxns, monthStart, monthEnd],
+  );
+
   // 100% Dynamic Financial Calculations
   const totalBazaar = useMemo(() => {
     if (messSummary?.totalExpense !== undefined && messSummary.totalExpense > 0) {
       return messSummary.totalExpense;
     }
-    const exp = allTxns
+    // Fallback must respect the selected month, otherwise the figure leaks
+    // expenses from prior months into the current view.
+    return txnsInSelectedMonth
       .filter((t) => t.type === "expense")
       .reduce((s, t) => s + t.amount, 0);
-    return exp;
-  }, [messSummary, allTxns]);
+  }, [messSummary, txnsInSelectedMonth]);
 
   const totalMeals = useMemo(() => {
     if (mealSummary?.total !== undefined && mealSummary.total > 0) {
@@ -158,18 +170,38 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
     return Object.values(monthMeals).reduce((s, d) => s + (d.total || 0), 0);
   }, [mealSummary, monthMeals]);
 
-  const mealRate = totalMeals > 0 ? totalBazaar / totalMeals : 0;
+  // Prefer the server-computed perPersonShare when available — it's the
+  // authoritative meal rate for the mess. Only fall back to a local divide
+  // when the mess summary isn't yet loaded.
+  const mealRate = useMemo(() => {
+    if (messSummary?.perPersonShare !== undefined && messSummary.perPersonShare > 0) {
+      return messSummary.perPersonShare;
+    }
+    return totalMeals > 0 ? totalBazaar / totalMeals : 0;
+  }, [messSummary, totalMeals, totalBazaar]);
 
   const totalIncome = useMemo(() => {
     if (messSummary?.totalIncome !== undefined && messSummary.totalIncome > 0) {
       return messSummary.totalIncome;
     }
-    return allTxns
+    return txnsInSelectedMonth
       .filter((t) => t.type === "income")
       .reduce((s, t) => s + t.amount, 0);
-  }, [messSummary, allTxns]);
+  }, [messSummary, txnsInSelectedMonth]);
 
   const cashFund = totalIncome - totalBazaar;
+
+  // Most recent expense inside the selected month, used for the "today's
+  // bazaar" record. Limited to the selected month to avoid surfacing an old
+  // record when the user is browsing a different month.
+  const recentBazaarTxn = useMemo(() => {
+    return (
+      txnsInSelectedMonth
+        .filter((t) => t.type === "expense")
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] ||
+      null
+    );
+  }, [txnsInSelectedMonth]);
 
   // Active members count dynamically
   const activeMembersCount = useMemo(() => {
@@ -181,12 +213,11 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
     );
   }, [businessMembers, messSummary]);
 
-  // Dynamic Today's meals calculation
+  // Dynamic Today's meals calculation. The backend meal record is a single
+  // count per member per day — there is no breakfast/lunch/dinner split in
+  // any endpoint, so the dashboard must not invent one.
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayMeals = monthMeals[todayKey]?.total ?? 0;
-  const todayBreakfast = todayMeals > 0 ? Math.round(todayMeals * 0.25 * 10) / 10 : 0;
-  const todayLunch = todayMeals > 0 ? Math.round(todayMeals * 0.4 * 10) / 10 : 0;
-  const todayDinner = todayMeals > 0 ? Math.round(todayMeals * 0.35 * 10) / 10 : 0;
 
   // Dynamic Members Ledger List
   const memberList: IMessMemberItem[] = useMemo(() => {
@@ -198,7 +229,9 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
         totalDeposited: m.totalDeposited || m.totalPaid || 0,
         totalCost: m.share || 0,
         balance: m.balance,
-        overdueDays: m.balance < -0.01 ? 3 : 0,
+        // Only surface an overdue value when the backend actually provides one.
+        // Otherwise the card simply omits the overdue row.
+        overdueDays: undefined,
       }));
     }
 
@@ -297,10 +330,7 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
         totalMeals={totalMeals}
         cashFund={cashFund}
         todayMeals={todayMeals}
-        todayBreakfast={todayBreakfast}
-        todayLunch={todayLunch}
-        todayDinner={todayDinner}
-        daysPassed={mealSummary?.days || new Date().getDate()}
+        daysPassed={mealSummary?.days || 0}
       />
 
       {/* 3. Quick Actions Grid (4 Tactile Tiles) */}

@@ -1,7 +1,6 @@
 import React from "react";
 import {
   ShoppingBag,
-  CheckCircle2,
   Package,
   ArrowRight,
   UtensilsCrossed,
@@ -47,10 +46,6 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
             {t("messDashboard.todaysDiningBazaar")}
           </h2>
         </div>
-        <span className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/50 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-          <CheckCircle2 size={12} />
-          <span>{t("messDashboard.managerApproved")}</span>
-        </span>
       </div>
 
       {/* Bazaar Summary Sub-card */}

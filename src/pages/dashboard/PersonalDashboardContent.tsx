@@ -20,8 +20,8 @@ import {
   HeroBalanceCard,
   IncomeExpenseCards,
   QuickActionGrid,
-  SavingsTargetWidget,
   PersonalDuesCard,
+  type IPersonalDueRow,
   ExpenseCategoriesCard,
   type IExpenseCategoryItem,
   RecentTxnsList,
@@ -86,7 +86,7 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
     setLoading(true);
     try {
       const [txnsRes, duesRes] = await Promise.allSettled([
-        transactionService.getAll(business._id, { limit: "150" }),
+        transactionService.getAll(business._id, { limit: "100" }),
         transactionService.getPendingDues(business._id),
       ]);
 
@@ -186,8 +186,18 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
   }, [filteredTxns, totalExpense, t]);
 
   // Dynamic Balances
-  const cashBalance = business.cashBalance ?? 0;
-  const bankBalance = business.bankBalance ?? 0;
+  // If business has explicit cash/bank ledger balances, use them; otherwise derive from cashbook transactions
+  const hasBusinessBalances = (business.cashBalance ?? 0) > 0 || (business.bankBalance ?? 0) > 0;
+
+  const netTxnBalance = useMemo(() => {
+    let inc = 0;
+    let exp = 0;
+    allTxns.forEach((tx) => {
+      if (tx.type === "income") inc += tx.amount;
+      else if (tx.type === "expense") exp += tx.amount;
+    });
+    return inc - exp;
+  }, [allTxns]);
 
   // Calculate MFS balance dynamically from transactions
   const mfsBalance = useMemo(() => {
@@ -202,28 +212,59 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
     return Math.max(mfs, 0);
   }, [allTxns]);
 
-  const totalBalance = cashBalance + bankBalance + mfsBalance;
+  const bankBalance = business.bankBalance ?? 0;
+  const cashBalance = hasBusinessBalances
+    ? (business.cashBalance ?? 0)
+    : Math.max(0, netTxnBalance - mfsBalance);
+
+  const totalBalance = hasBusinessBalances
+    ? (cashBalance + bankBalance + mfsBalance)
+    : netTxnBalance;
 
   // Dynamic Dues Calculation from pending dues API
-  const { receivableTotal, payableTotal } = useMemo(() => {
+  const { receivableTotal, payableTotal, topReceivables, topPayables } = useMemo(() => {
     let rec = 0;
     let pay = 0;
+    const recs: IPersonalDueRow[] = [];
+    const pays: IPersonalDueRow[] = [];
+
     pendingDues.forEach((due) => {
-      if (user?._id && due.to?._id === user._id) {
+      const owedToMe = user?._id && due.to?._id === user._id;
+      const owedByMe = user?._id && due.from?._id === user._id;
+
+      if (owedToMe) {
         rec += due.amount;
-      } else if (user?._id && due.from?._id === user._id) {
+        recs.push({
+          name: `${due.from.firstName} ${due.from.lastName}`.trim() || due.from.email,
+          amount: due.amount,
+        });
+      } else if (owedByMe) {
         pay += due.amount;
+        pays.push({
+          name: `${due.to.firstName} ${due.to.lastName}`.trim() || due.to.email,
+          amount: due.amount,
+        });
       } else {
-        // General pending dues
+        // No logged-in user → surface all dues as receivables so the card still
+        // reflects whatever the API returned, rather than rendering zeros.
         rec += due.amount;
+        recs.push({
+          name: `${due.from.firstName} ${due.from.lastName}`.trim() || due.from.email,
+          amount: due.amount,
+        });
       }
     });
-    return { receivableTotal: rec, payableTotal: pay };
-  }, [pendingDues, user?._id]);
 
-  // Dynamic Savings Target
-  const savingsTarget = Math.max(totalIncome > 0 ? Math.round(totalIncome * 0.4) : 10000, 10000);
-  const currentSaved = Math.max(totalIncome - totalExpense, 0);
+    recs.sort((a, b) => b.amount - a.amount);
+    pays.sort((a, b) => b.amount - a.amount);
+
+    return {
+      receivableTotal: rec,
+      payableTotal: pay,
+      topReceivables: recs.slice(0, 3),
+      topPayables: pays.slice(0, 3),
+    };
+  }, [pendingDues, user?._id]);
 
   // Period label for headers
   const periodLabel = useMemo(() => {
@@ -270,17 +311,12 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
         onOpenDues={() => navigate("/dues")}
       />
 
-      {/* 6. Savings Target Widget (100% Dynamic) */}
-      <SavingsTargetWidget
-        targetAmount={savingsTarget}
-        currentSaved={currentSaved}
-        currency={business.currency}
-      />
-
-      {/* 7. Personal Dues Card (100% Dynamic) */}
+      {/* 6. Personal Dues Card (100% Dynamic) */}
       <PersonalDuesCard
         receivableTotal={receivableTotal}
         payableTotal={payableTotal}
+        topReceivables={topReceivables}
+        topPayables={topPayables}
         currency={business.currency}
         onViewAll={() => navigate("/dues")}
       />
