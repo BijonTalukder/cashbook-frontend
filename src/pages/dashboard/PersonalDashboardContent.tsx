@@ -11,10 +11,10 @@ import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { toCurrency } from "../../utils/currency";
 import { haptic } from "../../native/bridge";
+import { RefreshCw } from "lucide-react";
 import TxnModal from "../../components/shared/TxnModal";
 
 import {
-  PersonalHeader,
   TimeRangeFilter,
   type TimeRange,
   HeroBalanceCard,
@@ -277,11 +277,24 @@ export const PersonalDashboardContent: React.FC<Props> = ({ business, onRefresh 
 
   return (
     <div className="space-y-4 pb-28 text-slate-900 dark:text-neutral-100">
-      {/* 1. Profile & Active Business Header */}
-      <PersonalHeader business={business} onRefresh={onRefresh || fetchData} />
-
-      {/* 2. Time Range Pill Filter */}
-      <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+      {/* 1. Time Range Pill Filter & Refresh */}
+      <div className="flex items-center gap-2 pt-0.5">
+        <div className="flex-1 min-w-0">
+          <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            haptic("light");
+            (onRefresh || fetchData)();
+          }}
+          className="w-9 h-9 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 active:scale-95 transition-all shadow-xs shrink-0"
+          aria-label="Refresh data"
+          title={t("common.refresh") || "Refresh"}
+        >
+          <RefreshCw size={14} className={loading ? "animate-spin text-blue-600 dark:text-blue-400" : ""} />
+        </button>
+      </div>
 
       {/* 3. Hero Balance Card (100% Dynamic) */}
       <HeroBalanceCard
