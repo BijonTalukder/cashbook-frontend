@@ -74,7 +74,7 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
               {topReceivables.length === 0 ? (
                 <div className="flex justify-between text-slate-400 dark:text-neutral-500">
                   <span>{t("personalDashboard.noReceivables")}</span>
-                  <span className="font-mono font-semibold">৳ ০</span>
+                  <span className="font-mono font-semibold">{money(0, { decimals: 0 })}</span>
                 </div>
               ) : (
                 topReceivables.slice(0, 3).map((row, idx) => (
@@ -110,7 +110,7 @@ export const PersonalDuesCard: React.FC<PersonalDuesCardProps> = ({
               {topPayables.length === 0 ? (
                 <div className="flex justify-between text-slate-400 dark:text-neutral-500">
                   <span>{t("personalDashboard.noPayables")}</span>
-                  <span className="font-mono font-semibold">৳ ০</span>
+                  <span className="font-mono font-semibold">{money(0, { decimals: 0 })}</span>
                 </div>
               ) : (
                 topPayables.slice(0, 3).map((row, idx) => (

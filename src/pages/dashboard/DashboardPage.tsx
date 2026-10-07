@@ -493,7 +493,7 @@ const DashboardPage = () => {
                   {t("dashboard.yearOverview", { year: num(new Date().getFullYear(), { useGrouping: false }) })}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-                  বাৎসরিক আয় ও ব্যয়ের তুলনামূলক চিত্র
+                  {t("dashboard.yearComparisonSubtitle")}
                 </p>
               </div>
               <div

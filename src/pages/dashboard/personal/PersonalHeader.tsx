@@ -45,7 +45,7 @@ export const PersonalHeader: React.FC<PersonalHeaderProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium mt-0.5 truncate">
-            {t("personalDashboard.summaryTitle") || "ব্যক্তিগত আয়-ব্যয় হিসাব"}
+            {t("personalDashboard.summaryTitle")}
           </p>
         </div>
       </div>

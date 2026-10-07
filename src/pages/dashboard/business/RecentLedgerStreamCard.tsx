@@ -30,7 +30,7 @@ export const RecentLedgerStreamCard: React.FC<RecentLedgerStreamCardProps> = ({
         <div className="flex items-center gap-2">
           <History size={18} className="text-blue-600 dark:text-blue-400" />
           <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
-            সাম্প্রতিক লেনদেন ও খাতা
+            {t("bizDashboard.recentLedger")}
           </h2>
         </div>
         <button
@@ -41,7 +41,7 @@ export const RecentLedgerStreamCard: React.FC<RecentLedgerStreamCardProps> = ({
           }}
           className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-0.5 select-none"
         >
-          <span>সকল তালিকা</span>
+          <span>{t("bizDashboard.viewAll")}</span>
           <ChevronRight size={14} />
         </button>
       </div>
@@ -49,7 +49,7 @@ export const RecentLedgerStreamCard: React.FC<RecentLedgerStreamCardProps> = ({
       {transactions.length === 0 ? (
         <div className="py-8 flex flex-col items-center justify-center text-center text-slate-400 dark:text-neutral-500 gap-1.5">
           <History size={24} className="text-slate-300 dark:text-neutral-600" />
-          <p className="text-xs font-medium">কোনো লেনদেন পাওয়া যায়নি</p>
+          <p className="text-xs font-medium">{t("bizDashboard.noTransactionsFound")}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -59,13 +59,13 @@ export const RecentLedgerStreamCard: React.FC<RecentLedgerStreamCardProps> = ({
               txn.customer?.name ||
               txn.supplier?.name ||
               txn.category?.name ||
-              (isIncome ? "নগদ জমা" : "দোকান খরচ");
+              (isIncome ? t("bizDashboard.cashCredit") : t("bizDashboard.shopDebit"));
 
-            const initial = partyName.trim().slice(0, 1) || "হ";
+            const initial = partyName.trim().slice(0, 1) || "T";
 
             const method = txn.paymentMethod
               ? paymentMethodLabel(t, txn.paymentMethod)
-              : "নগদ";
+              : t("bizDashboard.cashMethod");
 
             const timeLabel = fmtDate(txn.date, "short");
 
@@ -99,7 +99,7 @@ export const RecentLedgerStreamCard: React.FC<RecentLedgerStreamCardProps> = ({
                         {method}
                       </span>
                       <span className="truncate">
-                        {txn.note || (isIncome ? "জমা" : "খরচ")} • {timeLabel}
+                        {txn.note || (isIncome ? t("txn.income") : t("txn.expense"))} • {timeLabel}
                       </span>
                     </div>
                   </div>
@@ -123,7 +123,7 @@ export const RecentLedgerStreamCard: React.FC<RecentLedgerStreamCardProps> = ({
                         : "text-slate-400 dark:text-neutral-500"
                     }`}
                   >
-                    {isIncome ? "পরিশোধিত" : "ক্যাশ চালান"}
+                    {isIncome ? t("bizDashboard.settledStatus") : t("bizDashboard.cashInvoice")}
                   </span>
                 </div>
               </div>

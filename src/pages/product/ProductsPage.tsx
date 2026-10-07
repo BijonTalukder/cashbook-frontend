@@ -97,7 +97,7 @@ const ProductsPage = () => {
               {t("product.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {num(products.length)}টি পণ্য তালিকাভুক্ত
+              {t("products.productsListed", { count: num(products.length) })}
             </p>
           </div>
 

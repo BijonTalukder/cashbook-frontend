@@ -28,7 +28,7 @@ export const DailyPerformanceStrip: React.FC<DailyPerformanceStripProps> = ({
     <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-4 rounded-3xl shadow-xs space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-slate-900 dark:text-neutral-100">
-          আজকের কার্যবিবরণী সারাংশ
+          {t("bizDashboard.dailySummary")}
         </span>
         <span className="text-xs text-slate-500 dark:text-neutral-400 font-medium">
           {displayDate}
@@ -39,7 +39,7 @@ export const DailyPerformanceStrip: React.FC<DailyPerformanceStripProps> = ({
         {/* Cash Sales */}
         <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 p-2.5 rounded-2xl flex flex-col justify-center">
           <span className="text-[11px] text-slate-500 dark:text-neutral-400 block font-medium truncate">
-            নগদ বিক্রি
+            {t("bizDashboard.cashSales")}
           </span>
           <span className="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-neutral-100 block mt-0.5 truncate">
             {money(cashSales)}
@@ -49,7 +49,7 @@ export const DailyPerformanceStrip: React.FC<DailyPerformanceStripProps> = ({
         {/* Due Sales */}
         <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 p-2.5 rounded-2xl flex flex-col justify-center">
           <span className="text-[11px] text-slate-500 dark:text-neutral-400 block font-medium truncate">
-            বকেয়া বিক্রি
+            {t("bizDashboard.dueSales")}
           </span>
           <span className="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-neutral-100 block mt-0.5 truncate">
             {money(dueSales)}
@@ -65,7 +65,7 @@ export const DailyPerformanceStrip: React.FC<DailyPerformanceStripProps> = ({
           }`}
         >
           <span className="text-[11px] block font-medium truncate">
-            মোট লাভ
+            {t("bizDashboard.netProfit")}
           </span>
           <span className="text-sm sm:text-base font-bold font-mono block mt-0.5 truncate">
             {money(totalProfit, { signed: true })}

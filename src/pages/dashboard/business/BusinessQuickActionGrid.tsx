@@ -21,7 +21,7 @@ export const BusinessQuickActionGrid: React.FC<BusinessQuickActionGridProps> = (
   const ACTIONS = [
     {
       key: "sale",
-      label: "নতুন বিক্রি",
+      label: t("bizDashboard.newSale"),
       icon: ShoppingCart,
       colorClass:
         "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white",
@@ -32,7 +32,7 @@ export const BusinessQuickActionGrid: React.FC<BusinessQuickActionGridProps> = (
     },
     {
       key: "purchase",
-      label: "মাল ক্রয়",
+      label: t("bizDashboard.purchaseGoods"),
       icon: Package,
       colorClass:
         "bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white",
@@ -43,7 +43,7 @@ export const BusinessQuickActionGrid: React.FC<BusinessQuickActionGridProps> = (
     },
     {
       key: "expense",
-      label: "দৈনিক খরচ",
+      label: t("bizDashboard.dailyExpense"),
       icon: Receipt,
       colorClass:
         "bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 group-hover:bg-rose-600 group-hover:text-white",
@@ -54,7 +54,7 @@ export const BusinessQuickActionGrid: React.FC<BusinessQuickActionGridProps> = (
     },
     {
       key: "baki",
-      label: "বকেয়ার খাতা",
+      label: t("bizDashboard.dueBook"),
       icon: BookOpen,
       colorClass:
         "bg-purple-50 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white",
@@ -69,10 +69,10 @@ export const BusinessQuickActionGrid: React.FC<BusinessQuickActionGridProps> = (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
-          দ্রুত অ্যাকশন
+          {t("bizDashboard.quickActions")}
         </h2>
         <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
-          শর্টকাট
+          {t("bizDashboard.shortcuts")}
         </span>
       </div>
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import type { IProduct } from "../../../services/product.service";
+import { useTranslation } from "../../../i18n/useTranslation";
 import { useFormat } from "../../../i18n/useFormat";
 import { haptic } from "../../../native/bridge";
 
@@ -13,6 +14,7 @@ export const LowStockAlertCard: React.FC<LowStockAlertCardProps> = ({
   lowStockProducts,
   onOrderNow,
 }) => {
+  const { t } = useTranslation();
   const { num } = useFormat();
 
   if (lowStockProducts.length === 0) {
@@ -24,10 +26,10 @@ export const LowStockAlertCard: React.FC<LowStockAlertCardProps> = ({
           </div>
           <div className="min-w-0">
             <h3 className="text-xs font-bold text-emerald-800 dark:text-emerald-200">
-              ইনভেন্টরি স্টক পর্যাপ্ত আছে
+              {t("bizDashboard.stockSufficient")}
             </h3>
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">
-              কোনো পণ্যের স্টক শেষ পর্যায়ে নেই
+              {t("bizDashboard.noLowStock")}
             </p>
           </div>
         </div>
@@ -37,7 +39,7 @@ export const LowStockAlertCard: React.FC<LowStockAlertCardProps> = ({
 
   const itemsSummary = lowStockProducts
     .slice(0, 3)
-    .map((p) => `${p.name} (অবশিষ্ট ${num(p.stock)} ${p.unit || "টি"})`)
+    .map((p) => `${p.name} (${t("bizDashboard.remaining")} ${num(p.stock)} ${p.unit || ""})`)
     .join(" • ");
 
   return (
@@ -49,10 +51,10 @@ export const LowStockAlertCard: React.FC<LowStockAlertCardProps> = ({
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-xs font-bold text-rose-900 dark:text-rose-200 truncate">
-            {num(lowStockProducts.length)}টি পণ্যের স্টক শেষ পর্যায়ে!
+            {num(lowStockProducts.length)} {t("bizDashboard.lowStockWarning")}
           </h3>
           <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 rounded-full shrink-0">
-            তাড়াতাড়ি আনুন
+            {t("bizDashboard.orderSoon")}
           </span>
         </div>
 
@@ -69,7 +71,7 @@ export const LowStockAlertCard: React.FC<LowStockAlertCardProps> = ({
         }}
         className="shrink-0 px-3 py-1.5 rounded-xl bg-rose-600 text-white font-semibold text-xs shadow-xs hover:bg-rose-700 active:scale-95 transition-all self-center select-none"
       >
-        অর্ডার দিন
+        {t("bizDashboard.orderNow")}
       </button>
     </div>
   );

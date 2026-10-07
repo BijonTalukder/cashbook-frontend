@@ -33,7 +33,7 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
   messName,
   onViewAllMembers,
 }) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { money, num } = useFormat();
 
   // Summary counts
@@ -45,7 +45,10 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
   const handleWhatsAppReminder = (m: IMessMemberItem) => {
     haptic("light");
     const dueAmount = money(Math.abs(m.balance), { decimals: 0 });
-    const msg = `আসসালামু আলাইকুম ${m.name},\n${messName}-এ আপনার চলতি মাসের বকেয়া ${dueAmount} টাকা। মেসের বাজার খরচের সুবিধার জন্য অনুগ্রহ করে দ্রুত জমা দিন।\nধন্যবাদ!`;
+    const msg =
+      language === "en"
+        ? `Hello ${m.name},\nYour current month's due for ${messName} is ${dueAmount}. Please deposit promptly for bazaar expenses.\nThank you!`
+        : `আসসালামু আলাইকুম ${m.name},\n${messName}-এ আপনার চলতি মাসের বকেয়া ${dueAmount} টাকা। মেসের বাজার খরচের সুবিধার জন্য অনুগ্রহ করে দ্রুত জমা দিন।\nধন্যবাদ!`;
     shareViaWhatsApp(msg);
   };
 
@@ -161,7 +164,7 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
               {isDue && (
                 <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/40 dark:border-neutral-700/40 text-xs">
                   <span className="text-[11px] text-rose-500 font-medium">
-                    {t("dues.youOwe") || "বকেয়া রয়েছে"}
+                    {t("dues.youOwe")}
                   </span>
 
                   <button
@@ -170,7 +173,7 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
                     className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 active:scale-95 px-2.5 py-1 rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/80 transition-all select-none"
                   >
                     <Send size={12} className="text-emerald-600 dark:text-emerald-400" />
-                    <span>{t("messDashboard.whatsappTagada") || "তাগাদা পাঠান"}</span>
+                    <span>{t("messDashboard.whatsappTagada")}</span>
                   </button>
                 </div>
               )}

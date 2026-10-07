@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Mic, AudioWaveform, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "../../../i18n/useTranslation";
 import { haptic } from "../../../native/bridge";
 
 interface VoiceAssistantCardProps {
@@ -10,6 +11,7 @@ interface VoiceAssistantCardProps {
 export const VoiceAssistantCard: React.FC<VoiceAssistantCardProps> = ({
   onVoiceResult,
 }) => {
+  const { t, language } = useTranslation();
   const [listening, setListening] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -21,14 +23,16 @@ export const VoiceAssistantCard: React.FC<VoiceAssistantCardProps> = ({
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
 
+    const sample = t("voice.samplePrompt");
+
     if (!SpeechRecognition) {
       // Fallback mock feedback for platforms without speech api
       setListening(true);
       setTimeout(() => {
         setListening(false);
         setSuccess(true);
-        toast.info("ভয়েস ইনপুট: 'করিম চাচা আলু নিল ২০ টাকা'");
-        onVoiceResult?.("করিম চাচা আলু নিল ২০ টাকা");
+        toast.info(sample);
+        onVoiceResult?.(sample);
         setTimeout(() => setSuccess(false), 2000);
       }, 1800);
       return;
@@ -36,7 +40,7 @@ export const VoiceAssistantCard: React.FC<VoiceAssistantCardProps> = ({
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = "bn-BD";
+      recognition.lang = language === "en" ? "en-US" : "bn-BD";
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
 
@@ -46,14 +50,14 @@ export const VoiceAssistantCard: React.FC<VoiceAssistantCardProps> = ({
         const transcript = event.results[0][0].transcript;
         setListening(false);
         setSuccess(true);
-        toast.success(`ভয়েস রিসিভ হয়েছে: "${transcript}"`);
+        toast.success(transcript);
         onVoiceResult?.(transcript);
         setTimeout(() => setSuccess(false), 2000);
       };
 
       recognition.onerror = () => {
         setListening(false);
-        toast.error("ভয়েস শোনা যায়নি, অনুগ্রহ করে আবার চেষ্টা করুন।");
+        toast.error(t("voice.voiceNotHeard"));
       };
 
       recognition.onend = () => {
@@ -63,7 +67,7 @@ export const VoiceAssistantCard: React.FC<VoiceAssistantCardProps> = ({
       recognition.start();
     } catch {
       setListening(false);
-      toast.error("মাইক্রোফোন অনুমতি দিন।");
+      toast.error(t("voice.micPermission"));
     }
   };
 
@@ -90,23 +94,23 @@ export const VoiceAssistantCard: React.FC<VoiceAssistantCardProps> = ({
 
         <div className="min-w-0">
           <div className="text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
-            <span>ভয়েস হিসাব সহকারী</span>
+            <span>{t("voice.title")}</span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           </div>
           <p className="text-xs text-slate-700 dark:text-neutral-300 truncate mt-0.5">
             {listening ? (
               <span className="text-blue-600 dark:text-blue-400 font-semibold animate-pulse">
-                শুনছি... আপনার হিসাব বলুন
+                {t("voice.listening")}
               </span>
             ) : success ? (
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                হিসাব সফলভাবে নথিভুক্ত হয়েছে!
+                {t("voice.recorded")}
               </span>
             ) : (
               <>
-                বলুন:{" "}
+                {t("voice.sayPrompt")}{" "}
                 <span className="italic text-slate-500 dark:text-neutral-400 font-medium">
-                  "করিম চাচা আলু নিল ২০ টাকা"
+                  {t("voice.samplePrompt")}
                 </span>
               </>
             )}
@@ -126,7 +130,13 @@ export const VoiceAssistantCard: React.FC<VoiceAssistantCardProps> = ({
             : "bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 border border-blue-200/80 dark:border-neutral-700 hover:bg-blue-50 dark:hover:bg-neutral-800"
         }`}
       >
-        <span>{listening ? "শুনছি..." : success ? "সম্পন্ন" : "শুনুন"}</span>
+        <span>
+          {listening
+            ? t("voice.listeningBtn")
+            : success
+            ? t("voice.doneBtn")
+            : t("voice.listenBtn")}
+        </span>
         <AudioWaveform size={15} />
       </button>
     </div>

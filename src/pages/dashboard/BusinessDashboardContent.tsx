@@ -164,10 +164,10 @@ export const BusinessDashboardContent: React.FC<Props> = ({
 
   // Period label
   const periodLabel = useMemo(() => {
-    if (selectedPeriod === "today") return "আজকের লাইভ হিসাব";
-    if (selectedPeriod === "7days") return "বিগত ৭ দিনের হিসাব";
-    return "বিগত ৩০ দিনের হিসাব";
-  }, [selectedPeriod]);
+    if (selectedPeriod === "today") return t("bizDashboard.todayLive");
+    if (selectedPeriod === "7days") return t("bizDashboard.last7DaysSummary");
+    return t("bizDashboard.last30DaysSummary");
+  }, [selectedPeriod, t]);
 
   return (
     <div className="space-y-4 pb-28 text-slate-900 dark:text-neutral-100 max-w-lg mx-auto w-full px-1">

@@ -347,7 +347,7 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
               onClick={() => navigate("/mess")}
               className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
             >
-              {t("common.details") || "বিস্তারিত"}
+              {t("common.details")}
             </button>
           </div>
 

@@ -32,7 +32,7 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
             <ShoppingBag size={18} />
           </div>
           <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
-            {t("messDashboard.recentBazaarExpenses") || "সাম্প্রতিক বাজার খরচ"}
+            {t("messDashboard.recentBazaarExpenses")}
           </h2>
         </div>
         <button
@@ -44,7 +44,7 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
           className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-2.5 py-1.5 rounded-xl transition-colors active:scale-95"
         >
           <Plus size={14} />
-          <span>{t("messDashboard.addBazaarExpense") || "+ বাজার খরচ"}</span>
+          <span>{t("messDashboard.addBazaarExpense")}</span>
         </button>
       </div>
 
@@ -53,7 +53,7 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
         <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 text-center">
           <Receipt size={24} className="text-slate-400 dark:text-neutral-500" />
           <p className="text-xs text-slate-500 dark:text-neutral-400">
-            {t("messDashboard.noBazaarThisMonth") || "চলতি মাসে কোনো বাজার খরচ রেকর্ড করা হয়নি"}
+            {t("messDashboard.noBazaarThisMonth")}
           </p>
           <button
             type="button"
@@ -64,7 +64,7 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
             className="mt-1 flex items-center gap-1 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-xl shadow-xs transition-colors active:scale-95"
           >
             <Plus size={14} />
-            <span>{t("messDashboard.recordBazaarNow") || "বাজার খরচ যোগ করুন"}</span>
+            <span>{t("messDashboard.recordBazaarNow")}</span>
           </button>
         </div>
       ) : (
@@ -72,9 +72,9 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
           {transactions.map((txn) => {
             const memberName = txn.member
               ? `${txn.member.firstName || ""} ${txn.member.lastName || ""}`.trim() || txn.member.email
-              : "সদস্য";
+              : t("common.member");
             const initial = (memberName || "U").slice(0, 2).toUpperCase();
-            const noteText = txn.note || txn.category?.name || "বাজার খরচ";
+            const noteText = txn.note || txn.category?.name || t("messDashboard.bazaarExpense");
 
             return (
               <div
@@ -114,7 +114,7 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
           }}
           className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center justify-center gap-1 pt-1 active:scale-95 transition-all select-none"
         >
-          <span>{t("dashboard.recentTransactions") || "সব লেনদেন দেখুন"}</span>
+          <span>{t("dashboard.recentTransactions")}</span>
           <ArrowRight size={14} />
         </button>
       )}

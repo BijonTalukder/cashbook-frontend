@@ -103,7 +103,7 @@ const ReportsPage: React.FC = () => {
             {t("reports.title")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            দোকান ও ব্যবসার পূর্ণাঙ্গ হিসাব বিবরণী
+            {t("reports.subtitle")}
           </p>
         </div>
 

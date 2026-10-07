@@ -168,7 +168,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
 
     const map = new Map<string, number>();
     expenses.forEach((tx) => {
-      const name = tx.category?.name || t("personalDashboard.others") || "অন্যান্য";
+      const name = tx.category?.name || t("personalDashboard.others");
       map.set(name, (map.get(name) || 0) + tx.amount);
     });
 
@@ -192,7 +192,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
       const percentage = Math.round((remaining / totalExpense) * 100);
       const color = CATEGORY_COLORS[4];
       items.push({
-        name: t("personalDashboard.others") || "অন্যান্য",
+        name: t("personalDashboard.others"),
         amount: remaining,
         percentage,
         colorClass: color.colorClass,
@@ -278,10 +278,10 @@ export const CompanyDashboardContent: React.FC<Props> = ({
   }, [pendingDues, user?._id]);
 
   const periodLabel = useMemo(() => {
-    if (timeRange === "today") return t("personalDashboard.today") || "আজ";
-    if (timeRange === "7d") return t("personalDashboard.days7") || "৭ দিন";
-    if (timeRange === "30d") return t("personalDashboard.days30") || "৩০ দিন";
-    if (timeRange === "year") return t("personalDashboard.year") || "বছর";
+    if (timeRange === "today") return t("personalDashboard.today");
+    if (timeRange === "7d") return t("personalDashboard.days7");
+    if (timeRange === "30d") return t("personalDashboard.days30");
+    if (timeRange === "year") return t("personalDashboard.year");
     return monthName(new Date().getMonth(), "long");
   }, [timeRange, t, monthName]);
 
@@ -302,7 +302,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full">
-                  {t("businessType.company") || "কোম্পানি"}
+                  {t("businessType.company")}
                 </span>
                 <button
                   type="button"
@@ -310,7 +310,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
                   className="text-[11px] text-slate-500 dark:text-neutral-400 hover:text-blue-600 flex items-center gap-1 font-medium"
                 >
                   <Users size={12} />
-                  <span>{num(activeMembersCount)} জন টিম মেম্বার</span>
+                  <span>{t("company.teamMembersCount", { count: num(activeMembersCount) })}</span>
                 </button>
               </div>
             </div>
@@ -380,7 +380,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
             <TrendingDown size={18} />
           </div>
           <span className="text-[11px] font-semibold text-slate-800 dark:text-neutral-200 leading-tight">
-            - অফিস ব্যয়
+            - {t("txn.expense")}
           </span>
         </button>
 
@@ -393,7 +393,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
             <ArrowLeftRight size={18} />
           </div>
           <span className="text-[11px] font-semibold text-slate-800 dark:text-neutral-200 leading-tight">
-            হস্তান্তর
+            {t("txn.transfer")}
           </span>
         </button>
 
@@ -406,7 +406,7 @@ export const CompanyDashboardContent: React.FC<Props> = ({
             <Users size={18} />
           </div>
           <span className="text-[11px] font-semibold text-slate-800 dark:text-neutral-200 leading-tight">
-            টিম মেম্বার
+            {t("nav.members")}
           </span>
         </button>
       </div>

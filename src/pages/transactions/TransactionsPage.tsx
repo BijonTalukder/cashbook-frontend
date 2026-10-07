@@ -365,7 +365,7 @@ const TransactionsPage = () => {
               {t("transactions.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {num(total)}টি লেনদেন
+              {t("transactions.txnCount", { count: num(total) })}
               {isMass && (
                 <span className="text-purple-600 dark:text-purple-400 font-semibold ml-1">
                   {t("transactions.messTag")}

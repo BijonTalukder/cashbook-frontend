@@ -27,19 +27,20 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
   purchaseCount = 0,
   debtorCount = 0,
   creditorCount = 0,
-  periodLabel = "আজকের লাইভ হিসাব",
+  periodLabel,
 }) => {
   const { t } = useTranslation();
   const { money, num } = useFormat(toCurrency(currency));
+  const activePeriodLabel = periodLabel || t("bizDashboard.todayLive");
 
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
-          দোকানের পরিস্থিতি
+          {t("bizDashboard.shopPerformance")}
         </h2>
         <span className="text-xs text-slate-500 dark:text-neutral-400 font-medium">
-          {periodLabel}
+          {activePeriodLabel}
         </span>
       </div>
 
@@ -61,8 +62,8 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
             <div className="mt-1 flex items-center gap-1">
               <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[10px] font-bold">
                 {salesGrowth !== undefined
-                  ? `${salesGrowth >= 0 ? "+" : ""}${num(salesGrowth)}% বিক্রি`
-                  : "নগদ ও বকেয়া"}
+                  ? `${salesGrowth >= 0 ? "+" : ""}${num(salesGrowth)}${t("bizDashboard.growthSales")}`
+                  : t("bizDashboard.cashAndDue")}
               </span>
             </div>
           </div>
@@ -84,17 +85,17 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
             </span>
             <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 truncate">
               {purchaseCount > 0
-                ? `${num(purchaseCount)}টি চালান ভাউচার`
-                : "ক্রয় চালান"}
+                ? `${num(purchaseCount)} ${t("bizDashboard.vouchers")}`
+                : t("bizDashboard.purchaseInvoice")}
             </p>
           </div>
         </div>
 
-        {/* KPI 3: Due Receivable (Bokeya Paona) */}
+        {/* KPI 3: Due Receivable */}
         <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-3.5 sm:p-4 rounded-3xl shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400 truncate">
-              কাস্টমার বকেয়া পাব
+              {t("bizDashboard.customerDueReceivable")}
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <ArrowDownLeft size={16} />
@@ -106,17 +107,17 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
             </span>
             <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 truncate">
               {debtorCount > 0
-                ? `${num(debtorCount)} জন খরিদ্দার বকেয়া`
-                : "কাস্টমার পাওনা"}
+                ? `${num(debtorCount)} ${t("bizDashboard.customersWithDue")}`
+                : t("bizDashboard.customerReceivable")}
             </p>
           </div>
         </div>
 
-        {/* KPI 4: Supplier Payable (Dena) */}
+        {/* KPI 4: Supplier Payable */}
         <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-3.5 sm:p-4 rounded-3xl shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400 truncate">
-              মহাজন দেনা
+              {t("bizDashboard.supplierPayableDena")}
             </span>
             <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
               <ArrowUpRight size={16} />
@@ -128,8 +129,8 @@ export const BusinessKpiGrid: React.FC<BusinessKpiGridProps> = ({
             </span>
             <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 truncate">
               {creditorCount > 0
-                ? `${num(creditorCount)} জন সাপ্লায়ার বকেয়া`
-                : "মহাজন দেনা"}
+                ? `${num(creditorCount)} ${t("bizDashboard.suppliersWithDue")}`
+                : t("bizDashboard.supplierPayableDena")}
             </p>
           </div>
         </div>

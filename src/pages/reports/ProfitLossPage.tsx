@@ -104,7 +104,7 @@ const ProfitLossPage = () => {
               {t("profitLoss.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {range.from} হতে {range.to}
+              {range.from} — {range.to}
             </p>
           </div>
           <button
@@ -156,7 +156,7 @@ const ProfitLossPage = () => {
             <div className="space-y-1">
               <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 flex items-center gap-1">
                 <Calendar size={12} />
-                <span>শুরু (From)</span>
+                <span>{t("profitLoss.from")}</span>
               </label>
               <input
                 type="date"
@@ -170,7 +170,7 @@ const ProfitLossPage = () => {
             <div className="space-y-1">
               <label className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 flex items-center gap-1">
                 <Calendar size={12} />
-                <span>শেষ (To)</span>
+                <span>{t("profitLoss.to")}</span>
               </label>
               <input
                 type="date"
@@ -196,7 +196,7 @@ const ProfitLossPage = () => {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <span className="text-xs font-semibold text-slate-600 dark:text-neutral-400">
-                  {isNetProfit ? "সর্বমোট নিট লাভ (Net Profit)" : "সর্বমোট নিট ক্ষতি (Net Loss)"}
+                  {isNetProfit ? t("profitLoss.totalNetProfit") : t("profitLoss.totalNetLoss")}
                 </span>
                 <p
                   className={`text-2xl sm:text-3xl font-extrabold font-mono tracking-tight ${
@@ -222,7 +222,7 @@ const ProfitLossPage = () => {
 
             <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-neutral-800/60 flex items-center justify-between text-xs">
               <span className="text-slate-500 dark:text-neutral-400">
-                মোট বিক্রয়: <strong className="font-mono text-slate-800 dark:text-neutral-200">{money(data.current.totalSales)}</strong>
+                {t("profitLoss.salesTotalLabel")} <strong className="font-mono text-slate-800 dark:text-neutral-200">{money(data.current.totalSales)}</strong>
               </span>
               <span
                 className={`font-semibold flex items-center gap-1 ${

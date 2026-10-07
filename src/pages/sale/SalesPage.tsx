@@ -62,7 +62,7 @@ const SalesPage = () => {
               {t("sale.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {num(sales.length)}টি বিক্রয় চালান
+              {t("sales.salesInvoices", { count: num(sales.length) })}
             </p>
           </div>
 

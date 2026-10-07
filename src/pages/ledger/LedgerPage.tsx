@@ -182,7 +182,7 @@ const LedgerPage = () => {
               {t("ledger.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {num(transactions.length)}টি খতিয়ান এন্ট্রি
+              {t("ledger.entriesCount", { count: num(transactions.length) })}
             </p>
           </div>
 
@@ -237,7 +237,7 @@ const LedgerPage = () => {
           <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
             <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-emerald-200/60 dark:border-emerald-900/40 shadow-xs">
               <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-neutral-400 block truncate">
-                মোট জমা (Credit)
+                {t("ledger.totalCredit")}
               </span>
               <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">
                 {money(totals.income)}
@@ -246,7 +246,7 @@ const LedgerPage = () => {
 
             <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-rose-200/60 dark:border-rose-900/40 shadow-xs">
               <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-neutral-400 block truncate">
-                মোট খরচ (Debit)
+                {t("ledger.totalDebit")}
               </span>
               <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 mt-0.5 truncate">
                 {money(totals.expense)}
@@ -255,7 +255,7 @@ const LedgerPage = () => {
 
             <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shadow-xs">
               <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-neutral-400 block truncate">
-                নিট জের (Net)
+                {t("ledger.netBalance")}
               </span>
               <p
                 className={`text-sm sm:text-lg font-bold font-mono tracking-tight mt-0.5 truncate ${

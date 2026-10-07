@@ -40,7 +40,7 @@ export const BusinessHeroBalanceCard: React.FC<BusinessHeroBalanceCardProps> = (
         <div>
           <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400">
             <span className="text-xs uppercase tracking-wider font-semibold">
-              মোট ক্যাশ ব্যালেন্স (CASH IN HAND)
+              {t("bizDashboard.totalCashInHand")}
             </span>
             <button
               type="button"
@@ -93,7 +93,7 @@ export const BusinessHeroBalanceCard: React.FC<BusinessHeroBalanceCardProps> = (
             onRefresh();
           }}
           className="w-9 h-9 rounded-2xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center active:scale-90 transition-transform shadow-xs shrink-0"
-          title="হিসাব রিফ্রেশ"
+          title={t("bizDashboard.refreshSummary")}
         >
           <RefreshCw
             size={16}
@@ -108,7 +108,7 @@ export const BusinessHeroBalanceCard: React.FC<BusinessHeroBalanceCardProps> = (
         <div className="flex flex-col">
           <span className="text-[11px] text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 font-medium">
             <Wallet size={14} className="text-emerald-500 shrink-0" />
-            ক্যাশ ড্রয়ার
+            {t("bizDashboard.cashDrawer")}
           </span>
           <span className="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-neutral-100 mt-1 truncate">
             {balanceHidden ? "••••" : money(cashInDrawer)}
@@ -119,7 +119,7 @@ export const BusinessHeroBalanceCard: React.FC<BusinessHeroBalanceCardProps> = (
         <div className="flex flex-col">
           <span className="text-[11px] text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 font-medium">
             <Landmark size={14} className="text-blue-500 shrink-0" />
-            ব্যাংক জমা
+            {t("bizDashboard.bankDeposit")}
           </span>
           <span className="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-neutral-100 mt-1 truncate">
             {balanceHidden ? "••••" : money(bankBalance)}

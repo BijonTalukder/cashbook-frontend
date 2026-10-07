@@ -13,6 +13,8 @@ interface BusinessHeaderProps {
   refreshing: boolean;
 }
 
+import { useTranslation } from "../../../i18n/useTranslation";
+
 export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   business,
   selectedPeriod,
@@ -20,6 +22,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   onRefresh,
   refreshing,
 }) => {
+  const { t } = useTranslation();
   const branchName = business.address || business.phone;
 
   return (
@@ -28,7 +31,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
       <div className="flex items-center gap-2 min-w-0">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-          লাইভ হিসাব
+          {t("bizDashboard.liveCalculation")}
         </span>
         {branchName && (
           <span className="text-xs text-slate-500 dark:text-neutral-400 font-medium truncate hidden sm:inline">
@@ -45,9 +48,9 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
         >
           {(
             [
-              { key: "today", label: "আজ" },
-              { key: "7days", label: "৭ দিন" },
-              { key: "30days", label: "৩০ দিন" },
+              { key: "today", label: t("personalDashboard.today") },
+              { key: "7days", label: t("personalDashboard.days7") },
+              { key: "30days", label: t("personalDashboard.days30") },
             ] as const
           ).map(({ key, label }) => {
             const active = selectedPeriod === key;

@@ -21,7 +21,7 @@ const ExpensesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
   const { t } = useTranslation();
-  const { money, date: fmtDate } = useFormat();
+  const { money, num, date: fmtDate } = useFormat();
 
   const [expenses, setExpenses] = useState<IExpense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ const ExpensesPage = () => {
               {t("expense.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {expenses.length}টি খরচ ভাউচার
+              {t("expenses.vouchersCount", { count: num(expenses.length) })}
             </p>
           </div>
 

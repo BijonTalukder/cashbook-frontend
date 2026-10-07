@@ -53,7 +53,7 @@ const DueCard = ({
   onSettleAll: (due: IPendingDue) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { money, num, date: fmtDate } = useFormat();
 
   const isMeFrom = due.from._id === currentUserId;
@@ -147,8 +147,11 @@ const DueCard = ({
                 type="button"
                 onClick={() => {
                   haptic("light");
-                  const debtorName = due.from.firstName || "বন্ধু";
-                  const msg = `আসসালামু আলাইকুম ${debtorName},\nহিসাববই অ্যাপে আপনার কাছে ${money(due.amount)} টাকা বকেয়া রয়েছে। অনুগ্রহ করে হিসাবটি পরিশোধ করুন। ধন্যবাদ!`;
+                  const debtorName = due.from.firstName || (language === "en" ? "Friend" : "বন্ধু");
+                  const msg =
+                    language === "en"
+                      ? `Hello ${debtorName},\nYou have an outstanding due of ${money(due.amount)} in HisabBoi. Please settle the amount. Thank you!`
+                      : `আসসালামু আলাইকুম ${debtorName},\nহিসাববই অ্যাপে আপনার কাছে ${money(due.amount)} টাকা বকেয়া রয়েছে। অনুগ্রহ করে হিসাবটি পরিশোধ করুন। ধন্যবাদ!`;
                   shareViaWhatsApp(msg);
                 }}
                 className="flex-1 h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white shadow-xs active:scale-95 transition-all select-none"
@@ -340,7 +343,7 @@ const PendingDuesPage = () => {
               {t("dues.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {num(dues.length)}টি বকেয়া হিসাব
+              {t("dues.pendingCount", { count: num(dues.length) })}
             </p>
           </div>
           <button

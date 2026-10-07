@@ -15,19 +15,25 @@ import { haptic } from "../../native/bridge";
 
 type StatusFilter = "all" | "due" | "paid" | "partial";
 
-const STATUS_META: Record<string, { label: string; badgeClass: string }> = {
-  paid: {
-    label: "পরিশোধিত",
-    badgeClass: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60",
-  },
-  partial: {
-    label: "আংশিক বকেয়া",
-    badgeClass: "bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60",
-  },
-  due: {
-    label: "বকেয়া",
-    badgeClass: "bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/60",
-  },
+const getStatusMeta = (status: string, t: (key: string, options?: any) => string) => {
+  switch (status) {
+    case "paid":
+      return {
+        label: t("purchase.paidInvoices"),
+        badgeClass: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60",
+      };
+    case "partial":
+      return {
+        label: t("purchase.partial"),
+        badgeClass: "bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60",
+      };
+    case "due":
+    default:
+      return {
+        label: t("common.due"),
+        badgeClass: "bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/60",
+      };
+  }
 };
 
 const PurchasesPage = () => {
@@ -106,7 +112,7 @@ const PurchasesPage = () => {
               {t("purchase.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-              {num(stats.count)}টি ক্রয় চালান
+              {t("purchase.invoicesCount", { count: num(stats.count) })}
             </p>
           </div>
           <button
@@ -128,7 +134,7 @@ const PurchasesPage = () => {
             <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shadow-xs">
               <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 mb-1">
                 <Truck className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-[11px] sm:text-xs font-semibold truncate">মোট ক্রয়</span>
+                <span className="text-[11px] sm:text-xs font-semibold truncate">{t("purchase.totalPurchases")}</span>
               </div>
               <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-slate-900 dark:text-neutral-100 truncate">
                 {money(stats.totalPurchases)}
@@ -138,7 +144,7 @@ const PurchasesPage = () => {
             <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-rose-200/60 dark:border-rose-900/40 shadow-xs">
               <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 mb-1">
                 <AlertCircle className="w-3.5 h-3.5" />
-                <span className="text-[11px] sm:text-xs font-semibold truncate">বকেয়া দেনা</span>
+                <span className="text-[11px] sm:text-xs font-semibold truncate">{t("purchase.duePayable")}</span>
               </div>
               <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 truncate">
                 {money(stats.totalDue)}
@@ -148,7 +154,7 @@ const PurchasesPage = () => {
             <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-emerald-200/60 dark:border-emerald-900/40 shadow-xs">
               <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 mb-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span className="text-[11px] sm:text-xs font-semibold truncate">পরিশোধ</span>
+                <span className="text-[11px] sm:text-xs font-semibold truncate">{t("purchase.paid")}</span>
               </div>
               <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 truncate">
                 {money(stats.totalPaid)}
@@ -161,7 +167,7 @@ const PurchasesPage = () => {
         {purchases.length > 0 && (
           <div className="space-y-2.5">
             <NativeInput
-              placeholder="চালান নম্বর বা সরবরাহকারী খুঁজুন..."
+              placeholder={t("purchase.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onClear={() => setSearchQuery("")}
@@ -172,10 +178,10 @@ const PurchasesPage = () => {
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {(
                 [
-                  { id: "all", label: "সকল" },
-                  { id: "due", label: "বকেয়া চালান" },
-                  { id: "partial", label: "আংশিক" },
-                  { id: "paid", label: "পরিশোধিত" },
+                  { id: "all", label: t("purchase.all") },
+                  { id: "due", label: t("purchase.dueInvoices") },
+                  { id: "partial", label: t("purchase.partial") },
+                  { id: "paid", label: t("purchase.paidInvoices") },
                 ] as const
               ).map((tab) => {
                 const active = statusFilter === tab.id;
@@ -227,13 +233,13 @@ const PurchasesPage = () => {
         ) : filteredPurchases.length === 0 ? (
           <div className="text-center py-12 px-4 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800">
             <p className="text-sm font-semibold text-slate-600 dark:text-neutral-400">
-              কোনো ক্রয় পাওয়া যায়নি
+              {t("purchase.noPurchasesFound")}
             </p>
           </div>
         ) : (
           <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl shadow-xs overflow-hidden divide-y divide-slate-100 dark:divide-neutral-800/80">
             {filteredPurchases.map((p) => {
-              const meta = STATUS_META[p.status] || STATUS_META.paid;
+              const meta = getStatusMeta(p.status, t);
               const handleDownloadInvoice = (e: React.MouseEvent) => {
                 e.stopPropagation();
                 haptic("light");
@@ -284,7 +290,7 @@ const PurchasesPage = () => {
                     <div className="mt-1 flex items-center justify-end gap-1.5">
                       {p.dueAmount > 0 && (
                         <span className="text-[10px] font-mono font-bold text-rose-600 dark:text-rose-400">
-                          বকেয়া: {money(p.dueAmount)}
+                          {t("common.due")}: {money(p.dueAmount)}
                         </span>
                       )}
                       <span

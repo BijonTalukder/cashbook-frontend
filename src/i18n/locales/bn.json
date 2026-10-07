@@ -154,7 +154,51 @@
     "todaySales": "আজকের বিক্রয়",
     "totalPayable": "মোট দেনা",
     "totalReceivable": "মোট পাওনা",
-    "viewReports": "রিপোর্ট দেখুন"
+    "viewReports": "রিপোর্ট দেখুন",
+    "liveCalculation": "লাইভ হিসাব",
+    "posSale": "+ নতুন বিক্রি (POS)",
+    "collectDue": "বকেয়া আদায় (+)",
+    "todayLive": "আজকের লাইভ হিসাব",
+    "last7DaysSummary": "বিগত ৭ দিনের হিসাব",
+    "last30DaysSummary": "বিগত ৩০ দিনের হিসাব",
+    "totalCashInHand": "মোট ক্যাশ ব্যালেন্স (CASH IN HAND)",
+    "refreshSummary": "হিসাব রিফ্রেশ",
+    "cashDrawer": "ক্যাশ ড্রয়ার",
+    "bankDeposit": "ব্যাংক জমা",
+    "shopPerformance": "দোকানের পরিস্থিতি",
+    "growthSales": "% বিক্রি",
+    "cashAndDue": "নগদ ও বকেয়া",
+    "vouchers": "টি চালান ভাউচার",
+    "purchaseInvoice": "ক্রয় চালান",
+    "customerDueReceivable": "কাস্টমার বকেয়া পাব",
+    "customersWithDue": "জন খরিদ্দার বকেয়া",
+    "customerReceivable": "কাস্টমার পাওনা",
+    "supplierPayableDena": "মহাজন দেনা",
+    "suppliersWithDue": "জন সাপ্লায়ার বকেয়া",
+    "newSale": "নতুন বিক্রি",
+    "purchaseGoods": "মাল ক্রয়",
+    "dailyExpense": "দৈনিক খরচ",
+    "dueBook": "বকেয়ার খাতা",
+    "quickActions": "দ্রুত অ্যাকশন",
+    "shortcuts": "শর্টকাট",
+    "dailySummary": "আজকের কার্যবিবরণী সারাংশ",
+    "cashSales": "নগদ বিক্রি",
+    "dueSales": "বকেয়া বিক্রি",
+    "netProfit": "মোট লাভ",
+    "stockSufficient": "ইনভেন্টরি স্টক পর্যাপ্ত আছে",
+    "noLowStock": "কোনো পণ্যের স্টক শেষ পর্যায়ে নেই",
+    "lowStockWarning": "টি পণ্যের স্টক শেষ পর্যায়ে!",
+    "orderSoon": "তাড়াতাড়ি আনুন",
+    "orderNow": "অর্ডার দিন",
+    "recentLedger": "সাম্প্রতিক লেনদেন ও খাতা",
+    "viewAll": "সকল তালিকা",
+    "noTransactionsFound": "কোনো লেনদেন পাওয়া যায়নি",
+    "cashCredit": "নগদ জমা",
+    "shopDebit": "দোকান খরচ",
+    "cashMethod": "নগদ",
+    "settledStatus": "পরিশোধিত",
+    "cashInvoice": "ক্যাশ চালান",
+    "remaining": "অবশিষ্ট"
   },
   "business": {
     "loadFailed": "ব্যবসার তালিকা লোড করা যায়নি",
@@ -305,7 +349,11 @@
     "yes": "হ্যাঁ",
     "yesterday": "গতকাল",
     "zero": "০",
-    "zeroDecimal": "০.০০"
+    "zeroDecimal": "০.০০",
+    "member": "সদস্য",
+    "details": "বিস্তারিত",
+    "income": "আয়",
+    "expense": "খরচ"
   },
   "currency": {
     "BDT": "বাংলাদেশি টাকা",
@@ -376,7 +424,8 @@
     "setUpBusiness": "ব্যবসা তৈরি করুন",
     "thisMonth": "এই মাসে",
     "tooltipRow": "{{name}}: {{amount}}",
-    "yearOverview": "{{year}} সালের সারসংক্ষেপ"
+    "yearOverview": "{{year}} সালের সারসংক্ষেপ",
+    "yearComparisonSubtitle": "বাৎসরিক আয় ও ব্যয়ের তুলনামূলক চিত্র"
   },
   "dataDeletion": {
     "deletedList": [
@@ -455,7 +504,8 @@
     "youNeedToPay": "আপনাকে দিতে হবে",
     "youOwe": "আপনি দেবেন",
     "youWillReceive": "আপনি পাবেন",
-    "youreOwed": "আপনি পাবেন"
+    "youreOwed": "আপনি পাবেন",
+    "pendingCount": "{{count}}টি বকেয়া হিসাব"
   },
   "error": {
     "body": "এই স্ক্রিনে সমস্যা হয়েছে। আপনার সংরক্ষিত তথ্য নিরাপদ আছে — আবার চেষ্টা করুন, অথবা ড্যাশবোর্ডে ফিরে যান।",
@@ -631,7 +681,11 @@
     "sourcePurchases": "ক্রয়",
     "sourceSales": "বিক্রয়",
     "startDate": "শুরুর তারিখ",
-    "title": "খতিয়ান"
+    "title": "খতিয়ান",
+    "entriesCount": "{{count}}টি খতিয়ান এন্ট্রি",
+    "totalCredit": "মোট জমা (Credit)",
+    "totalDebit": "মোট খরচ (Debit)",
+    "netBalance": "নিট জের (Net)"
   },
   "mealWidget": {
     "avgPerDay": "গড়/দিন",
@@ -740,7 +794,8 @@
     "title": "সদস্য",
     "totalCount": "মোট {{count}} জন",
     "willReceiveEmail": "একটি আমন্ত্রণ ইমেইল পাবেন",
-    "you": "আপনি"
+    "you": "আপনি",
+    "count": "{{count}} জন সদস্য"
   },
   "mess": {
     "activeSub": "সক্রিয়",
@@ -775,7 +830,9 @@
     "toReceive": "পাবেন",
     "toSettleUp": "যেভাবে মেটাতে হবে",
     "totalExpense": "মোট খরচ",
-    "totalExpensesThisMonth": "এই মাসের মোট খরচ"
+    "totalExpensesThisMonth": "এই মাসের মোট খরচ",
+    "mealsRecordedToday": "আজকের এন্ট্রি",
+    "noMealsToday": "আজকের হিসাব"
   },
   "nav": {
     "baki": "বকেয়া",
@@ -1244,7 +1301,10 @@
     "to": "শেষ",
     "today": "আজ",
     "totalSales": "মোট বিক্রয়",
-    "vsPrevious": "আগের সময়ের তুলনায় {{pct}}%"
+    "vsPrevious": "আগের সময়ের তুলনায় {{pct}}%",
+    "totalNetProfit": "সর্বমোট নিট লাভ",
+    "totalNetLoss": "সর্বমোট নিট ক্ষতি",
+    "salesTotalLabel": "মোট বিক্রয়:"
   },
   "purchase": {
     "add": "ক্রয় যোগ করুন",
@@ -1268,7 +1328,17 @@
     "recordFailed": "ক্রয় লিপিবদ্ধ করা যায়নি",
     "recorded": "ক্রয় {{reference}} লিপিবদ্ধ হয়েছে",
     "supplierOptional": "সরবরাহকারী (ঐচ্ছিক)",
-    "title": "ক্রয়"
+    "title": "ক্রয়",
+    "totalPurchases": "মোট ক্রয়",
+    "duePayable": "বকেয়া দেনা",
+    "paid": "পরিশোধ",
+    "searchPlaceholder": "চালান নম্বর বা সরবরাহকারী খুঁজুন...",
+    "all": "সকল",
+    "dueInvoices": "বকেয়া চালান",
+    "partial": "আংশিক",
+    "paidInvoices": "পরিশোধিত",
+    "noPurchasesFound": "কোনো ক্রয় পাওয়া যায়নি",
+    "invoicesCount": "{{count}}টি ক্রয় চালান"
   },
   "reports": {
     "customerDue": "ক্রেতার বকেয়া রিপোর্ট",
@@ -1287,7 +1357,8 @@
     "salesReportDesc": "সব বিক্রয়, তারিখ ও ক্রেতা অনুযায়ী ফিল্টার করা যায়",
     "supplierPayable": "সরবরাহকারীর দেনা রিপোর্ট",
     "supplierPayableDesc": "কাকে টাকা দিতে হবে",
-    "title": "রিপোর্ট"
+    "title": "রিপোর্ট",
+    "subtitle": "দোকান ও ব্যবসার পূর্ণাঙ্গ হিসাব বিবরণী"
   },
   "role": {
     "admin": "অ্যাডমিন",
@@ -1557,7 +1628,8 @@
     "subtitleOther": "{{business}} · {{count}}টি এন্ট্রি",
     "title": "লেনদেন",
     "toMember": "→ {{name}}",
-    "viewSettlement": "পরিশোধ দেখুন"
+    "viewSettlement": "পরিশোধ দেখুন",
+    "txnCount": "{{count}}টি লেনদেন"
   },
   "txn": {
     "addCost": "খরচ যোগ করুন",
@@ -1652,7 +1724,8 @@
     "electricityBill": "বিদ্যুৎ বিল",
     "friendLoan": "বন্ধুকে ধার দেওয়া",
     "noTxnsYet": "কোনো সাম্প্রতিক লেনদেন নেই",
-    "noExpensesRecorded": "এই সময়ে কোনো খরচের হিসাব নেই"
+    "noExpensesRecorded": "এই সময়ে কোনো খরচের হিসাব নেই",
+    "summaryTitle": "ব্যক্তিগত আয়-ব্যয় হিসাব"
   },
   "messDashboard": {
     "title": "মেস ড্যাশবোর্ড",
@@ -1709,5 +1782,29 @@
     "notNegative": "ঋণাত্মক হতে পারবে না",
     "required": "এই ঘরটি পূরণ করুন",
     "selectRequired": "একটি অপশন বাছুন"
+  },
+  "company": {
+    "teamMembersCount": "{{count}} জন টিম মেম্বার"
+  },
+  "products": {
+    "productsListed": "{{count}}টি পণ্য তালিকাভুক্ত"
+  },
+  "sales": {
+    "salesInvoices": "{{count}}টি বিক্রয় চালান"
+  },
+  "expenses": {
+    "vouchersCount": "{{count}}টি খরচ ভাউচার"
+  },
+  "voice": {
+    "title": "ভয়েস হিসাব সহকারী",
+    "listening": "শুনছি... আপনার হিসাব বলুন",
+    "recorded": "হিসাব সফলভাবে নথিভুক্ত হয়েছে!",
+    "sayPrompt": "বলুন:",
+    "samplePrompt": "\"করিম চাচা আলু নিল ২০ টাকা\"",
+    "listenBtn": "শুনুন",
+    "listeningBtn": "শুনছি...",
+    "doneBtn": "সম্পন্ন",
+    "micPermission": "মাইক্রোফোন অনুমতি দিন।",
+    "voiceNotHeard": "ভয়েস শোনা যায়নি, অনুগ্রহ করে আবার চেষ্টা করুন।"
   }
 }

@@ -44,7 +44,7 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
           <span className="text-[11px] font-bold tracking-wider uppercase text-slate-500 dark:text-neutral-400">
             {hasMeals
               ? t("messDashboard.liveMealRate")
-              : (t("mess.perPerson") || "প্রতি সদস্যের ভাগ")}
+              : t("mess.perPerson")}
           </span>
         </div>
         <span className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/50 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold px-2 py-0.5 rounded-full">
@@ -63,7 +63,7 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
           <span className="text-sm font-semibold text-slate-500 dark:text-neutral-400">
             {hasMeals
               ? t("messDashboard.perMeal")
-              : (t("mess.equalShare") || "সমান ভাগ")}
+              : t("mess.equalShare")}
           </span>
         </div>
 
@@ -75,7 +75,7 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
                   bazaar: money(totalBazaar, { decimals: 0 }),
                   meals: num(totalMeals, { maximumFractionDigits: 1 }),
                 })
-              : `${t("mess.totalExpense") || "মোট খরচ"} ${money(totalBazaar, { decimals: 0 })} ÷ ${num(activeMembersCount)} জন`}
+              : `${t("mess.totalExpense")} ${money(totalBazaar, { decimals: 0 })} ${t("mess.dividedBy", { count: num(activeMembersCount) })}`}
           </span>
         </div>
       </div>
@@ -88,12 +88,12 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
             {t("messDashboard.todaysMeals")}
           </span>
           <span className="text-base font-bold text-slate-900 dark:text-neutral-100 mt-0.5">
-            {num(todayMeals, { maximumFractionDigits: 1 })} টি
+            {t("messDashboard.mealsCount", { count: num(todayMeals, { maximumFractionDigits: 1 }) })}
           </span>
           <span className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
             {todayMeals > 0
-              ? (t("mess.mealsRecordedToday") || "আজকের এন্ট্রি")
-              : (t("mess.noMealsToday") || "আজকের হিসাব")}
+              ? t("mess.mealsRecordedToday")
+              : t("mess.noMealsToday")}
           </span>
         </div>
 
@@ -103,7 +103,7 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
             {t("messDashboard.currentTotalMeals")}
           </span>
           <span className="text-base font-bold text-slate-900 dark:text-neutral-100 mt-0.5">
-            {num(totalMeals, { maximumFractionDigits: 1 })} টি
+            {t("messDashboard.mealsCount", { count: num(totalMeals, { maximumFractionDigits: 1 }) })}
           </span>
           <span className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
             {t("messDashboard.daysCompleted", { days: num(daysPassed) })}
