@@ -1,46 +1,27 @@
 import React from "react";
-import {
-  ShoppingBag,
-  Package,
-  ArrowRight,
-  UtensilsCrossed,
-  Plus,
-} from "lucide-react";
+import { ShoppingBag, Plus, ArrowRight, Receipt } from "lucide-react";
 import { useTranslation } from "../../../i18n/useTranslation";
 import { useFormat } from "../../../i18n/useFormat";
 import { haptic } from "../../../native/bridge";
+import { type ITransaction } from "../../../services/transaction.service";
 
-export interface IBazaarRecord {
-  buyerName: string;
-  buyerAvatarInitial: string;
-  amount: number;
-  itemsSummary: string;
-  date?: string;
-}
-
-interface TodayDiningBazaarCardProps {
-  bazaarRecord?: IBazaarRecord | null;
-  todayMealsCount: number;
-  onOpenMeals: () => void;
+export interface TodayDiningBazaarCardProps {
+  transactions?: ITransaction[];
   onAddBazaar: () => void;
+  onViewAll?: () => void;
+  // Backward compatibility alias props
+  bazaarRecord?: unknown;
+  todayMealsCount?: number;
+  onOpenMeals?: () => void;
 }
 
 export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
-  bazaarRecord,
-  todayMealsCount,
-  onOpenMeals,
+  transactions = [],
   onAddBazaar,
+  onViewAll,
 }) => {
   const { t } = useTranslation();
-  const { money, num, date: fmtDate } = useFormat();
-
-  const isToday = Boolean(
-    bazaarRecord?.date &&
-    new Date(bazaarRecord.date).toDateString() === new Date().toDateString()
-  );
-  const cardTitle = isToday
-    ? t("messDashboard.todaysDiningBazaar")
-    : "সাম্প্রতিক বাজার খরচ";
+  const { money, date: fmtDate } = useFormat();
 
   return (
     <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col gap-3.5">
@@ -51,86 +32,95 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
             <ShoppingBag size={18} />
           </div>
           <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
-            {cardTitle}
+            {t("messDashboard.recentBazaarExpenses") || "সাম্প্রতিক বাজার খরচ"}
           </h2>
         </div>
-        {bazaarRecord?.date && (
-          <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
-            {isToday ? "আজ" : fmtDate(bazaarRecord.date, "short")}
-          </span>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            haptic("medium");
+            onAddBazaar();
+          }}
+          className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-2.5 py-1.5 rounded-xl transition-colors active:scale-95"
+        >
+          <Plus size={14} />
+          <span>{t("messDashboard.addBazaarExpense") || "+ বাজার খরচ"}</span>
+        </button>
       </div>
 
-      {/* Bazaar Summary Sub-card */}
-      {bazaarRecord ? (
-        <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 rounded-2xl p-3 flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
-                {bazaarRecord.buyerAvatarInitial ||
-                  bazaarRecord.buyerName.slice(0, 2)}
-              </div>
-              <div className="min-w-0">
-                <span className="text-sm font-bold text-slate-800 dark:text-neutral-100 truncate block leading-tight">
-                  {bazaarRecord.buyerName}
-                </span>
-                <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate block">
-                  {bazaarRecord.date ? fmtDate(bazaarRecord.date, "short") : "বাজার করেছেন"}
-                </span>
-              </div>
-            </div>
-            <span className="text-base font-extrabold text-slate-900 dark:text-neutral-100 shrink-0 font-mono">
-              {money(bazaarRecord.amount, { decimals: 0 })}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-700/60 p-2 rounded-xl">
-            <Package size={14} className="text-slate-400 dark:text-neutral-500 shrink-0" />
-            <span className="truncate">{bazaarRecord.itemsSummary}</span>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 rounded-2xl p-3.5 flex items-center justify-between gap-2">
-          <span className="text-xs text-slate-500 dark:text-neutral-400">
-            {t("messDashboard.noBazaarToday")}
-          </span>
+      {/* Transactions List */}
+      {transactions.length === 0 ? (
+        <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 text-center">
+          <Receipt size={24} className="text-slate-400 dark:text-neutral-500" />
+          <p className="text-xs text-slate-500 dark:text-neutral-400">
+            {t("messDashboard.noBazaarThisMonth") || "চলতি মাসে কোনো বাজার খরচ রেকর্ড করা হয়নি"}
+          </p>
           <button
             type="button"
             onClick={() => {
-              haptic("selection");
+              haptic("medium");
               onAddBazaar();
             }}
-            className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-xl hover:bg-indigo-100 transition-colors"
+            className="mt-1 flex items-center gap-1 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-xl shadow-xs transition-colors active:scale-95"
           >
             <Plus size={14} />
-            <span>{t("messDashboard.recordBazaarNow")}</span>
+            <span>{t("messDashboard.recordBazaarNow") || "বাজার খরচ যোগ করুন"}</span>
           </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {transactions.map((txn) => {
+            const memberName = txn.member
+              ? `${txn.member.firstName || ""} ${txn.member.lastName || ""}`.trim() || txn.member.email
+              : "সদস্য";
+            const initial = (memberName || "U").slice(0, 2).toUpperCase();
+            const noteText = txn.note || txn.category?.name || "বাজার খরচ";
+
+            return (
+              <div
+                key={txn._id}
+                className="bg-slate-50/80 dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-800 rounded-2xl p-3 flex items-center justify-between gap-2.5"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
+                    {initial}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-slate-900 dark:text-neutral-100 truncate block leading-tight">
+                      {memberName}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate block mt-0.5">
+                      {txn.date ? fmtDate(txn.date, "short") : ""} • {noteText}
+                    </span>
+                  </div>
+                </div>
+
+                <span className="text-sm font-extrabold text-rose-600 dark:text-rose-400 shrink-0 font-mono">
+                  -{money(txn.amount, { decimals: 0 })}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Real Dining Meals Status & Action */}
-      <div className="flex items-center justify-between pt-1 text-xs">
-        <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400">
-          <UtensilsCrossed size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-          <span>
-            {t("messDashboard.todaysTotalMealsRecorded", {
-              count: num(todayMealsCount, { maximumFractionDigits: 1 }),
-            })}
-          </span>
-        </div>
-
+      {/* Footer link to all transactions */}
+      {transactions.length > 0 && onViewAll && (
         <button
           type="button"
           onClick={() => {
             haptic("selection");
-            onOpenMeals();
+            onViewAll();
           }}
-          className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-0.5 active:scale-95 transition-all select-none"
+          className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center justify-center gap-1 pt-1 active:scale-95 transition-all select-none"
         >
-          <span>{t("messDashboard.viewTodayMeals")}</span>
+          <span>{t("dashboard.recentTransactions") || "সব লেনদেন দেখুন"}</span>
           <ArrowRight size={14} />
         </button>
-      </div>
+      )}
     </div>
   );
 };
+
+export const MessRecentBazaarCard = TodayDiningBazaarCard;
+export type IBazaarRecord = unknown;

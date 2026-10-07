@@ -5,25 +5,30 @@ import { useFormat } from "../../../i18n/useFormat";
 
 interface LiveMealRateHeroCardProps {
   mealRate: number;
+  perPersonShare?: number;
   totalBazaar: number;
   totalMeals: number;
   todayMeals?: number;
   daysPassed?: number;
   cashFund: number;
+  activeMembersCount?: number;
 }
 
 export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
   mealRate,
+  perPersonShare = 0,
   totalBazaar,
   totalMeals,
   todayMeals = 0,
   daysPassed = 0,
   cashFund,
+  activeMembersCount = 1,
 }) => {
   const { t } = useTranslation();
   const { money, num } = useFormat();
 
   const isSafeFund = cashFund >= 0;
+  const hasMeals = totalMeals > 0;
 
   return (
     <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col gap-4 relative overflow-hidden">
@@ -37,7 +42,9 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
             <Gauge size={18} />
           </div>
           <span className="text-[11px] font-bold tracking-wider uppercase text-slate-500 dark:text-neutral-400">
-            {t("messDashboard.liveMealRate")}
+            {hasMeals
+              ? t("messDashboard.liveMealRate")
+              : (t("mess.perPerson") || "প্রতি সদস্যের ভাগ")}
           </span>
         </div>
         <span className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/50 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold px-2 py-0.5 rounded-full">
@@ -49,20 +56,26 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
       <div className="flex flex-col gap-1.5">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight">
-            {money(mealRate, { decimals: 2 })}
+            {hasMeals
+              ? money(mealRate, { decimals: 2 })
+              : money(perPersonShare, { decimals: 0 })}
           </span>
           <span className="text-sm font-semibold text-slate-500 dark:text-neutral-400">
-            {t("messDashboard.perMeal")}
+            {hasMeals
+              ? t("messDashboard.perMeal")
+              : (t("mess.equalShare") || "সমান ভাগ")}
           </span>
         </div>
 
         <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-neutral-300 bg-slate-50 dark:bg-neutral-800/80 border border-slate-200/60 dark:border-neutral-700/60 px-2.5 py-1 rounded-xl self-start text-xs">
           <Calculator size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
           <span>
-            {t("messDashboard.rateFormula", {
-              bazaar: money(totalBazaar, { decimals: 0 }),
-              meals: num(totalMeals, { maximumFractionDigits: 1 }),
-            })}
+            {hasMeals
+              ? t("messDashboard.rateFormula", {
+                  bazaar: money(totalBazaar, { decimals: 0 }),
+                  meals: num(totalMeals, { maximumFractionDigits: 1 }),
+                })
+              : `${t("mess.totalExpense") || "মোট খরচ"} ${money(totalBazaar, { decimals: 0 })} ÷ ${num(activeMembersCount)} জন`}
           </span>
         </div>
       </div>
@@ -78,7 +91,9 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
             {num(todayMeals, { maximumFractionDigits: 1 })} টি
           </span>
           <span className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-            {todayMeals > 0 ? (t("mess.mealsRecordedToday") || "আজকের এন্ট্রি") : (t("mess.noMealsToday") || "আজকের হিসাব")}
+            {todayMeals > 0
+              ? (t("mess.mealsRecordedToday") || "আজকের এন্ট্রি")
+              : (t("mess.noMealsToday") || "আজকের হিসাব")}
           </span>
         </div>
 
@@ -133,3 +148,5 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
     </div>
   );
 };
+
+export default LiveMealRateHeroCard;

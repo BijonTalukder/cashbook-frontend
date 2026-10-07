@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -224,9 +224,9 @@ const MessSummaryPage = () => {
     }
   }, [activeBusiness, year, month, t]);
 
-  useState(() => {
+  useEffect(() => {
     load();
-  });
+  }, [load]);
 
   if (!activeBusiness || (activeBusiness.type !== "mass" && !activeBusiness.mealEnabled)) {
     return (

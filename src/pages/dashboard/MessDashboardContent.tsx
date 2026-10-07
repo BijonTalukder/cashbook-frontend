@@ -4,20 +4,25 @@ import { toast } from "sonner";
 import { type IBusiness } from "../../services/business.service";
 import api from "../../services/api";
 import mealService, { type IMealDay } from "../../services/meal.service";
-import { transactionService, type ITransaction } from "../../services/transaction.service";
+import {
+  transactionService,
+  type ITransaction,
+  type TxnType,
+} from "../../services/transaction.service";
 import { businessMembersService, type IMember } from "../../services/businessMembers.service";
 import { useAuthStore } from "../../store/authStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { toCurrency } from "../../utils/currency";
 import { useRefreshHandler } from "../../native/refresh";
+import { haptic } from "../../native/bridge";
+import TxnModal from "../../components/shared/TxnModal";
 
 import {
   MessHeader,
   LiveMealRateHeroCard,
   MessQuickActionGrid,
   TodayDiningBazaarCard,
-  type IBazaarRecord,
   MessMembersBalanceCard,
   type IMessMemberItem,
   MessFloatingActionDock,
@@ -65,9 +70,12 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Transaction Modal state
+  const [showTxnModal, setShowTxnModal] = useState(false);
+  const [txnModalType, setTxnModalType] = useState<TxnType>("expense");
+
   // Dynamic raw data states
   const [messSummary, setMessSummary] = useState<ApiMessSummary | null>(null);
-  const [mealSummary, setMealSummary] = useState<{ total: number; days: number } | null>(null);
   const [monthMeals, setMonthMeals] = useState<Record<string, IMealDay>>({});
   const [businessMembers, setBusinessMembers] = useState<IMember[]>([]);
   const [allTxns, setAllTxns] = useState<ITransaction[]>([]);
@@ -82,9 +90,8 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
       isSilent ? setRefreshing(true) : setLoading(true);
 
       try {
-        const [messRes, mealSumRes, monthMealsRes, txnsRes, membersRes] = await Promise.allSettled([
+        const [messRes, monthMealsRes, txnsRes, membersRes] = await Promise.allSettled([
           api.get("/mess/summary", { params: { businessId: business._id, year, month } }),
-          mealService.getSummary(business._id),
           mealService.getMonthMeals(business._id, year, month),
           transactionService.getAll(business._id, { page: "1", limit: "50" }),
           businessMembersService.getMembers(business._id),
@@ -92,10 +99,6 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
 
         if (messRes.status === "fulfilled") {
           setMessSummary(messRes.value.data.data);
-        }
-
-        if (mealSumRes.status === "fulfilled") {
-          setMealSummary(mealSumRes.value);
         }
 
         if (monthMealsRes.status === "fulfilled") {
@@ -139,7 +142,7 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
     setSelectedDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
-  // Month window for the fallback transaction filters.
+  // Month window for the fallback transaction filters
   const monthStart = useMemo(
     () => new Date(year, month, 1, 0, 0, 0, 0),
     [year, month],
@@ -159,34 +162,42 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
     [allTxns, monthStart, monthEnd],
   );
 
+  // Active members count dynamically
+  const activeMembersCount = useMemo(() => {
+    return (
+      businessMembers.length ||
+      messSummary?.members?.length ||
+      messSummary?.memberCount ||
+      1
+    );
+  }, [businessMembers, messSummary]);
+
   // 100% Dynamic Financial Calculations
   const totalBazaar = useMemo(() => {
     if (messSummary?.totalExpense !== undefined && messSummary.totalExpense > 0) {
       return messSummary.totalExpense;
     }
-    // Fallback must respect the selected month, otherwise the figure leaks
-    // expenses from prior months into the current view.
     return txnsInSelectedMonth
       .filter((t) => t.type === "expense")
       .reduce((s, t) => s + t.amount, 0);
   }, [messSummary, txnsInSelectedMonth]);
 
   const totalMeals = useMemo(() => {
-    if (mealSummary?.total !== undefined && mealSummary.total > 0) {
-      return mealSummary.total;
-    }
     return Object.values(monthMeals).reduce((s, d) => s + (d.total || 0), 0);
-  }, [mealSummary, monthMeals]);
+  }, [monthMeals]);
 
-  // Prefer the server-computed perPersonShare when available — it's the
-  // authoritative meal rate for the mess. Only fall back to a local divide
-  // when the mess summary isn't yet loaded.
+  // Accurate Meal Rate (Total Bazaar / Total Meals).
   const mealRate = useMemo(() => {
+    return totalMeals > 0 ? totalBazaar / totalMeals : 0;
+  }, [totalMeals, totalBazaar]);
+
+  // Per Person Equal Share
+  const perPersonShare = useMemo(() => {
     if (messSummary?.perPersonShare !== undefined && messSummary.perPersonShare > 0) {
       return messSummary.perPersonShare;
     }
-    return totalMeals > 0 ? totalBazaar / totalMeals : 0;
-  }, [messSummary, totalMeals, totalBazaar]);
+    return activeMembersCount > 0 ? totalBazaar / activeMembersCount : 0;
+  }, [messSummary, totalBazaar, activeMembersCount]);
 
   const totalIncome = useMemo(() => {
     if (messSummary?.totalIncome !== undefined && messSummary.totalIncome > 0) {
@@ -199,55 +210,58 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
 
   const cashFund = totalIncome - totalBazaar;
 
-  // Most recent expense inside the selected month, used for the "today's
-  // bazaar" record. Limited to the selected month to avoid surfacing an old
-  // record when the user is browsing a different month.
-  const recentBazaarTxn = useMemo(() => {
-    return (
-      txnsInSelectedMonth
-        .filter((t) => t.type === "expense")
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] ||
-      null
-    );
-  }, [txnsInSelectedMonth]);
+  // Days with recorded meals in selected month
+  const daysWithMeals = useMemo(() => {
+    return Object.keys(monthMeals).length;
+  }, [monthMeals]);
 
-  // Active members count dynamically
-  const activeMembersCount = useMemo(() => {
-    return (
-      businessMembers.length ||
-      messSummary?.members?.length ||
-      messSummary?.memberCount ||
-      0
-    );
-  }, [businessMembers, messSummary]);
-
-  // Dynamic Today's meals calculation. The backend meal record is a single
-  // count per member per day — there is no breakfast/lunch/dinner split in
-  // any endpoint, so the dashboard must not invent one.
+  // Dynamic Today's meals calculation
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayMeals = monthMeals[todayKey]?.total ?? 0;
+
+  // Sum each member's actual recorded meals from monthMeals (100% Dynamic)
+  const memberMealsMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    Object.values(monthMeals).forEach((day) => {
+      day.members?.forEach((m) => {
+        const mid = m.member?._id || String(m.member);
+        if (mid) {
+          map[mid] = (map[mid] || 0) + (Number(m.count) || 0);
+        }
+      });
+    });
+    return map;
+  }, [monthMeals]);
 
   // Dynamic Members Ledger List
   const memberList: IMessMemberItem[] = useMemo(() => {
     if (messSummary?.members && messSummary.members.length > 0) {
-      return messSummary.members.map((m) => ({
-        memberId: m.memberId,
-        name: m.name,
-        mealsCount: Math.round(((m.share || 0) / (mealRate || 1)) * 10) / 10 || 0,
-        totalDeposited: m.totalDeposited || m.totalPaid || 0,
-        totalCost: m.share || 0,
-        balance: m.balance,
-        // Only surface an overdue value when the backend actually provides one.
-        // Otherwise the card simply omits the overdue row.
-        overdueDays: undefined,
-      }));
+      return messSummary.members.map((m) => {
+        const mealsCount = memberMealsMap[m.memberId] || 0;
+        const totalPaid = m.totalPaid || 0;
+        const totalDeposited = m.totalDeposited || 0;
+        const totalContributed = totalPaid + totalDeposited;
+        const balance =
+          totalDeposited > 0 && totalPaid === 0
+            ? Math.round((totalContributed - (m.share || 0)) * 100) / 100
+            : m.balance;
+
+        return {
+          memberId: m.memberId,
+          name: m.name,
+          mealsCount,
+          totalDeposited: totalContributed,
+          totalCost: m.share || 0,
+          balance,
+        };
+      });
     }
 
     if (businessMembers.length > 0) {
       return businessMembers.map((bm) => ({
         memberId: bm._id,
         name: `${bm.firstName} ${bm.lastName}`.trim() || bm.email,
-        mealsCount: 0,
+        mealsCount: memberMealsMap[bm._id] || 0,
         totalDeposited: 0,
         totalCost: 0,
         balance: 0,
@@ -255,33 +269,21 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
     }
 
     return [];
-  }, [messSummary, businessMembers, mealRate]);
+  }, [messSummary, businessMembers, memberMealsMap]);
 
-  // Dynamic Bazaar Record from latest real transaction
-  const bazaarRecord: IBazaarRecord | null = useMemo(() => {
-    if (recentBazaarTxn) {
-      const memberName = recentBazaarTxn.member
-        ? `${recentBazaarTxn.member.firstName} ${recentBazaarTxn.member.lastName}`
-        : business.owner
-        ? `${business.owner.firstName} ${business.owner.lastName}`
-        : user
-        ? `${user.firstName} ${user.lastName}`
-        : "Member";
+  // Handle Opening Transaction Modal
+  const handleOpenTxn = (type: TxnType) => {
+    haptic("medium");
+    setTxnModalType(type);
+    setShowTxnModal(true);
+  };
 
-      return {
-        buyerName: memberName,
-        buyerAvatarInitial: memberName.trim().slice(0, 2),
-        amount: recentBazaarTxn.amount,
-        itemsSummary:
-          recentBazaarTxn.note ||
-          recentBazaarTxn.category?.name ||
-          "বাজারের খরচ",
-        date: recentBazaarTxn.date,
-      };
-    }
-
-    return null;
-  }, [recentBazaarTxn, business.owner, user]);
+  const bazaarExpenses = useMemo(() => {
+    return txnsInSelectedMonth
+      .filter((t) => t.type === "expense")
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [txnsInSelectedMonth]);
 
   return (
     <div className="flex flex-col gap-4 pb-28 max-w-lg mx-auto w-full px-1">
@@ -299,27 +301,28 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
       {/* 2. Primary Financial Hero Card (100% Dynamic) */}
       <LiveMealRateHeroCard
         mealRate={mealRate}
+        perPersonShare={perPersonShare}
         totalBazaar={totalBazaar}
         totalMeals={totalMeals}
         cashFund={cashFund}
         todayMeals={todayMeals}
-        daysPassed={mealSummary?.days || 0}
+        daysPassed={daysWithMeals}
+        activeMembersCount={activeMembersCount}
       />
 
-      {/* 3. Quick Actions Grid (4 Tactile Tiles) */}
+      {/* 3. Quick Actions Grid (4 Tactile Functional Actions) */}
       <MessQuickActionGrid
         onMealEntry={() => navigate("/meals")}
-        onBazaarExpense={() => navigate("/transactions/new?type=expense")}
-        onAcceptDeposit={() => navigate("/transactions/new?type=income")}
+        onBazaarExpense={() => handleOpenTxn("expense")}
+        onAcceptDeposit={() => handleOpenTxn("income")}
         onMealSheet={() => navigate("/mess")}
       />
 
-      {/* 4. Today's Dining & Bazaar Brief (100% Dynamic) */}
+      {/* 4. Recent Bazaar Expenses Card (100% Dynamic) */}
       <TodayDiningBazaarCard
-        bazaarRecord={bazaarRecord}
-        todayMealsCount={todayMeals}
-        onOpenMeals={() => navigate("/meals")}
-        onAddBazaar={() => navigate("/transactions/new?type=expense")}
+        transactions={bazaarExpenses}
+        onAddBazaar={() => handleOpenTxn("expense")}
+        onViewAll={() => navigate("/transactions")}
       />
 
       {/* 5. Members Financial Status Summary (100% Dynamic) */}
@@ -377,9 +380,24 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
 
       {/* 7. Sticky Bottom Floating Action Dock */}
       <MessFloatingActionDock
-        onAddBazaar={() => navigate("/transactions/new?type=expense")}
-        onAddDeposit={() => navigate("/transactions/new?type=income")}
+        onAddBazaar={() => handleOpenTxn("expense")}
+        onAddDeposit={() => handleOpenTxn("income")}
       />
+
+      {/* Rapid Modal for Bazaar Expense or Member Deposit */}
+      {showTxnModal && (
+        <TxnModal
+          open={showTxnModal}
+          defaultType={txnModalType}
+          isMass={true}
+          onClose={() => setShowTxnModal(false)}
+          onSuccess={() => {
+            setShowTxnModal(false);
+            loadDashboardData(true);
+            onRefresh?.();
+          }}
+        />
+      )}
     </div>
   );
 };

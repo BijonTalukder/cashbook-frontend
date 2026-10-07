@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  ShieldCheck,
   RefreshCw,
 } from "lucide-react";
 import { useTranslation } from "../../../i18n/useTranslation";
@@ -11,7 +10,7 @@ import { useFormat } from "../../../i18n/useFormat";
 import { haptic } from "../../../native/bridge";
 
 interface MessHeaderProps {
-  businessName: string;
+  businessName?: string;
   activeMembersCount: number;
   selectedDate: Date;
   onPrevMonth: () => void;
