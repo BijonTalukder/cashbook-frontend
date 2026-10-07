@@ -161,7 +161,7 @@ const AppLayout = () => {
 
         {/* Business switcher */}
         <div className="px-3 mb-4">
-          <BusinessSwitcher onSelect={() => navigate("/transactions")} />
+          <BusinessSwitcher />
         </div>
 
         {/* Nav */}
@@ -267,7 +267,7 @@ const AppLayout = () => {
                 {pageTitle}
               </p>
             ) : (
-              <BusinessSwitcher onSelect={() => navigate("/transactions")} />
+              <BusinessSwitcher />
             )}
           </div>
 

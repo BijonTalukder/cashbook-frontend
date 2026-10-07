@@ -14,7 +14,7 @@ import PageTransition from "../components/ui/PageTransition";
 import PullToRefresh from "../components/ui/PullToRefresh";
 import { RefreshProvider, useRefreshRunner } from "../native/refresh";
 import { useBusinessStore } from "../store/businessStore";
-import { businessService } from "../services/business.service";
+import { businessService, type IBusiness } from "../services/business.service";
 import BusinessSwitcher from "../components/shared/BusinessSwitcher";
 import FloatingAI from "../pages/Ai/FloatingAI";
 import ThemeToggle from "../components/shared/ThemeToggle";
@@ -176,6 +176,45 @@ const AppLayout = () => {
   const [showMore, setShowMore] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  const handleBusinessSwitch = (newBiz: IBusiness) => {
+    const path = location.pathname;
+    const isNewMass = newBiz.type === "mass" || newBiz.mealEnabled;
+    const isNewBusiness = newBiz.type === "business";
+
+    // Pages that only exist for Business mode
+    const businessOnlyPaths = [
+      "/customers",
+      "/suppliers",
+      "/products",
+      "/sales",
+      "/purchases",
+      "/expenses",
+      "/baki",
+      "/ledger",
+      "/reports",
+    ];
+
+    // Pages that only exist for Mess mode
+    const massOnlyPaths = ["/meals", "/mess"];
+
+    // Pages that are hidden in Business mode (personal mode only)
+    const nonBusinessPaths = ["/transactions", "/dues"];
+
+    const isBusinessOnly = businessOnlyPaths.some((p) => path.startsWith(p));
+    const isMassOnly = massOnlyPaths.some((p) => path.startsWith(p));
+    const isNonBusinessOnly = nonBusinessPaths.some((p) => path.startsWith(p));
+
+    if (
+      (!isNewBusiness && isBusinessOnly) ||
+      (!isNewMass && isMassOnly) ||
+      (isNewBusiness && isNonBusinessOnly) ||
+      path.includes("/new")
+    ) {
+      navigate("/dashboard");
+    }
+    // Otherwise, user stays right on the current page with new business data
+  };
+
   /* A native app bar is flat while the screen is at rest and lifts once
      content slides under it. Without the cue, a translucent header just looks
      like it is bleeding into the page. */
@@ -331,7 +370,7 @@ const AppLayout = () => {
 
         {/* Business switcher */}
         <div className="px-3 mb-4 flex-shrink-0">
-          <BusinessSwitcher onSelect={() => navigate("/transactions")} />
+          <BusinessSwitcher onSelect={handleBusinessSwitch} />
         </div>
 
         {/* Nav */}
@@ -448,7 +487,7 @@ const AppLayout = () => {
                 {pageTitle}
               </h1>
             ) : (
-              <BusinessSwitcher variant="appbar" onSelect={() => navigate("/dashboard")} />
+              <BusinessSwitcher variant="appbar" onSelect={handleBusinessSwitch} />
             )}
           </div>
 
