@@ -12,8 +12,6 @@ import { haptic } from "../../../native/bridge";
 
 interface MessHeaderProps {
   businessName: string;
-  branchName?: string;
-  managerName?: string;
   activeMembersCount: number;
   selectedDate: Date;
   onPrevMonth: () => void;
@@ -23,8 +21,6 @@ interface MessHeaderProps {
 }
 
 export const MessHeader: React.FC<MessHeaderProps> = ({
-  branchName,
-  managerName,
   activeMembersCount,
   selectedDate,
   onPrevMonth,
@@ -100,22 +96,6 @@ export const MessHeader: React.FC<MessHeaderProps> = ({
             </button>
           )}
         </div>
-      </div>
-
-      {/* Manager Metadata Row */}
-      <div className="flex items-center justify-between px-1 text-slate-500 dark:text-neutral-400 text-xs">
-        <div className="flex items-center gap-1.5 truncate">
-          <ShieldCheck size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-          <span className="truncate">
-            {t("messDashboard.manager")}:{" "}
-            <span className="font-semibold text-slate-800 dark:text-neutral-200">
-              {managerName || "Admin"}
-            </span>
-          </span>
-        </div>
-        <span className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/50 dark:border-indigo-800/50 px-2 py-0.5 rounded-full shrink-0">
-          {branchName || t("messDashboard.defaultBranch")}
-        </span>
       </div>
     </section>
   );

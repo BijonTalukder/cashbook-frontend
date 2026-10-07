@@ -8,6 +8,8 @@ import { transactionService, type ITransaction } from "../../services/transactio
 import { businessMembersService, type IMember } from "../../services/businessMembers.service";
 import { useAuthStore } from "../../store/authStore";
 import { useTranslation } from "../../i18n/useTranslation";
+import { useFormat } from "../../i18n/useFormat";
+import { toCurrency } from "../../utils/currency";
 import { useRefreshHandler } from "../../native/refresh";
 
 import {
@@ -18,8 +20,6 @@ import {
   type IBazaarRecord,
   MessMembersBalanceCard,
   type IMessMemberItem,
-  MealTrendsChartCard,
-  type IMealTrendPoint,
   MessFloatingActionDock,
 } from "./mess";
 
@@ -43,6 +43,13 @@ interface ApiMessSummary {
     share: number;
     balance: number;
   }>;
+  settlements?: Array<{
+    from: string;
+    fromId: string;
+    to: string;
+    toId: string;
+    amount: number;
+  }>;
 }
 
 export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
@@ -52,6 +59,7 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { t } = useTranslation();
+  const { money } = useFormat(toCurrency(business.currency));
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
@@ -275,46 +283,11 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
     return null;
   }, [recentBazaarTxn, business.owner, user]);
 
-  // Dynamic 7-Day Trend from monthMeals
-  const { trendData, avgPerDay } = useMemo(() => {
-    const dayNames = ["daySun", "dayMon", "dayTue", "dayWed", "dayThu", "dayFri", "daySat"];
-    const points: IMealTrendPoint[] = [];
-    const now = new Date();
-    let sum = 0;
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 86400000);
-      const dateKey = d.toISOString().slice(0, 10);
-      const count = monthMeals[dateKey]?.total ?? 0;
-      sum += count;
-      points.push({
-        dayLabelKey: dayNames[d.getDay()],
-        count,
-      });
-    }
-
-    return {
-      trendData: points,
-      avgPerDay: Math.round((sum / 7) * 10) / 10,
-    };
-  }, [monthMeals]);
-
-  // Dynamic Manager & Branch
-  const managerName = business.owner
-    ? `${business.owner.firstName} ${business.owner.lastName}`
-    : user
-    ? `${user.firstName} ${user.lastName}`
-    : "Manager";
-
-  const branchName = business.address || business.phone || business.category?.name;
-
   return (
     <div className="flex flex-col gap-4 pb-28 max-w-lg mx-auto w-full px-1">
       {/* 1. Mess Header & Month Selector (100% Dynamic) */}
       <MessHeader
         businessName={business.name}
-        branchName={branchName}
-        managerName={managerName}
         activeMembersCount={activeMembersCount}
         selectedDate={selectedDate}
         onPrevMonth={handlePrevMonth}
@@ -356,11 +329,51 @@ export const MessDashboardContent: React.FC<MessDashboardContentProps> = ({
         onViewAllMembers={() => navigate("/mess")}
       />
 
-      {/* 6. Visual Meal Trends Mini Preview (100% Dynamic) */}
-      <MealTrendsChartCard
-        trendData={trendData}
-        avgPerDay={avgPerDay}
-      />
+      {/* 6. Real Settlements / To Settle Up (100% Dynamic from Backend) */}
+      {messSummary?.settlements && messSummary.settlements.length > 0 && (
+        <section className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+                {t("mess.toSettleUp")}
+              </h2>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/mess")}
+              className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
+            >
+              {t("common.details") || "বিস্তারিত"}
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {messSummary.settlements.map((s, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40 text-xs"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-rose-500 to-red-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                    {s.from?.[0] || "U"}
+                  </div>
+                  <div className="truncate">
+                    <span className="font-semibold text-rose-700 dark:text-rose-300">{s.from}</span>
+                    <span className="mx-1.5 text-slate-400 dark:text-neutral-500">
+                      {t("mess.pays")}
+                    </span>
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">{s.to}</span>
+                  </div>
+                </div>
+                <span className="font-mono font-bold text-slate-900 dark:text-neutral-100 text-sm shrink-0">
+                  {money(s.amount, { decimals: 0 })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 7. Sticky Bottom Floating Action Dock */}
       <MessFloatingActionDock

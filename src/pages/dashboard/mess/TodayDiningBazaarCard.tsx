@@ -32,7 +32,15 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
   onAddBazaar,
 }) => {
   const { t } = useTranslation();
-  const { money, num } = useFormat();
+  const { money, num, date: fmtDate } = useFormat();
+
+  const isToday = Boolean(
+    bazaarRecord?.date &&
+    new Date(bazaarRecord.date).toDateString() === new Date().toDateString()
+  );
+  const cardTitle = isToday
+    ? t("messDashboard.todaysDiningBazaar")
+    : "সাম্প্রতিক বাজার খরচ";
 
   return (
     <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col gap-3.5">
@@ -43,9 +51,14 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
             <ShoppingBag size={18} />
           </div>
           <h2 className="text-sm font-bold text-slate-900 dark:text-neutral-100">
-            {t("messDashboard.todaysDiningBazaar")}
+            {cardTitle}
           </h2>
         </div>
+        {bazaarRecord?.date && (
+          <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
+            {isToday ? "আজ" : fmtDate(bazaarRecord.date, "short")}
+          </span>
+        )}
       </div>
 
       {/* Bazaar Summary Sub-card */}
@@ -62,11 +75,11 @@ export const TodayDiningBazaarCard: React.FC<TodayDiningBazaarCardProps> = ({
                   {bazaarRecord.buyerName}
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-neutral-400 truncate block">
-                  {t("messDashboard.bazaarInCharge")}
+                  {bazaarRecord.date ? fmtDate(bazaarRecord.date, "short") : "বাজার করেছেন"}
                 </span>
               </div>
             </div>
-            <span className="text-base font-extrabold text-slate-900 dark:text-neutral-100 shrink-0">
+            <span className="text-base font-extrabold text-slate-900 dark:text-neutral-100 shrink-0 font-mono">
               {money(bazaarRecord.amount, { decimals: 0 })}
             </span>
           </div>

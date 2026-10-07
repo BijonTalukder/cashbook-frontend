@@ -7,11 +7,7 @@ interface LiveMealRateHeroCardProps {
   mealRate: number;
   totalBazaar: number;
   totalMeals: number;
-  budgetAmount?: number;
   todayMeals?: number;
-  todayBreakfast?: number;
-  todayLunch?: number;
-  todayDinner?: number;
   daysPassed?: number;
   cashFund: number;
 }
@@ -20,23 +16,12 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
   mealRate,
   totalBazaar,
   totalMeals,
-  budgetAmount,
   todayMeals = 0,
-  todayBreakfast,
-  todayLunch,
-  todayDinner,
   daysPassed = 0,
   cashFund,
 }) => {
   const { t } = useTranslation();
   const { money, num } = useFormat();
-
-  // Dynamic budget calculations — only show the budget bar when the caller
-  // provides a real budget. A synthetic 1000 baseline would be invented data.
-  const hasBudget = budgetAmount !== undefined && budgetAmount > 0;
-  const budgetPercent = hasBudget
-    ? Math.min(Math.round((totalBazaar / budgetAmount!) * 100), 100)
-    : 0;
 
   const isSafeFund = cashFund >= 0;
 
@@ -82,31 +67,8 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
         </div>
       </div>
 
-      {/* Budget Consumption Indicator — only when a real budget is configured */}
-      {hasBudget && (
-        <div className="flex flex-col gap-1.5 pt-1 border-t border-slate-100 dark:border-neutral-800/70">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500 dark:text-neutral-400 font-medium">
-              {t("messDashboard.budgetUsage", { percent: num(budgetPercent) })}
-            </span>
-            <span className="font-bold text-slate-800 dark:text-neutral-200">
-              {t("messDashboard.budgetVsExpense", {
-                spent: money(totalBazaar, { decimals: 0 }),
-                budget: money(budgetAmount!, { decimals: 0 }),
-              })}
-            </span>
-          </div>
-          <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
-            <div
-              className="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-700"
-              style={{ width: `${budgetPercent}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* 3-Column Sub-Metrics Grid */}
-      <div className="grid grid-cols-3 gap-2 pt-1">
+      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-neutral-800/70">
         {/* Metric 1: Today's Meals */}
         <div className="bg-slate-50 dark:bg-neutral-800/60 border border-slate-100 dark:border-neutral-800 p-2.5 rounded-2xl flex flex-col justify-between">
           <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
@@ -116,19 +78,7 @@ export const LiveMealRateHeroCard: React.FC<LiveMealRateHeroCardProps> = ({
             {num(todayMeals, { maximumFractionDigits: 1 })} টি
           </span>
           <span className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-            {todayMeals > 0 &&
-            todayBreakfast !== undefined &&
-            todayLunch !== undefined &&
-            todayDinner !== undefined &&
-            (todayBreakfast > 0 || todayLunch > 0 || todayDinner > 0) ? (
-              t("messDashboard.todaysMealSplit", {
-                b: num(todayBreakfast ?? 0, { maximumFractionDigits: 1 }),
-                l: num(todayLunch ?? 0, { maximumFractionDigits: 1 }),
-                d: num(todayDinner ?? 0, { maximumFractionDigits: 1 }),
-              })
-            ) : (
-              t("messDashboard.noMealSplit")
-            )}
+            {todayMeals > 0 ? (t("mess.mealsRecordedToday") || "আজকের এন্ট্রি") : (t("mess.noMealsToday") || "আজকের হিসাব")}
           </span>
         </div>
 

@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Users,
-  MessageSquare,
   Send,
   ArrowRight,
   TrendingDown,
@@ -9,7 +8,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "../../../i18n/useTranslation";
 import { useFormat } from "../../../i18n/useFormat";
-import { shareViaWhatsApp, shareViaSms } from "../../../utils/share";
+import { shareViaWhatsApp } from "../../../utils/share";
 import { haptic } from "../../../native/bridge";
 
 export interface IMessMemberItem {
@@ -48,13 +47,6 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
     const dueAmount = money(Math.abs(m.balance), { decimals: 0 });
     const msg = `আসসালামু আলাইকুম ${m.name},\n${messName}-এ আপনার চলতি মাসের বকেয়া ${dueAmount} টাকা। মেসের বাজার খরচের সুবিধার জন্য অনুগ্রহ করে দ্রুত জমা দিন।\nধন্যবাদ!`;
     shareViaWhatsApp(msg);
-  };
-
-  const handleSmsReminder = (m: IMessMemberItem) => {
-    haptic("light");
-    const dueAmount = money(Math.abs(m.balance), { decimals: 0 });
-    const msg = `${messName}: ${m.name}, apnar baki ${dueAmount} taka. Doya kore joma din. Dhonnobad!`;
-    shareViaSms(m.phone, msg);
   };
 
   return (
@@ -166,33 +158,20 @@ export const MessMembersBalanceCard: React.FC<MessMembersBalanceCardProps> = ({
               </div>
 
               {/* Inline Action for Due Members */}
-              {isDue && m.overdueDays !== undefined && (
-                <div className="flex items-center justify-between pt-1 border-t border-slate-200/40 dark:border-neutral-700/40 text-xs">
-                  <span className="text-[11px] text-slate-400 dark:text-neutral-500">
-                    {t("messDashboard.delayedDays", {
-                      days: num(m.overdueDays),
-                    })}
+              {isDue && (
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/40 dark:border-neutral-700/40 text-xs">
+                  <span className="text-[11px] text-rose-500 font-medium">
+                    {t("dues.youOwe") || "বকেয়া রয়েছে"}
                   </span>
 
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleSmsReminder(m)}
-                      className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 active:scale-95 px-2.5 py-1 rounded-xl text-[11px] font-semibold flex items-center gap-1 shadow-xs hover:bg-slate-50 transition-all select-none"
-                    >
-                      <MessageSquare size={12} className="text-rose-500" />
-                      <span>{t("messDashboard.smsTagada")}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleWhatsAppReminder(m)}
-                      className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 active:scale-95 px-2.5 py-1 rounded-xl text-[11px] font-semibold flex items-center gap-1 shadow-xs hover:bg-slate-50 transition-all select-none"
-                    >
-                      <Send size={12} className="text-emerald-500" />
-                      <span>{t("messDashboard.whatsappTagada")}</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleWhatsAppReminder(m)}
+                    className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 active:scale-95 px-2.5 py-1 rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/80 transition-all select-none"
+                  >
+                    <Send size={12} className="text-emerald-600 dark:text-emerald-400" />
+                    <span>{t("messDashboard.whatsappTagada") || "তাগাদা পাঠান"}</span>
+                  </button>
                 </div>
               )}
             </div>
