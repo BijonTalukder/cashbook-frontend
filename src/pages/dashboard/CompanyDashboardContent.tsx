@@ -290,51 +290,6 @@ export const CompanyDashboardContent: React.FC<Props> = ({
   return (
     <div className="space-y-4 pb-28 text-slate-900 dark:text-neutral-100 max-w-lg mx-auto w-full px-1">
       {/* 1. Company Header with Team Badge, Month Filter, & Refresh */}
-      <section className="space-y-2">
-        <div className="flex items-center justify-between bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-3 shadow-xs">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-2xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-              <Building2 size={18} />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-sm font-bold text-slate-900 dark:text-neutral-100 truncate">
-                {business.name}
-              </h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full">
-                  {t("businessType.company")}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigate("/members")}
-                  className="text-[11px] text-slate-500 dark:text-neutral-400 hover:text-blue-600 flex items-center gap-1 font-medium"
-                >
-                  <Users size={12} />
-                  <span>{t("company.teamMembersCount", { count: num(activeMembersCount) })}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic("light");
-              (onRefresh || fetchData)();
-            }}
-            disabled={loading}
-            className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-neutral-800 border border-slate-200/80 dark:border-neutral-700 flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-700 active:scale-95 transition-all select-none shadow-xs shrink-0"
-            aria-label="Refresh data"
-          >
-            <RefreshCw size={13} className={loading ? "animate-spin text-blue-600 dark:text-blue-400" : ""} />
-          </button>
-        </div>
-
-        {/* Time range filter pill bar */}
-        <div className="pt-0.5">
-          <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
-        </div>
-      </section>
 
       {/* 2. Treasury Balance Card (Cash, Bank, MFS) */}
       <HeroBalanceCard
