@@ -51,6 +51,13 @@ import BusinessDashboardContent from "./BusinessDashboardContent";
 import PersonalDashboardContent from "./PersonalDashboardContent";
 import MessDashboardContent from "./MessDashboardContent";
 import CompanyDashboardContent from "./CompanyDashboardContent";
+import { AdaptiveView } from "../../components/adaptive";
+import {
+  WebPersonalDashboard,
+  WebBusinessDashboard,
+  WebMessDashboard,
+  WebCompanyDashboard,
+} from "../../web/screens/dashboard";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { useRefreshHandler } from "../../native/refresh";
@@ -350,7 +357,7 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="px-4 pt-5 pb-16 lg:px-8 lg:pt-8 lg:pb-20 max-w-5xl mx-auto space-y-5">
+      <div className="px-4 pt-5 pb-16 lg:px-8 lg:pt-6 lg:pb-16 max-w-7xl mx-auto space-y-5">
 
         {/* ── Header (for generic views only when no business active) ──── */}
         {!activeBusiness && (
@@ -377,36 +384,88 @@ const DashboardPage = () => {
         )}
 
         {activeBusiness?.type === "business" ? (
-          <BusinessDashboardContent
-            business={activeBusiness}
-            onRefresh={() => {
-              fetchBusinesses(true);
-              fetchBusinessData();
-            }}
+          <AdaptiveView
+            mobile={
+              <BusinessDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebBusinessDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
           />
         ) : activeBusiness?.type === "company" ? (
-          <CompanyDashboardContent
-            business={activeBusiness}
-            onRefresh={() => {
-              fetchBusinesses(true);
-              fetchBusinessData();
-            }}
+          <AdaptiveView
+            mobile={
+              <CompanyDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebCompanyDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
           />
         ) : activeBusiness?.type === "personal" ? (
-          <PersonalDashboardContent
-            business={activeBusiness}
-            onRefresh={() => {
-              fetchBusinesses(true);
-              fetchBusinessData();
-            }}
+          <AdaptiveView
+            mobile={
+              <PersonalDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebPersonalDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
           />
         ) : activeBusiness?.type === "mass" || activeBusiness?.mealEnabled ? (
-          <MessDashboardContent
-            business={activeBusiness}
-            onRefresh={() => {
-              fetchBusinesses(true);
-              fetchBusinessData();
-            }}
+          <AdaptiveView
+            mobile={
+              <MessDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebMessDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
           />
         ) : (
           <>

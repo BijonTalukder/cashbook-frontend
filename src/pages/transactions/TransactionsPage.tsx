@@ -33,6 +33,8 @@ import { plural } from "../../i18n/labels";
 import LoadFailedState from "../../components/shared/LoadFailedState";
 import { toastLoadFailure } from "../../offline/notify";
 import { haptic } from "../../native/bridge";
+import { useIsDesktop } from "../../hooks/useViewport";
+import WebTransactionsView from "../../web/screens/transactions/WebTransactionsView";
 
 /* ─── Helpers ─────────────────────────────────────────── */
 const TYPE_META = {
@@ -261,6 +263,7 @@ const TransactionsPage = () => {
   const { t } = useTranslation();
   const { money, num } = useFormat();
   const isMass = activeBusiness?.type === "mass";
+  const isDesktop = useIsDesktop();
 
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [summary, setSummary] = useState<ITxnSummary | null>(null);
@@ -357,7 +360,37 @@ const TransactionsPage = () => {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] pb-28 text-slate-900 dark:text-neutral-100">
-      <div className="px-4 py-4 lg:px-8 lg:py-6 max-w-3xl mx-auto space-y-4">
+      {isDesktop ? (
+        <div className="px-6 py-6 lg:px-8 max-w-7xl mx-auto">
+          <WebTransactionsView
+            transactions={transactions}
+            summary={summary}
+            loading={loading}
+            total={total}
+            page={page}
+            totalPages={totalPages}
+            typeFilter={typeFilter}
+            onTypeFilterChange={(type) => {
+              setTypeFilter(type);
+              setPage(1);
+            }}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              fetchTxns(newPage);
+            }}
+            onRefresh={() => fetchTxns(page)}
+            onOpenAdd={openAdd}
+            onEdit={(txn) => {
+              setEditing(txn);
+              setModalOpen(true);
+            }}
+            onDelete={(txn) => setDeleting(txn)}
+            onSettle={(txn) => setSettling(txn)}
+            isMass={isMass}
+          />
+        </div>
+      ) : (
+        <div className="px-4 py-4 lg:px-8 lg:py-6 max-w-3xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -593,41 +626,44 @@ const TransactionsPage = () => {
           )}
         </div>
       </div>
+    )}
 
       {/* Mobile FAB */}
-      <div
-        className="lg:hidden fixed flex flex-col z-40"
-        style={{
-          bottom: "var(--fab-slot-1)",
-          right: "var(--fab-right)",
-          gap: "var(--fab-gap)",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => openAdd("income")}
-          aria-label={t("txn.income")}
-          className="rounded-2xl flex items-center justify-center bg-emerald-500 text-emerald-950 shadow-lg shadow-emerald-500/30 active:scale-95 transition-all"
+      {!isDesktop && (
+        <div
+          className="lg:hidden fixed flex flex-col z-40"
           style={{
-            width: "var(--fab-size)",
-            height: "var(--fab-size)",
+            bottom: "var(--fab-slot-1)",
+            right: "var(--fab-right)",
+            gap: "var(--fab-gap)",
           }}
         >
-          <TrendingUp size={22} />
-        </button>
-        <button
-          type="button"
-          onClick={() => openAdd("expense")}
-          aria-label={t("txn.expense")}
-          className="rounded-2xl flex items-center justify-center bg-rose-500 text-white shadow-lg shadow-rose-500/30 active:scale-95 transition-all"
-          style={{
-            width: "var(--fab-size)",
-            height: "var(--fab-size)",
-          }}
-        >
-          <TrendingDown size={22} />
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => openAdd("income")}
+            aria-label={t("txn.income")}
+            className="rounded-2xl flex items-center justify-center bg-emerald-500 text-emerald-950 shadow-lg shadow-emerald-500/30 active:scale-95 transition-all"
+            style={{
+              width: "var(--fab-size)",
+              height: "var(--fab-size)",
+            }}
+          >
+            <TrendingUp size={22} />
+          </button>
+          <button
+            type="button"
+            onClick={() => openAdd("expense")}
+            aria-label={t("txn.expense")}
+            className="rounded-2xl flex items-center justify-center bg-rose-500 text-white shadow-lg shadow-rose-500/30 active:scale-95 transition-all"
+            style={{
+              width: "var(--fab-size)",
+              height: "var(--fab-size)",
+            }}
+          >
+            <TrendingDown size={22} />
+          </button>
+        </div>
+      )}
 
       {/* Add / Edit Modal */}
       <TxnModal

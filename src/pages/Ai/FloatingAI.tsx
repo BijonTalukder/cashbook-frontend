@@ -25,6 +25,9 @@ import { haptic } from "../../native/bridge";
 import { useBackHandler, useBodyScrollLock, useMediaQuery } from "../../native/hooks";
 import type { TFunction } from "../../i18n/useTranslation";
 import { enumLabel } from "../../i18n/labels";
+import { AnalyticsView } from "./components/AnalyticsView";
+import { CommandAutocomplete } from "./components/CommandAutocomplete";
+import type { AnalyticsResult } from "./types";
 
 /* ── Types ────────────────────────────────────────── */
 type Step = "select" | "chat";
