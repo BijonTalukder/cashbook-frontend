@@ -384,9 +384,6 @@ const NewPurchasePage = () => {
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
                 {t("purchase.new")}
               </h1>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-                {activeBusiness?.name}
-              </p>
             </div>
           </div>
 

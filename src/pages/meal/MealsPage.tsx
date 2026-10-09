@@ -574,15 +574,14 @@ const MealsPage = () => {
             >
               {t("meals.title")}
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-              {activeBusiness.name} ·{" "}
-              {isAdmin && (
-                <span style={{ color: "#8b5cf6" }}>
-                  <ShieldCheck size={10} className="inline mr-0.5" />
+            {isAdmin && (
+              <p className="text-xs mt-0.5 text-slate-500 dark:text-neutral-400">
+                <span className="text-purple-600 dark:text-purple-400 font-semibold inline-flex items-center gap-1">
+                  <ShieldCheck size={12} />
                   {t("meals.adminBadge")}
                 </span>
-              )}
-            </p>
+              </p>
+            )}
           </div>
 
           {/* Today's quick add */}

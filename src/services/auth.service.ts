@@ -10,16 +10,31 @@ import type {
   VerifyOtpResponse,
 } from "../types/auth.types";
 import api from "./api";
+import { retryRequest } from "./retry";
 
 export const authService = {
   register: async (payload: RegisterPayload): Promise<AuthResponse> => {
-    const { data } = await api.post<AuthResponse>("/auth/register", payload);
-    return data;
+    return retryRequest(
+      async () => {
+        const { data } = await api.post<AuthResponse>("/auth/register", payload, {
+          timeout: 45000,
+        });
+        return data;
+      },
+      { retries: 2, delayMs: 1500 },
+    );
   },
 
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
-    const { data } = await api.post<AuthResponse>("/auth/login", payload);
-    return data;
+    return retryRequest(
+      async () => {
+        const { data } = await api.post<AuthResponse>("/auth/login", payload, {
+          timeout: 45000,
+        });
+        return data;
+      },
+      { retries: 2, delayMs: 1500 },
+    );
   },
 
   googleLogin: async (payload: GoogleLoginPayload): Promise<AuthResponse> => {

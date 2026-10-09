@@ -31,6 +31,7 @@ import type { TFunction } from "../../i18n/useTranslation";
 import LanguageToggle from "../../components/shared/LanguageToggle";
 import { enumLabel } from "../../i18n/labels";
 import { CURRENCIES, toCurrency } from "../../utils/currency";
+import api from "../../services/api";
 import {
   businessService,
   type IBusinessCategory,
@@ -163,6 +164,11 @@ const OnboardingPage = () => {
       navigate("/dashboard", { replace: true });
     }
   }, [defaultBusiness]); // ✅ navigate বাদ — stable reference, lint warning suppress করো
+
+  // Pre-warm backend so categories and business creation are fast and reliable
+  useEffect(() => {
+    void api.get("/health", { timeout: 30000 }).catch(() => {});
+  }, []);
 
   const draft = getDraft();
 

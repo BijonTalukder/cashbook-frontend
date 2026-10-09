@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, useSearchParams } from "react-router-dom";
 import { Suspense, lazy, type ComponentType } from "react";
 import GuestRoute from "./GuestRoute";
 import PrivateRoute from "./PrivateRoute";
@@ -30,6 +30,12 @@ const page = (loader: () => Promise<{ default: ComponentType }>) => {
       <Component />
     </Suspense>
   );
+};
+
+const TransactionsNewRedirect = () => {
+  const [searchParams] = useSearchParams();
+  const search = searchParams.toString();
+  return <Navigate to={`/transactions${search ? `?${search}` : ""}`} replace />;
 };
 
 export const router = createBrowserRouter([
@@ -69,6 +75,7 @@ export const router = createBrowserRouter([
           { path: "/", element: <Navigate to="/dashboard" replace /> },
           { path: "/dashboard", element: page(() => import("../pages/dashboard/DashboardPage")) },
           { path: "/transactions", element: page(() => import("../pages/transactions/TransactionsPage")) },
+          { path: "/transactions/new", element: <TransactionsNewRedirect /> },
           { path: "/members", element: page(() => import("../pages/business-member/MembersPage")) },
           { path: "/dues", element: page(() => import("../pages/dues/PendingDuesPage")) },
           { path: "/settings", element: page(() => import("../pages/settings/SettingsPage")) },

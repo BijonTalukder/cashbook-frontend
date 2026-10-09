@@ -44,10 +44,9 @@ export const PersonalHeader: React.FC<PersonalHeaderProps> = ({
               {t("businessType.personal")}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-slate-500 dark:text-neutral-400 text-[12px] truncate">
-            <Store size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
-            <span className="truncate font-medium">{business.name}</span>
-          </div>
+          <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium mt-0.5 truncate">
+            {t("personalDashboard.summaryTitle")}
+          </p>
         </div>
       </div>
 

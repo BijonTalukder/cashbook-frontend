@@ -1,6 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Filter, ArrowLeftRight, ArrowDownCircle, ArrowUpCircle, Download, FileText } from "lucide-react";
+import {
+  Filter,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Download,
+  FileText,
+  RotateCcw,
+  ArrowLeftRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { transactionService, type ITransaction } from "../../services/transaction.service";
 import { customerService, type ICustomer } from "../../services/customer.service";
@@ -14,19 +22,13 @@ import LoadFailedState from "../../components/shared/LoadFailedState";
 import ReportHeader from "../../components/shared/ReportHeader";
 import { printElementAsReport } from "../../utils/printReport";
 import { toastLoadFailure } from "../../offline/notify";
-
-const C = {
-  card: "var(--surface-1)",
-  border: "var(--border)",
-  input: "var(--surface-2)",
-  inputBorder: "var(--border-strong)",
-};
+import { haptic } from "../../native/bridge";
 
 const LedgerPage = () => {
   const { activeBusiness } = useBusinessStore();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
-  const { money, date: fmtDate } = useFormat();
+  const { money, num, date: fmtDate } = useFormat();
 
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [customers, setCustomers] = useState<ICustomer[]>([]);
@@ -43,7 +45,6 @@ const LedgerPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
 
   useEffect(() => {
     if (!activeBusiness) return;
@@ -84,16 +85,47 @@ const LedgerPage = () => {
   }, [activeBusiness?._id, type, sourceType, customerId, supplierId, paymentMethod, startDate, endDate]);
 
   const clearFilters = () => {
-    setType(""); setSourceType(""); setCustomerId(""); setSupplierId("");
-    setPaymentMethod(""); setStartDate(""); setEndDate("");
+    haptic("light");
+    setType("");
+    setSourceType("");
+    setCustomerId("");
+    setSupplierId("");
+    setPaymentMethod("");
+    setStartDate("");
+    setEndDate("");
   };
-  const hasFilters = !!(type || sourceType || customerId || supplierId || paymentMethod || startDate || endDate);
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (type) count++;
+    if (sourceType) count++;
+    if (customerId) count++;
+    if (supplierId) count++;
+    if (paymentMethod) count++;
+    if (startDate) count++;
+    if (endDate) count++;
+    return count;
+  }, [type, sourceType, customerId, supplierId, paymentMethod, startDate, endDate]);
+
+  const hasFilters = activeFiltersCount > 0;
+
+  // Calculate totals for currently filtered transactions
+  const totals = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    for (const txn of transactions) {
+      if (txn.type === "income") income += txn.amount;
+      else if (txn.type === "expense") expense += txn.amount;
+    }
+    return { income, expense, net: income - expense };
+  }, [transactions]);
 
   const exportCsv = () => {
     if (transactions.length === 0) {
       toast.error(t("ledger.nothingToExport"));
       return;
     }
+    haptic("light");
     const header = [
       t("ledger.csv.date"),
       t("ledger.csv.type"),
@@ -130,6 +162,7 @@ const LedgerPage = () => {
       return;
     }
     if (!printRef.current) return;
+    haptic("light");
     try {
       await printElementAsReport(printRef.current, {
         title: `Ledger — ${activeBusiness?.name ?? "Report"}`,
@@ -140,171 +173,293 @@ const LedgerPage = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("ledger.title")}
-          </h1>
-          <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-[var(--bg)] pb-28 text-slate-900 dark:text-neutral-100">
+      <div className="px-4 py-4 lg:px-8 lg:py-6 max-w-3xl mx-auto space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
+              {t("ledger.title")}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              {t("ledger.entriesCount", { count: num(transactions.length) })}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
             <button
+              type="button"
               onClick={handleDownloadPdf}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all"
-              style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
+              className="flex items-center gap-1.5 px-3 h-10 rounded-2xl text-xs font-semibold bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 active:scale-95 transition-all shadow-xs select-none"
               title={t("common.download")}
               aria-label={t("common.download")}
             >
-              <FileText size={13} /> {t("common.download")}
+              <FileText size={14} />
+              <span className="hidden sm:inline">{t("common.download")}</span>
             </button>
+
             <button
+              type="button"
               onClick={exportCsv}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all"
-              style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
+              className="flex items-center gap-1.5 px-3 h-10 rounded-2xl text-xs font-semibold bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100 active:scale-95 transition-all shadow-xs select-none"
+              title={t("common.export")}
+              aria-label={t("common.export")}
             >
-              <Download size={13} /> {t("common.export")}
+              <Download size={14} />
+              <span className="hidden sm:inline">{t("common.export")}</span>
             </button>
+
             <button
-              onClick={() => setShowFilters((v) => !v)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-all"
-              style={{
-                background: hasFilters ? "rgba(16,185,129,0.1)" : C.card,
-                border: `1px solid ${hasFilters ? "rgba(16,185,129,0.4)" : C.border}`,
-                color: hasFilters ? "#10b981" : "var(--text-muted)",
+              type="button"
+              onClick={() => {
+                haptic("selection");
+                setShowFilters((v) => !v);
               }}
+              className={`flex items-center gap-1.5 px-3.5 h-10 rounded-2xl text-xs font-bold transition-all shadow-xs select-none active:scale-95 ${
+                hasFilters
+                  ? "bg-emerald-600 text-white shadow-emerald-600/20"
+                  : "bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100"
+              }`}
             >
-              <Filter size={13} /> {t("ledger.filters")}
+              <Filter size={14} />
+              <span>{t("ledger.filters")}</span>
+              {hasFilters && (
+                <span className="w-5 h-5 rounded-full bg-white text-emerald-700 text-[11px] font-bold flex items-center justify-center ml-0.5">
+                  {activeFiltersCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
+        {/* Ledger Summary Strip */}
+        {transactions.length > 0 && (
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-emerald-200/60 dark:border-emerald-900/40 shadow-xs">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-neutral-400 block truncate">
+                {t("ledger.totalCredit")}
+              </span>
+              <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">
+                {money(totals.income)}
+              </p>
+            </div>
+
+            <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-rose-200/60 dark:border-rose-900/40 shadow-xs">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-neutral-400 block truncate">
+                {t("ledger.totalDebit")}
+              </span>
+              <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 mt-0.5 truncate">
+                {money(totals.expense)}
+              </p>
+            </div>
+
+            <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shadow-xs">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-neutral-400 block truncate">
+                {t("ledger.netBalance")}
+              </span>
+              <p
+                className={`text-sm sm:text-lg font-bold font-mono tracking-tight mt-0.5 truncate ${
+                  totals.net >= 0
+                    ? "text-slate-900 dark:text-neutral-100"
+                    : "text-rose-600 dark:text-rose-400"
+                }`}
+              >
+                {money(totals.net)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Collapsible Filter Panel */}
         {showFilters && (
-          <div className="rounded-2xl p-4 space-y-3" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-            <div className="grid grid-cols-2 gap-3">
-              <select value={type} onChange={(e) => setType(e.target.value)}
-                style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
+          <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shadow-xs space-y-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
                 <option value="">{t("ledger.allTypes")}</option>
                 <option value="income">{t("txn.income")}</option>
                 <option value="expense">{t("txn.expense")}</option>
               </select>
-              <select value={sourceType} onChange={(e) => setSourceType(e.target.value)}
-                style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
+
+              <select
+                value={sourceType}
+                onChange={(e) => setSourceType(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
                 <option value="">{t("ledger.allSources")}</option>
                 <option value="sale">{t("ledger.sourceSales")}</option>
                 <option value="purchase">{t("ledger.sourcePurchases")}</option>
                 <option value="expense">{t("ledger.sourceExpenses")}</option>
                 <option value="payment">{t("ledger.sourcePayments")}</option>
               </select>
-              <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}
-                style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
+
+              <select
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
                 <option value="">{t("ledger.allCustomers")}</option>
-                {customers.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-              </select>
-              <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}
-                style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
-                <option value="">{t("ledger.allSuppliers")}</option>
-                {suppliers.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-              </select>
-              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
-                style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }}>
-                <option value="">{t("ledger.allMethods")}</option>
-                {(activeBusiness?.paymentMethods ?? ["cash", "bank"]).map((m) => (
-                  <option key={m} value={m}>{paymentMethodLabel(t, m)}</option>
+                {customers.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
-              <div />
-              <input type="date" aria-label={t("ledger.startDate")} title={t("ledger.startDate")} value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }} />
-              <input type="date" aria-label={t("ledger.endDate")} title={t("ledger.endDate")} value={endDate} onChange={(e) => setEndDate(e.target.value)}
-                style={{ background: C.input, border: `1px solid ${C.inputBorder}`, borderRadius: 10, padding: "8px 10px", color: "var(--text-primary)", fontSize: 13 }} />
+
+              <select
+                value={supplierId}
+                onChange={(e) => setSupplierId(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="">{t("ledger.allSuppliers")}</option>
+                {suppliers.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl text-xs font-medium bg-slate-50 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="">{t("ledger.allMethods")}</option>
+                {(activeBusiness?.paymentMethods ?? ["cash", "bank"]).map((m) => (
+                  <option key={m} value={m}>
+                    {paymentMethodLabel(t, m)}
+                  </option>
+                ))}
+              </select>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="date"
+                  aria-label={t("ledger.startDate")}
+                  title={t("ledger.startDate")}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-2.5 py-2 rounded-xl text-xs font-mono font-medium bg-slate-50 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                />
+                <input
+                  type="date"
+                  aria-label={t("ledger.endDate")}
+                  title={t("ledger.endDate")}
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-2.5 py-2 rounded-xl text-xs font-mono font-medium bg-slate-50 dark:bg-neutral-800/80 border border-slate-200 dark:border-neutral-700 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
             </div>
+
             {hasFilters && (
-              <button onClick={clearFilters} className="text-xs font-medium" style={{ color: "#ef4444" }}>
-                {t("ledger.clearFilters")}
-              </button>
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 active:scale-95 transition-all"
+                >
+                  <RotateCcw size={12} />
+                  <span>{t("ledger.clearFilters")}</span>
+                </button>
+              </div>
             )}
           </div>
         )}
 
-        <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        {/* Ledger Surface */}
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl shadow-xs overflow-hidden divide-y divide-slate-100 dark:divide-neutral-800/80">
           {loading ? (
-            <div className="p-4 space-y-2">
+            <div className="p-4 space-y-2.5">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
+                <div
+                  key={i}
+                  className="h-16 rounded-2xl animate-pulse bg-slate-100 dark:bg-neutral-800"
+                />
               ))}
             </div>
           ) : failed ? (
             <LoadFailedState onRetry={load} />
           ) : transactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                <ArrowLeftRight size={20} style={{ color: "var(--text-faint)" }} />
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400 dark:text-neutral-500">
+                <ArrowLeftRight size={22} />
               </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("ledger.empty")}</p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+              <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+                {t("ledger.empty")}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-neutral-400">
                 {hasFilters ? t("ledger.emptyFiltered") : t("ledger.emptyHint")}
               </p>
             </div>
           ) : (
-            transactions.map((txn) => (
-              <div
-                key={txn._id}
-                className="flex items-center gap-3 px-5 py-3.5"
-                style={{ borderBottom: "1px solid var(--border-light)" }}
-              >
+            transactions.map((txn) => {
+              const isIncome = txn.type === "income";
+              return (
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{
-                    background: txn.type === "income" ? "#10b98115" : "#ef444415",
-                    color: txn.type === "income" ? "#10b981" : "#ef4444",
-                  }}
+                  key={txn._id}
+                  className="flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-slate-50/70 dark:hover:bg-neutral-800/40 transition-colors select-none"
                 >
-                  {txn.type === "income" ? <ArrowDownCircle size={15} /> : <ArrowUpCircle size={15} />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {txn.source
-                      ? enumLabel(t, "source", txn.source.type)
-                      : txn.category?.name ?? t("ledger.fallbackEntry")}
-                    {(txn.customer || txn.supplier) && (
-                      <span style={{ color: "var(--text-faint)" }}> · {txn.customer?.name ?? txn.supplier?.name}</span>
-                    )}
+                  <div
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                      isIncome
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                    }`}
+                  >
+                    {isIncome ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate text-slate-900 dark:text-neutral-100">
+                      {txn.source
+                        ? enumLabel(t, "source", txn.source.type)
+                        : txn.category?.name ?? t("ledger.fallbackEntry")}
+                      {(txn.customer || txn.supplier) && (
+                        <span className="text-slate-500 dark:text-neutral-400 font-normal">
+                          {" "}
+                          • {txn.customer?.name ?? txn.supplier?.name}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                      {txn.paymentMethod
+                        ? t("ledger.dateAndMethod", {
+                            date: fmtDate(txn.date),
+                            method: paymentMethodLabel(t, txn.paymentMethod),
+                          })
+                        : fmtDate(txn.date)}
+                    </p>
+                  </div>
+
+                  <p
+                    className={`text-sm sm:text-base font-bold font-mono tracking-tight shrink-0 ${
+                      isIncome
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-rose-600 dark:text-rose-400"
+                    }`}
+                  >
+                    {money(isIncome ? txn.amount : -txn.amount, { signed: true })}
                   </p>
-                  <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                    {txn.paymentMethod
-                      ? t("ledger.dateAndMethod", {
-                          date: fmtDate(txn.date),
-                          method: paymentMethodLabel(t, txn.paymentMethod),
-                        })
-                      : fmtDate(txn.date)}
-                  </p>
                 </div>
-                <p
-                  className="text-sm font-semibold flex-shrink-0"
-                  style={{ color: txn.type === "income" ? "#10b981" : "#ef4444" }}
-                >
-                  {money(txn.type === "income" ? txn.amount : -txn.amount, { signed: true })}
-                </p>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
-        {/* Off-screen printable report — kept off-screen but in the DOM so
-            the print iframe can clone it. Hidden from the page via
-            absolute positioning + zero size. */}
+        {/* Off-screen printable report for PDF iframe generation */}
         {transactions.length > 0 && (
           <div
             ref={printRef}
-            className="p-6"
+            className="p-6 bg-white text-slate-900 border border-slate-200 rounded-2xl"
             style={{
               position: "absolute",
               left: "-9999px",
               top: 0,
               width: "800px",
-              background: "#ffffff",
-              color: "#111827",
-              border: "1px solid #e5e7eb",
-              borderRadius: 16,
             }}
             aria-hidden="true"
           >
@@ -316,9 +471,9 @@ const LedgerPage = () => {
                   : fmtDate(new Date().toISOString(), "short")
               }
             />
-            <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
+            <table className="w-full text-sm border-collapse">
               <thead>
-                <tr style={{ borderBottom: "1px solid #e5e7eb", color: "#6b7280" }}>
+                <tr className="border-b border-slate-200 text-slate-500">
                   <th className="text-left py-2 font-medium">{t("ledger.csv.date")}</th>
                   <th className="text-left py-2 font-medium">{t("ledger.csv.type")}</th>
                   <th className="text-left py-2 font-medium">{t("ledger.csv.source")}</th>
@@ -330,7 +485,7 @@ const LedgerPage = () => {
               </thead>
               <tbody>
                 {transactions.map((txn) => (
-                  <tr key={txn._id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                  <tr key={txn._id} className="border-b border-slate-100">
                     <td className="py-2">{fmtDate(txn.date)}</td>
                     <td className="py-2">{enumLabel(t, "txn", txn.type)}</td>
                     <td className="py-2">{txn.source ? enumLabel(t, "source", txn.source.type) : ""}</td>
@@ -338,8 +493,9 @@ const LedgerPage = () => {
                     <td className="py-2">{txn.category?.name ?? ""}</td>
                     <td className="py-2">{txn.paymentMethod ? paymentMethodLabel(t, txn.paymentMethod) : ""}</td>
                     <td
-                      className="py-2 text-right"
-                      style={{ color: txn.type === "income" ? "#10b981" : "#ef4444", fontWeight: 600 }}
+                      className={`py-2 text-right font-mono font-bold ${
+                        txn.type === "income" ? "text-emerald-600" : "text-rose-600"
+                      }`}
                     >
                       {money(txn.type === "income" ? txn.amount : -txn.amount, { signed: true })}
                     </td>

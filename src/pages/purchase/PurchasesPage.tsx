@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Package, ChevronRight, Download, Search, Truck } from "lucide-react";
+import { Plus, Package, ChevronRight, Download, Search, Truck, AlertCircle, CheckCircle2 } from "lucide-react";
 import { purchaseService, type IPurchase } from "../../services/purchase.service";
 import { useBusinessStore } from "../../store/businessStore";
 import { useTranslation } from "../../i18n/useTranslation";
@@ -9,17 +9,31 @@ import { plural } from "../../i18n/labels";
 import { useRefreshHandler } from "../../native/refresh";
 import LoadFailedState from "../../components/shared/LoadFailedState";
 import { toastLoadFailure } from "../../offline/notify";
-import { NativeCard } from "../../components/ui/Card";
 import { NativeInput } from "../../components/ui/Input";
-import { Badge } from "../../components/ui/Badge";
-import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { haptic } from "../../native/bridge";
 
-const STATUS_VARIANTS: Record<string, "success" | "warning" | "danger"> = {
-  paid: "success",
-  partial: "warning",
-  due: "danger",
+type StatusFilter = "all" | "due" | "paid" | "partial";
+
+const getStatusMeta = (status: string, t: (key: string, options?: any) => string) => {
+  switch (status) {
+    case "paid":
+      return {
+        label: t("purchase.paidInvoices"),
+        badgeClass: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60",
+      };
+    case "partial":
+      return {
+        label: t("purchase.partial"),
+        badgeClass: "bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60",
+      };
+    case "due":
+    default:
+      return {
+        label: t("common.due"),
+        badgeClass: "bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/60",
+      };
+  }
 };
 
 const PurchasesPage = () => {
@@ -32,6 +46,7 @@ const PurchasesPage = () => {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const load = async () => {
     if (!activeBusiness) return;
@@ -55,53 +70,141 @@ const PurchasesPage = () => {
     load();
   }, [activeBusiness?._id]);
 
-  // Filter purchases by search query
+  // Financial statistics
+  const stats = useMemo(() => {
+    let totalPurchases = 0;
+    let totalPaid = 0;
+    let totalDue = 0;
+    for (const p of purchases) {
+      totalPurchases += p.total || 0;
+      totalPaid += p.paidAmount || 0;
+      totalDue += p.dueAmount || 0;
+    }
+    return {
+      totalPurchases,
+      totalPaid,
+      totalDue,
+      count: purchases.length,
+    };
+  }, [purchases]);
+
+  // Filter purchases by search query and status
   const filteredPurchases = useMemo(() => {
-    if (!searchQuery.trim()) return purchases;
-    const q = searchQuery.toLowerCase();
     return purchases.filter((p) => {
+      if (statusFilter !== "all" && p.status !== statusFilter) {
+        return false;
+      }
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
       const refMatch = p.referenceNumber.toLowerCase().includes(q);
       const supplierMatch = p.supplier?.name.toLowerCase().includes(q);
       return refMatch || supplierMatch;
     });
-  }, [purchases, searchQuery]);
+  }, [purchases, searchQuery, statusFilter]);
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] pb-24 text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-screen bg-[var(--bg)] pb-28 text-slate-900 dark:text-neutral-100">
       <div className="px-4 py-4 lg:px-8 lg:py-6 max-w-3xl mx-auto space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
               {t("purchase.title")}
             </h1>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
-              {activeBusiness?.name}
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              {t("purchase.invoicesCount", { count: num(stats.count) })}
             </p>
           </div>
-          <Button
-            variant="primary"
-            size="md"
+          <button
+            type="button"
             onClick={() => {
-              haptic("light");
+              haptic("medium");
               navigate("/purchases/new");
             }}
-            className="gap-1.5 shadow-sm shadow-emerald-500/20 active:scale-95"
+            className="flex items-center gap-2 px-4 h-11 rounded-2xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all text-white shadow-md shadow-emerald-600/20 shrink-0 select-none"
           >
             <Plus size={16} />
             <span>{t("purchase.add")}</span>
-          </Button>
+          </button>
         </div>
 
-        {/* Search Bar (if has purchases) */}
+        {/* Financial KPI Summary Cards */}
         {purchases.length > 0 && (
-          <NativeInput
-            placeholder="Search by invoice # or supplier..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onClear={() => setSearchQuery("")}
-            leadingIcon={<Search className="w-4 h-4 text-neutral-400" />}
-          />
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 shadow-xs">
+              <div className="flex items-center gap-1.5 text-slate-500 dark:text-neutral-400 mb-1">
+                <Truck className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-[11px] sm:text-xs font-semibold truncate">{t("purchase.totalPurchases")}</span>
+              </div>
+              <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-slate-900 dark:text-neutral-100 truncate">
+                {money(stats.totalPurchases)}
+              </p>
+            </div>
+
+            <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-rose-200/60 dark:border-rose-900/40 shadow-xs">
+              <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 mb-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span className="text-[11px] sm:text-xs font-semibold truncate">{t("purchase.duePayable")}</span>
+              </div>
+              <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 truncate">
+                {money(stats.totalDue)}
+              </p>
+            </div>
+
+            <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-emerald-200/60 dark:border-emerald-900/40 shadow-xs">
+              <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 mb-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span className="text-[11px] sm:text-xs font-semibold truncate">{t("purchase.paid")}</span>
+              </div>
+              <p className="text-sm sm:text-lg font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 truncate">
+                {money(stats.totalPaid)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Filter & Search Bar */}
+        {purchases.length > 0 && (
+          <div className="space-y-2.5">
+            <NativeInput
+              placeholder={t("purchase.searchPlaceholder")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery("")}
+              leadingIcon={<Search className="w-4 h-4 text-slate-400" />}
+            />
+
+            {/* Quick Status Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {(
+                [
+                  { id: "all", label: t("purchase.all") },
+                  { id: "due", label: t("purchase.dueInvoices") },
+                  { id: "partial", label: t("purchase.partial") },
+                  { id: "paid", label: t("purchase.paidInvoices") },
+                ] as const
+              ).map((tab) => {
+                const active = statusFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      haptic("selection");
+                      setStatusFilter(tab.id);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 active:scale-95 ${
+                      active
+                        ? "bg-slate-900 dark:bg-neutral-100 text-white dark:text-slate-900 shadow-sm"
+                        : "bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 border border-slate-200/80 dark:border-neutral-800 hover:border-slate-300"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* List Content */}
@@ -110,7 +213,7 @@ const PurchasesPage = () => {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="h-20 rounded-2xl animate-pulse bg-neutral-200/60 dark:bg-neutral-800/60"
+                className="h-20 rounded-3xl animate-pulse bg-slate-100 dark:bg-neutral-800"
               />
             ))}
           </div>
@@ -128,15 +231,15 @@ const PurchasesPage = () => {
             }}
           />
         ) : filteredPurchases.length === 0 ? (
-          <div className="text-center py-12 px-4">
-            <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-              No purchases match &ldquo;{searchQuery}&rdquo;
+          <div className="text-center py-12 px-4 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800">
+            <p className="text-sm font-semibold text-slate-600 dark:text-neutral-400">
+              {t("purchase.noPurchasesFound")}
             </p>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl shadow-xs overflow-hidden divide-y divide-slate-100 dark:divide-neutral-800/80">
             {filteredPurchases.map((p) => {
-              const variant = STATUS_VARIANTS[p.status] || "neutral";
+              const meta = getStatusMeta(p.status, t);
               const handleDownloadInvoice = (e: React.MouseEvent) => {
                 e.stopPropagation();
                 haptic("light");
@@ -144,30 +247,35 @@ const PurchasesPage = () => {
               };
 
               return (
-                <NativeCard
+                <div
                   key={p._id}
-                  variant="elevated"
-                  interactive
                   onClick={() => {
                     haptic("light");
                     navigate(`/purchases/${p._id}`);
                   }}
-                  className="p-3.5 sm:p-4 flex items-center gap-3"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      navigate(`/purchases/${p._id}`);
+                    }
+                  }}
+                  className="w-full flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-slate-50/70 dark:hover:bg-neutral-800/40 transition-colors select-none cursor-pointer"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 flex items-center justify-center shrink-0">
                     <Truck className="w-5 h-5" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold truncate text-neutral-900 dark:text-neutral-100">
+                      <span className="text-sm font-bold truncate text-slate-900 dark:text-neutral-100">
                         {p.supplier?.name || t("purchase.noSupplier")}
                       </span>
-                      <span className="text-[11px] font-mono text-neutral-400">
+                      <span className="text-[11px] font-mono text-slate-400 dark:text-neutral-500">
                         #{p.referenceNumber}
                       </span>
                     </div>
-                    <p className="text-[12px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5">
                       {fmtDate(p.date, "short")} •{" "}
                       {plural(t, "common.itemCount", p.items.length, {
                         count: num(p.items.length),
@@ -176,13 +284,20 @@ const PurchasesPage = () => {
                   </div>
 
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold font-mono text-neutral-900 dark:text-neutral-100">
+                    <p className="text-sm font-bold font-mono text-slate-900 dark:text-neutral-100">
                       {money(p.total)}
                     </p>
-                    <div className="mt-1 flex justify-end">
-                      <Badge variant={variant} size="sm">
-                        {t(`docStatus.${p.status}`)}
-                      </Badge>
+                    <div className="mt-1 flex items-center justify-end gap-1.5">
+                      {p.dueAmount > 0 && (
+                        <span className="text-[10px] font-mono font-bold text-rose-600 dark:text-rose-400">
+                          {t("common.due")}: {money(p.dueAmount)}
+                        </span>
+                      )}
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${meta.badgeClass}`}
+                      >
+                        {meta.label}
+                      </span>
                     </div>
                   </div>
 
@@ -191,13 +306,13 @@ const PurchasesPage = () => {
                     onClick={handleDownloadInvoice}
                     aria-label={t("common.download")}
                     title={t("invoice.downloadInvoice")}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 active:scale-95 transition-all shrink-0"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 active:scale-95 transition-all shrink-0 ml-1"
                   >
-                    <Download size={16} />
+                    <Download size={15} />
                   </button>
 
-                  <ChevronRight size={16} className="text-neutral-400 shrink-0" />
-                </NativeCard>
+                  <ChevronRight size={16} className="text-slate-400 shrink-0" />
+                </div>
               );
             })}
           </div>

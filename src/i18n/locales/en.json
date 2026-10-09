@@ -126,7 +126,7 @@
     "noReceivablesHint": "Nobody owes you money right now",
     "pay": "Pay",
     "receive": "Receive",
-    "title": "Baki (Dues)",
+    "title": "Dues",
     "willPay": "I Will Pay",
     "willReceive": "I Will Receive"
   },
@@ -154,7 +154,51 @@
     "todaySales": "Today's Sales",
     "totalPayable": "Total Payable",
     "totalReceivable": "Total Receivable",
-    "viewReports": "View reports"
+    "viewReports": "View reports",
+    "liveCalculation": "Live Calculation",
+    "posSale": "+ POS Sale",
+    "collectDue": "Collect Dues (+)",
+    "todayLive": "Today's Live Summary",
+    "last7DaysSummary": "Last 7 Days Summary",
+    "last30DaysSummary": "Last 30 Days Summary",
+    "totalCashInHand": "Total Cash Balance (CASH IN HAND)",
+    "refreshSummary": "Refresh Summary",
+    "cashDrawer": "Cash Drawer",
+    "bankDeposit": "Bank Deposit",
+    "shopPerformance": "Shop Status",
+    "growthSales": "% Sales",
+    "cashAndDue": "Cash & Dues",
+    "vouchers": "Vouchers",
+    "purchaseInvoice": "Purchase Invoices",
+    "customerDueReceivable": "Customer Receivables",
+    "customersWithDue": "customers with dues",
+    "customerReceivable": "Customer Receivables",
+    "supplierPayableDena": "Supplier Payables",
+    "suppliersWithDue": "suppliers with dues",
+    "newSale": "New Sale",
+    "purchaseGoods": "Purchase Goods",
+    "dailyExpense": "Daily Expense",
+    "dueBook": "Dues Ledger",
+    "quickActions": "Quick Actions",
+    "shortcuts": "Shortcuts",
+    "dailySummary": "Today's Performance Summary",
+    "cashSales": "Cash Sales",
+    "dueSales": "Due Sales",
+    "netProfit": "Net Profit",
+    "stockSufficient": "Inventory Stock Sufficient",
+    "noLowStock": "No products are low in stock",
+    "lowStockWarning": "products running low!",
+    "orderSoon": "Order Soon",
+    "orderNow": "Order Now",
+    "recentLedger": "Recent Transactions & Ledger",
+    "viewAll": "View All",
+    "noTransactionsFound": "No transactions found",
+    "cashCredit": "Cash Deposit",
+    "shopDebit": "Shop Expense",
+    "cashMethod": "Cash",
+    "settledStatus": "Settled",
+    "cashInvoice": "Cash Invoice",
+    "remaining": "left"
   },
   "business": {
     "loadFailed": "Failed to load businesses",
@@ -305,7 +349,11 @@
     "yes": "Yes",
     "yesterday": "Yesterday",
     "zero": "0",
-    "zeroDecimal": "0.00"
+    "zeroDecimal": "0.00",
+    "member": "Member",
+    "details": "Details",
+    "income": "Income",
+    "expense": "Expense"
   },
   "currency": {
     "BDT": "Bangladeshi Taka",
@@ -321,7 +369,7 @@
     "edit": "Edit Customer",
     "emailPlaceholder": "email@example.com",
     "empty": "No customers yet",
-    "emptyHint": "Add your first customer to start tracking baki",
+    "emptyHint": "Add your first customer to start tracking dues",
     "emptyHintFull": "Add your first customer to start tracking sales & dues",
     "history": "Transaction History",
     "loadFailed": "Failed to load customers",
@@ -355,7 +403,7 @@
     "goodAfternoon": "Good afternoon",
     "goodEvening": "Good evening",
     "goodMorning": "Good morning",
-    "in": "In",
+    "in": "Income",
     "joinedViaInvite": "Joined via invite",
     "loadBusinessesFailed": "Failed to load businesses",
     "loadDataFailed": "Failed to load business data",
@@ -376,7 +424,8 @@
     "setUpBusiness": "Set up business",
     "thisMonth": "this month",
     "tooltipRow": "{{name}}: {{amount}}",
-    "yearOverview": "{{year}} Overview"
+    "yearOverview": "{{year}} Overview",
+    "yearComparisonSubtitle": "Annual income and expense comparison"
   },
   "dataDeletion": {
     "deletedList": [
@@ -455,7 +504,8 @@
     "youNeedToPay": "You need to pay",
     "youOwe": "You owe",
     "youWillReceive": "You'll receive",
-    "youreOwed": "You're owed"
+    "youreOwed": "You're owed",
+    "pendingCount": "{{count}} pending dues"
   },
   "error": {
     "body": "This screen ran into a problem. Your saved data is safe — try again, or head back to the dashboard.",
@@ -631,7 +681,11 @@
     "sourcePurchases": "Purchases",
     "sourceSales": "Sales",
     "startDate": "Start date",
-    "title": "Ledger"
+    "title": "Ledger",
+    "entriesCount": "{{count}} ledger entries",
+    "totalCredit": "Total Credit",
+    "totalDebit": "Total Debit",
+    "netBalance": "Net Balance"
   },
   "mealWidget": {
     "avgPerDay": "Avg/day",
@@ -740,7 +794,8 @@
     "title": "Members",
     "totalCount": "{{count}} total",
     "willReceiveEmail": "will receive an invite email",
-    "you": "You"
+    "you": "You",
+    "count": "{{count}} members"
   },
   "mess": {
     "activeSub": "active",
@@ -775,10 +830,12 @@
     "toReceive": "to receive",
     "toSettleUp": "To Settle Up",
     "totalExpense": "Total Expense",
-    "totalExpensesThisMonth": "Total expenses this month"
+    "totalExpensesThisMonth": "Total expenses this month",
+    "mealsRecordedToday": "Today's recorded entries",
+    "noMealsToday": "Today's calculation"
   },
   "nav": {
-    "baki": "Baki",
+    "baki": "Dues",
     "businessSettings": "Business Settings",
     "customers": "Customers",
     "dashboard": "Dashboard",
@@ -1244,7 +1301,10 @@
     "to": "To",
     "today": "Today",
     "totalSales": "Total Sales",
-    "vsPrevious": "{{pct}}% vs previous period"
+    "vsPrevious": "{{pct}}% vs previous period",
+    "totalNetProfit": "Total Net Profit",
+    "totalNetLoss": "Total Net Loss",
+    "salesTotalLabel": "Total Sales:"
   },
   "purchase": {
     "add": "Add Purchase",
@@ -1268,7 +1328,17 @@
     "recordFailed": "Failed to record purchase",
     "recorded": "Purchase {{reference}} recorded",
     "supplierOptional": "Supplier (optional)",
-    "title": "Purchases"
+    "title": "Purchases",
+    "totalPurchases": "Total Purchases",
+    "duePayable": "Due Payable",
+    "paid": "Paid",
+    "searchPlaceholder": "Search by invoice or supplier...",
+    "all": "All",
+    "dueInvoices": "Due Invoices",
+    "partial": "Partial",
+    "paidInvoices": "Paid",
+    "noPurchasesFound": "No purchases found",
+    "invoicesCount": "{{count}} purchase invoices"
   },
   "reports": {
     "customerDue": "Customer Due Report",
@@ -1287,7 +1357,8 @@
     "salesReportDesc": "All sales, filterable by date & customer",
     "supplierPayable": "Supplier Payable Report",
     "supplierPayableDesc": "Who you owe money to",
-    "title": "Reports"
+    "title": "Reports",
+    "subtitle": "Comprehensive financial statements and business reports"
   },
   "role": {
     "admin": "Admin",
@@ -1302,7 +1373,7 @@
     "customerOptional": "Customer (optional)",
     "dateAndCustomer": "{{date}} · {{customer}}",
     "empty": "No sales yet",
-    "emptyHint": "Record your first sale to start tracking revenue",
+    "emptyHint": "Record your first sale to start tracking income",
     "headline": "{{invoice}} · {{customer}}",
     "lineQty": "{{quantity}} × {{price}}",
     "loadCustomersFailed": "Failed to load customers",
@@ -1557,7 +1628,8 @@
     "subtitleOther": "{{business}} · {{count}} entries",
     "title": "Transactions",
     "toMember": "→ {{name}}",
-    "viewSettlement": "View Settlement"
+    "viewSettlement": "View Settlement",
+    "txnCount": "{{count}} transactions"
   },
   "txn": {
     "addCost": "Add Cost",
@@ -1618,7 +1690,7 @@
     "addIncome": "Add Income",
     "addExpense": "Add Expense",
     "transfer": "Transfer",
-    "dues": "Dues (Baki)",
+    "dues": "Dues",
     "savingsGoal": "Monthly Savings Target",
     "savingsSub": "Emergency Fund Deposit",
     "completed": "Completed",
@@ -1628,6 +1700,8 @@
     "viewDetails": "View Details",
     "iWillGet": "Receivable (I will get)",
     "iWillGive": "Payable (I will give)",
+    "noReceivables": "No one owes you yet",
+    "noPayables": "You owe no one yet",
     "sendReminder": "Send Reminder",
     "payNow": "Pay Now",
     "expenseCategories": "Monthly Expense Breakdown",
@@ -1648,7 +1722,58 @@
     "salaryDeposit": "Salary Deposit",
     "groceryShop": "Grocery Shopping",
     "electricityBill": "Electricity Bill",
-    "friendLoan": "Loan to Friend"
+    "friendLoan": "Loan to Friend",
+    "noTxnsYet": "No transactions recorded yet",
+    "noExpensesRecorded": "No expenses recorded in this period",
+    "summaryTitle": "Personal Income & Expense Overview"
+  },
+  "messDashboard": {
+    "title": "Mess Dashboard",
+    "badge": "Mess",
+    "activeMembers": "{{count}} Active",
+    "manager": "Manager",
+    "branch": "Branch",
+    "liveMealRate": "Current Meal Rate (LIVE RATE)",
+    "autoCalc": "Auto Calculated",
+    "perMeal": "/ meal",
+    "rateFormula": "Total Bazaar {{bazaar}} ÷ Total Meals {{meals}}",
+    "budgetUsage": "Budget Usage ({{percent}}%)",
+    "budgetVsExpense": "{{spent}} / {{budget}}",
+    "todaysMeals": "Today's Meals",
+    "todaysMealSplit": "B {{b}} • L {{l}} • D {{d}}",
+    "noMealSplit": "No split recorded",
+    "currentTotalMeals": "Total Meals (Month)",
+    "daysCompleted": "In {{days}} days",
+    "cashFund": "Cash Fund",
+    "safeFund": "Safe Fund",
+    "deficitFund": "Deficit",
+    "mealEntry": "Meal Entry",
+    "bazaarExpense": "Bazaar Expense",
+    "acceptDeposit": "Accept Deposit",
+    "mealSheet": "Meal Sheet",
+    "recentBazaarExpenses": "Recent Bazaar Expenses",
+    "todaysDiningBazaar": "Recent Bazaar Expenses",
+    "membersFinancialStatus": "Members Financial Balance",
+    "membersSubtitle": "Total {{count}} members balance overview",
+    "dueMembers": "{{count}} Due",
+    "refundMembers": "{{count}} Refund",
+    "equalMembers": "{{count}} Settled",
+    "refundBadge": "+{{amount}} Refund",
+    "dueBadge": "-{{amount}} Due",
+    "evenBadge": "Settled",
+    "cost": "Cost {{amount}}",
+    "mealsCount": "{{count}} Meals",
+    "deposit": "Deposit: {{amount}}",
+    "smsTagada": "SMS Reminder",
+    "whatsappTagada": "WhatsApp Reminder",
+    "delayedDays": "Overdue: {{days}} days",
+    "viewAllMembers": "View all {{count}} members",
+    "addBazaarExpense": "+ Add Bazaar Expense",
+    "addMemberDeposit": "+ Member Deposit",
+    "noBazaarThisMonth": "No bazaar expenses recorded this month",
+    "noBazaarToday": "No bazaar expenses recorded this month",
+    "recordBazaarNow": "Record bazaar expense",
+    "todaysTotalMealsRecorded": "Today's recorded meals: {{count}}"
   },
   "validation": {
     "amountPositive": "Amount must be greater than 0",
@@ -1657,5 +1782,29 @@
     "notNegative": "Cannot be negative",
     "required": "This field is required",
     "selectRequired": "Please select an option"
+  },
+  "company": {
+    "teamMembersCount": "{{count}} Team Members"
+  },
+  "products": {
+    "productsListed": "{{count}} products listed"
+  },
+  "sales": {
+    "salesInvoices": "{{count}} sales invoices"
+  },
+  "expenses": {
+    "vouchersCount": "{{count}} expense vouchers"
+  },
+  "voice": {
+    "title": "Voice Accounting Assistant",
+    "listening": "Listening... speak your transaction",
+    "recorded": "Transaction recorded successfully!",
+    "sayPrompt": "Say:",
+    "samplePrompt": "\"Karim uncle took potatoes 20 taka\"",
+    "listenBtn": "Listen",
+    "listeningBtn": "Listening...",
+    "doneBtn": "Done",
+    "micPermission": "Please allow microphone access.",
+    "voiceNotHeard": "Could not hear audio, please try again."
   }
 }

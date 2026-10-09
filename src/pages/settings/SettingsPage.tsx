@@ -373,6 +373,10 @@ const BusinessSection = () => {
           { label: t("settings.business.manageMembers"), to: "/members", icon: User },
           { label: t("nav.ledger"), to: "/ledger", icon: CreditCard },
         ]
+        : activeBusiness.type === "personal"
+        ? [
+          { label: t("settings.business.allTransactions"), to: "/transactions", icon: CreditCard },
+        ]
         : [
           { label: t("settings.business.manageMembers"), to: "/members", icon: User },
           { label: t("settings.business.allTransactions"), to: "/transactions", icon: CreditCard },

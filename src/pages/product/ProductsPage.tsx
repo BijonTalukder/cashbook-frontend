@@ -88,67 +88,83 @@ const ProductsPage = () => {
   const lowStockCount = products.filter((p) => p.stock <= p.minStock).length;
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-4xl mx-auto space-y-5">
+    <div className="min-h-screen pb-12 bg-slate-50 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
+      <div className="px-4 py-5 lg:px-8 lg:py-8 max-w-4xl mx-auto space-y-4">
+        {/* Header section with native hierarchy */}
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold truncate" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("product.title")}
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
+              {t("product.title")}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              {t("products.productsListed", { count: num(products.length) })}
+            </p>
+          </div>
+
           <button
+            type="button"
             onClick={() => {
               haptic("medium");
               setEditing(null);
               setModalOpen(true);
             }}
-            className="flex items-center gap-2 px-4 h-11 rounded-xl text-sm font-semibold flex-shrink-0 press"
-            style={{ background: "#10b981", color: "#022c22" }}
+            className="flex items-center gap-2 px-4 h-11 rounded-2xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all text-white shadow-md shadow-emerald-600/20 shrink-0 select-none"
           >
-            <Plus size={15} /> {t("product.add")}
+            <Plus size={16} />
+            <span>{t("product.add")}</span>
           </button>
         </div>
 
+        {/* Search Bar & Low Stock Filter */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-faint)" }} />
+            <Search
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500"
+            />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("product.searchByNameSkuCategory")}
-              className="w-full pl-10 pr-4 h-11 rounded-xl text-sm focus:outline-none"
-              style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-primary)" }}
+              className="w-full pl-10 pr-4 h-11 rounded-2xl text-sm bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-slate-900 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-xs"
             />
           </div>
           <button
+            type="button"
             onClick={() => {
               haptic("selection");
               setLowStockOnly((v) => !v);
             }}
-            className="flex items-center gap-1.5 px-3.5 h-11 rounded-xl text-xs font-medium flex-shrink-0 press"
-            style={{
-              background: lowStockOnly ? "rgba(239,68,68,0.1)" : C.card,
-              border: `1px solid ${lowStockOnly ? "rgba(239,68,68,0.4)" : C.border}`,
-              color: lowStockOnly ? "#ef4444" : "var(--text-muted)",
-            }}
+            className={`flex items-center gap-1.5 px-3.5 h-11 rounded-2xl text-xs font-semibold shrink-0 active:scale-95 transition-all select-none shadow-xs ${
+              lowStockOnly
+                ? "bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400"
+                : "bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-neutral-800/60"
+            }`}
           >
-            <AlertTriangle size={13} />{" "}
-            {lowStockCount > 0
-              ? t("product.lowStockFilterCount", { count: num(lowStockCount) })
-              : t("product.lowStockFilter")}
+            <AlertTriangle size={14} className={lowStockOnly ? "text-rose-600 dark:text-rose-400" : "text-amber-500"} />
+            <span>
+              {lowStockCount > 0
+                ? t("product.lowStockFilterCount", { count: num(lowStockCount) })
+                : t("product.lowStockFilter")}
+            </span>
           </button>
         </div>
 
-        <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        {/* Products List Surface */}
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl shadow-xs overflow-hidden divide-y divide-slate-100 dark:divide-neutral-800/80">
           {loading ? (
-            <SkeletonList rows={5} />
+            <div className="p-4">
+              <SkeletonList rows={5} />
+            </div>
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                <Package size={20} style={{ color: "var(--text-faint)" }} />
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400 dark:text-neutral-500">
+                <Package size={22} />
               </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">
                 {search || lowStockOnly ? t("product.notFound") : t("product.empty")}
               </p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+              <p className="text-xs text-slate-400 dark:text-neutral-500 max-w-sm">
                 {search || lowStockOnly ? t("common.tryDifferentFilter") : t("product.emptyHintInventory")}
               </p>
             </div>
@@ -158,13 +174,9 @@ const ProductsPage = () => {
               return (
                 <div
                   key={p._id}
-                  className="flex items-center gap-3 px-3.5 sm:px-5 py-3"
-                  style={{ borderBottom: "1px solid var(--border-light)" }}
+                  className="flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-slate-50/70 dark:hover:bg-neutral-800/40 transition-colors select-none"
                 >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-semibold overflow-hidden"
-                    style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}
-                  >
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-sm font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 overflow-hidden shadow-xs">
                     {p.imageUrl ? (
                       <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
                     ) : (
@@ -172,67 +184,68 @@ const ProductsPage = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    {/* Line 1 — the name, and the number the user came to check.
-                        Nothing else competes for this line. */}
                     <div className="flex items-baseline gap-2 min-w-0">
-                      <p className="text-sm font-medium truncate flex-1 min-w-0" style={{ color: "var(--text-primary)" }}>
+                      <p className="text-sm font-bold text-slate-900 dark:text-neutral-100 truncate flex-1 min-w-0">
                         {p.name}
                       </p>
                       <p
-                        className="text-sm font-semibold flex-shrink-0 tabular-nums"
-                        style={{ color: isLow ? "#ef4444" : "var(--text-primary)" }}
+                        className={`text-sm font-bold font-mono shrink-0 tabular-nums ${
+                          isLow
+                            ? "text-rose-600 dark:text-rose-400"
+                            : "text-slate-900 dark:text-neutral-100"
+                        }`}
                       >
                         {t("product.stockLine", { stock: num(p.stock), unit: p.unit ?? "" })}
                       </p>
                     </div>
 
-                    {/* Line 2 — status first, then meta, then the actions.
-                        Sync state and a low-stock warning both outrank the
-                        category, so the category is what truncates when a row
-                        carries badges. */}
                     <div className="flex items-center gap-1.5 mt-1 min-w-0">
                       <SyncBadge status={p.syncStatus} compact />
                       {isLow && (
-                        <span
-                          className="text-[10px] flex items-center gap-1 flex-shrink-0"
-                          style={{ color: "#ef4444" }}
-                        >
-                          <AlertTriangle size={9} /> {t("product.lowStock")}
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-200/60 dark:border-rose-800/60 shrink-0">
+                          <AlertTriangle size={10} /> {t("product.lowStock")}
                         </span>
                       )}
-                      <p className="text-[11px] truncate flex-1 min-w-0" style={{ color: "var(--text-faint)" }}>
+                      <p className="text-xs text-slate-500 dark:text-neutral-400 truncate flex-1 min-w-0">
                         {t("product.categoryAndPrice", {
                           category: p.category || t("product.uncategorized"),
                           price: money(p.sellingPrice),
                         })}
                       </p>
-                      <div className="flex items-center gap-1 flex-shrink-0 -my-1">
+                      <div className="flex items-center gap-1 shrink-0 -my-1">
                         <button
-                          onClick={() => { haptic("light"); setAdjusting(p); }}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg press"
-                          style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                          type="button"
+                          onClick={() => {
+                            haptic("light");
+                            setAdjusting(p);
+                          }}
+                          className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-800 active:scale-95 transition-all"
                           aria-label={t("stock.adjust")}
                           title={t("stock.adjust")}
                         >
-                          <SlidersHorizontal size={13} />
+                          <SlidersHorizontal size={14} />
                         </button>
                         <button
-                          onClick={() => { haptic("light"); setEditing(p); setModalOpen(true); }}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg press"
-                          style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                          type="button"
+                          onClick={() => {
+                            haptic("light");
+                            setEditing(p);
+                            setModalOpen(true);
+                          }}
+                          className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-800 active:scale-95 transition-all"
                           aria-label={t("common.edit")}
                           title={t("common.edit")}
                         >
-                          <Pencil size={13} />
+                          <Pencil size={14} />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDelete(p)}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg press"
-                          style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
+                          className="w-8 h-8 rounded-xl flex items-center justify-center text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 active:scale-95 transition-all"
                           aria-label={t("common.delete")}
                           title={t("common.delete")}
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>

@@ -10,6 +10,7 @@ import { paymentMethodLabel } from "../../i18n/labels";
 import { useRefreshHandler } from "../../native/refresh";
 import LoadFailedState from "../../components/shared/LoadFailedState";
 import { toastLoadFailure } from "../../offline/notify";
+import { haptic } from "../../native/bridge";
 
 const C = {
   card: "var(--surface-1)",
@@ -20,7 +21,7 @@ const ExpensesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeBusiness } = useBusinessStore();
   const { t } = useTranslation();
-  const { money, date: fmtDate } = useFormat();
+  const { money, num, date: fmtDate } = useFormat();
 
   const [expenses, setExpenses] = useState<IExpense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,73 +61,103 @@ const ExpensesPage = () => {
   const totalThisList = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-5">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-            {t("expense.title")}
-          </h1>
+    <div className="min-h-screen pb-12 bg-slate-50 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
+      <div className="px-4 py-5 lg:px-8 lg:py-8 max-w-3xl mx-auto space-y-4">
+        {/* Header section with native hierarchy */}
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
+              {t("expense.title")}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              {t("expenses.vouchersCount", { count: num(expenses.length) })}
+            </p>
+          </div>
+
           <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold press"
-            style={{ background: "#ef4444", color: "#fff" }}
+            type="button"
+            onClick={() => {
+              haptic("medium");
+              setModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 h-11 rounded-2xl text-sm font-bold bg-rose-600 hover:bg-rose-700 active:scale-95 transition-all text-white shadow-md shadow-rose-600/20 shrink-0 select-none"
           >
-            <Plus size={15} /> {t("expense.add")}
+            <Plus size={16} />
+            <span>{t("expense.add")}</span>
           </button>
         </div>
 
+        {/* Total Expenses Hero Banner */}
         {expenses.length > 0 && (
-          <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-            <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("expense.totalRecent")}</p>
-            <p className="text-2xl font-bold" style={{ color: "#ef4444", fontFamily: "'DM Serif Display', serif" }}>
-              {money(totalThisList)}
-            </p>
+          <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-xs flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+                {t("expense.totalRecent")}
+              </p>
+              <p className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-600 dark:text-rose-400 mt-1 tracking-tight">
+                {money(totalThisList)}
+              </p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/60 dark:border-rose-800/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+              <Receipt size={24} />
+            </div>
           </div>
         )}
 
-        <div className="rounded-2xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+        {/* Expenses List Surface */}
+        <div className="bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-3xl shadow-xs overflow-hidden divide-y divide-slate-100 dark:divide-neutral-800/80">
           {loading ? (
             <div className="p-4 space-y-2">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "var(--surface-1)" }} />
+                <div
+                  key={i}
+                  className="h-14 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse"
+                />
               ))}
             </div>
           ) : failed ? (
             <LoadFailedState onRetry={load} />
           ) : expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--surface-2)" }}>
-                <Receipt size={20} style={{ color: "var(--text-faint)" }} />
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400 dark:text-neutral-500">
+                <Receipt size={22} />
               </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t("expense.empty")}</p>
-              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{t("expense.emptyHintBusiness")}</p>
+              <p className="text-sm font-bold text-slate-900 dark:text-neutral-100">
+                {t("expense.empty")}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-neutral-500 max-w-sm">
+                {t("expense.emptyHintBusiness")}
+              </p>
             </div>
           ) : (
             expenses.map((e) => (
               <div
                 key={e._id}
-                className="flex items-center gap-3 px-5 py-3.5"
-                style={{ borderBottom: "1px solid var(--border-light)" }}
+                className="flex items-center gap-3 px-4 sm:px-5 py-3.5 hover:bg-slate-50/70 dark:hover:bg-neutral-800/40 transition-colors select-none"
               >
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-sm"
-                  style={{ background: "rgba(239,68,68,0.08)" }}
-                >
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 text-base bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 shadow-xs">
                   {e.category?.icon || "📌"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                    {e.category?.name ?? t("expense.fallbackName")}
-                  </p>
-                  <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
-                    {t("expense.dateAndMethod", {
-                      date: fmtDate(e.date, "short"),
-                      method: paymentMethodLabel(t, e.paymentMethod),
-                    })}
-                  </p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-neutral-100 truncate">
+                      {e.category?.name ?? t("expense.fallbackName")}
+                    </p>
+                    {e.note && (
+                      <span className="text-xs text-slate-400 dark:text-neutral-500 truncate hidden sm:inline">
+                        — {e.note}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 dark:text-neutral-400">
+                    <span className="px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 font-semibold text-[10px]">
+                      {paymentMethodLabel(t, e.paymentMethod)}
+                    </span>
+                    <span>{fmtDate(e.date, "short")}</span>
+                  </div>
                 </div>
-                <p className="text-sm font-semibold flex-shrink-0" style={{ color: "#ef4444" }}>
-                  {money(-e.amount)}
+                <p className="text-sm font-bold font-mono text-rose-600 dark:text-rose-400 shrink-0">
+                  {money(-e.amount, { signed: true })}
                 </p>
               </div>
             ))

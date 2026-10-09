@@ -1,7 +1,6 @@
 import React from "react";
 import { PlusCircle, MinusCircle, ArrowLeftRight, Users } from "lucide-react";
 import { useTranslation } from "../../../i18n/useTranslation";
-import { useFormat } from "../../../i18n/useFormat";
 import { haptic } from "../../../native/bridge";
 
 interface QuickActionGridProps {
@@ -18,7 +17,6 @@ export const QuickActionGrid: React.FC<QuickActionGridProps> = ({
   onOpenDues,
 }) => {
   const { t } = useTranslation();
-  const { num } = useFormat();
 
   return (
     <section className="space-y-2">
@@ -26,9 +24,6 @@ export const QuickActionGrid: React.FC<QuickActionGridProps> = ({
         <h2 className="text-[14px] text-slate-900 dark:text-neutral-100 font-bold">
           {t("personalDashboard.quickActions")}
         </h2>
-        <span className="text-[12px] text-blue-600 dark:text-blue-400 font-semibold">
-          {t("personalDashboard.actionsCount", { count: num(4) })}
-        </span>
       </div>
 
       <div className="grid grid-cols-4 gap-2">

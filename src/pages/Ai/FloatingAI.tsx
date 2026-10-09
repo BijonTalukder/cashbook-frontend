@@ -25,6 +25,9 @@ import { haptic } from "../../native/bridge";
 import { useBackHandler, useBodyScrollLock, useMediaQuery } from "../../native/hooks";
 import type { TFunction } from "../../i18n/useTranslation";
 import { enumLabel } from "../../i18n/labels";
+import { AnalyticsView } from "./components/AnalyticsView";
+import { CommandAutocomplete } from "./components/CommandAutocomplete";
+import type { AnalyticsResult } from "./types";
 
 /* ── Types ────────────────────────────────────────── */
 type Step = "select" | "chat";
@@ -200,6 +203,154 @@ const FloatingAI = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const lastPayloadRef = useRef<Message[] | null>(null);
 
+  /* ── Drag & Floating Position ─────────────────────── */
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(() => {
+    try {
+      const saved = localStorage.getItem("cashbook_floating_ai_pos");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (
+          typeof parsed.x === "number" &&
+          typeof parsed.y === "number" &&
+          !isNaN(parsed.x) &&
+          !isNaN(parsed.y)
+        ) {
+          const buttonSize = 56;
+          const margin = 12;
+          const maxX = Math.max(margin, window.innerWidth - buttonSize - margin);
+          const maxY = Math.max(margin, window.innerHeight - buttonSize - margin);
+          return {
+            x: Math.min(Math.max(parsed.x, margin), maxX),
+            y: Math.min(Math.max(parsed.y, margin), maxY),
+          };
+        }
+      }
+    } catch {}
+    return null;
+  });
+
+  const [isDragging, setIsDragging] = useState(false);
+  const dragInfoRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    origLeft: number;
+    origTop: number;
+    moved: boolean;
+  } | null>(null);
+  const justDraggedRef = useRef(false);
+  const currentPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Keep button within screen bounds on window resize / orientation change
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((prev) => {
+        if (!prev) return null;
+        const buttonSize = 56;
+        const margin = 12;
+        const maxX = Math.max(margin, window.innerWidth - buttonSize - margin);
+        const maxY = Math.max(margin, window.innerHeight - buttonSize - margin);
+        const clampedX = Math.min(Math.max(prev.x, margin), maxX);
+        const clampedY = Math.min(Math.max(prev.y, margin), maxY);
+        if (clampedX === prev.x && clampedY === prev.y) return prev;
+        const next = { x: clampedX, y: clampedY };
+        try {
+          localStorage.setItem("cashbook_floating_ai_pos", JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return;
+    const button = buttonRef.current;
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    dragInfoRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      origLeft: rect.left,
+      origTop: rect.top,
+      moved: false,
+    };
+
+    try {
+      button.setPointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragInfoRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+
+    if (!drag.moved) {
+      if (Math.hypot(dx, dy) < 6) return;
+      drag.moved = true;
+      setIsDragging(true);
+    }
+
+    const buttonSize = 56;
+    const margin = 12;
+    const maxX = Math.max(margin, window.innerWidth - buttonSize - margin);
+    const maxY = Math.max(margin, window.innerHeight - buttonSize - margin);
+
+    const clampedX = Math.min(Math.max(drag.origLeft + dx, margin), maxX);
+    const clampedY = Math.min(Math.max(drag.origTop + dy, margin), maxY);
+
+    const newPos = { x: clampedX, y: clampedY };
+    currentPosRef.current = newPos;
+    setPosition(newPos);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragInfoRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+
+    const didMove = drag.moved;
+    dragInfoRef.current = null;
+    setIsDragging(false);
+
+    if (didMove) {
+      justDraggedRef.current = true;
+      setTimeout(() => {
+        justDraggedRef.current = false;
+      }, 120);
+      haptic("light");
+      if (currentPosRef.current) {
+        try {
+          localStorage.setItem("cashbook_floating_ai_pos", JSON.stringify(currentPosRef.current));
+        } catch {}
+      }
+    }
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLButtonElement>) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    dragInfoRef.current = null;
+    setIsDragging(false);
+  };
+
+  const handleClick = () => {
+    if (justDraggedRef.current) return;
+    haptic("medium");
+    setOpen(true);
+  };
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking]);
@@ -336,20 +487,43 @@ const FloatingAI = () => {
     <>
       {/* Floating button */}
       <button
-        onClick={() => { haptic("medium"); setOpen(true); }}
+        ref={buttonRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onClick={handleClick}
         aria-label={t("ai.assistant")}
-        className="fixed z-40 w-14 h-14 rounded-2xl flex items-center justify-center press"
+        title={t("ai.assistant")}
+        className={`fixed z-40 w-14 h-14 rounded-2xl flex items-center justify-center select-none ${
+          isDragging ? "cursor-grabbing" : "cursor-grab press"
+        }`}
         style={{
-          // Sits one gap above the tab bar, like a Material FAB anchored to a
-          // BottomAppBar — the old fixed 13rem floated it mid-screen on phones
-          // and collided with page content on short viewports.
-          bottom: isDesktop ? "1.5rem" : "var(--fab-slot-0)",
-          right: "var(--fab-right)",
+          ...(position
+            ? {
+                left: `${position.x}px`,
+                top: `${position.y}px`,
+                bottom: "auto",
+                right: "auto",
+              }
+            : {
+                // Default responsive dock slot
+                bottom: isDesktop ? "1.5rem" : "var(--fab-slot-0)",
+                right: "var(--fab-right)",
+              }),
           background: "linear-gradient(135deg,#10b981,#0d9488)",
-          boxShadow: "0 8px 32px rgba(16,185,129,0.35)",
+          boxShadow: isDragging
+            ? "0 18px 40px rgba(16,185,129,0.55), 0 0 0 3px rgba(16,185,129,0.3)"
+            : "0 8px 32px rgba(16,185,129,0.35)",
+          transform: isDragging ? "scale(1.08)" : undefined,
+          transition: isDragging
+            ? "none"
+            : "transform 180ms ease, box-shadow 180ms ease",
+          touchAction: "none",
+          WebkitUserSelect: "none",
         }}
       >
-        <Sparkles size={22} className="text-white" />
+        <Sparkles size={22} className="text-white pointer-events-none" />
       </button>
 
       {/* Modal */}

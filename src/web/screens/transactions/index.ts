@@ -1,0 +1,1 @@
+export { WebTransactionsView } from "./WebTransactionsView";

@@ -9,6 +9,7 @@ interface IncomeExpenseCardsProps {
   totalExpense: number;
   currency?: string;
   balanceHidden?: boolean;
+  periodLabel?: string;
 }
 
 export const IncomeExpenseCards: React.FC<IncomeExpenseCardsProps> = ({
@@ -16,11 +17,22 @@ export const IncomeExpenseCards: React.FC<IncomeExpenseCardsProps> = ({
   totalExpense,
   currency,
   balanceHidden = false,
+  periodLabel,
 }) => {
   const { t } = useTranslation();
-  const { money, monthName } = useFormat(toCurrency(currency));
+  const { money, num, monthName } = useFormat(toCurrency(currency));
 
-  const currentMonth = monthName(new Date().getMonth(), "long");
+  const currentMonth = periodLabel || monthName(new Date().getMonth(), "long");
+
+  // Dynamic percentage calculations
+  const expenseRatio = totalIncome > 0
+    ? Math.round((totalExpense / totalIncome) * 100)
+    : totalExpense > 0 ? 100 : 0;
+
+  const netSavings = totalIncome - totalExpense;
+  const savingsPercent = totalIncome > 0
+    ? Math.round((netSavings / totalIncome) * 100)
+    : 0;
 
   return (
     <section className="grid grid-cols-2 gap-3">
@@ -30,13 +42,19 @@ export const IncomeExpenseCards: React.FC<IncomeExpenseCardsProps> = ({
           <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <ArrowDownLeft size={16} />
           </div>
-          <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
-            +12%
+          <span
+            className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+              savingsPercent >= 0
+                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40"
+                : "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40"
+            }`}
+          >
+            {savingsPercent >= 0 ? `+${num(savingsPercent)}%` : `${num(savingsPercent)}%`}
           </span>
         </div>
 
         <div>
-          <span className="text-[12px] text-slate-500 dark:text-neutral-400 font-medium">
+          <span className="text-[12px] text-slate-500 dark:text-neutral-400 font-medium truncate block">
             {t("personalDashboard.totalIncome")} ({currentMonth})
           </span>
           <p className="text-base sm:text-lg font-mono font-bold text-slate-900 dark:text-neutral-100 mt-0.5">
@@ -57,12 +75,12 @@ export const IncomeExpenseCards: React.FC<IncomeExpenseCardsProps> = ({
             <ArrowUpRight size={16} />
           </div>
           <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full">
-            35% {t("personalDashboard.used")}
+            {num(expenseRatio)}% {t("personalDashboard.used")}
           </span>
         </div>
 
         <div>
-          <span className="text-[12px] text-slate-500 dark:text-neutral-400 font-medium">
+          <span className="text-[12px] text-slate-500 dark:text-neutral-400 font-medium truncate block">
             {t("personalDashboard.totalExpense")} ({currentMonth})
           </span>
           <p className="text-base sm:text-lg font-mono font-bold text-slate-900 dark:text-neutral-100 mt-0.5">
@@ -78,5 +96,3 @@ export const IncomeExpenseCards: React.FC<IncomeExpenseCardsProps> = ({
     </section>
   );
 };
-
-export default IncomeExpenseCards;

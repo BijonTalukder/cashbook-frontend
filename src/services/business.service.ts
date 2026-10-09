@@ -1,4 +1,5 @@
 import api from "./api";
+import { retryRequest } from "./retry";
 
 export type BusinessType = "personal" | "company" | "mass" | "business";
 export type MemberRole = "owner" | "admin" | "member" | "viewer";
@@ -65,13 +66,23 @@ export const businessService = {
   },
 
   getCategories: async () => {
-    const { data } = await api.get("/categories");
-    return data.data;
+    return retryRequest(
+      async () => {
+        const { data } = await api.get("/categories", { timeout: 30000 });
+        return data.data;
+      },
+      { retries: 2, delayMs: 1500 },
+    );
   },
 
   createCategory: async (name: string) => {
-    const { data } = await api.post("/categories", { name });
-    return data.data;
+    return retryRequest(
+      async () => {
+        const { data } = await api.post("/categories", { name }, { timeout: 30000 });
+        return data.data;
+      },
+      { retries: 2, delayMs: 1500 },
+    );
   },
 
   geTransactiontCategories: async (businessId: string) => {
@@ -90,11 +101,21 @@ export const businessService = {
     currency?: string;
     openingBalance?: number;
   }): Promise<IBusiness> => {
-    const { data } = await api.post("/businesses", payload);
-    return data.data;
+    return retryRequest(
+      async () => {
+        const { data } = await api.post("/businesses", payload, { timeout: 45000 });
+        return data.data;
+      },
+      { retries: 2, delayMs: 1500 },
+    );
   },
   completeOnboarding: async (): Promise<void> => {
-    await api.post('/businesses/complete-onboarding');
+    return retryRequest(
+      async () => {
+        await api.post("/businesses/complete-onboarding", {}, { timeout: 45000 });
+      },
+      { retries: 2, delayMs: 1500 },
+    );
   },
   updateBusiness: async (
     businessId: string,

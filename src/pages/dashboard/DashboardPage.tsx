@@ -21,7 +21,6 @@ import {
   ArrowDownRight,
   ArrowLeftRight,
   Clock,
-  Loader2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -48,9 +47,17 @@ import {
   transactionService,
   type ITransaction,
 } from "../../services/transaction.service";
-import mealService from "../../services/meal.service";
 import BusinessDashboardContent from "./BusinessDashboardContent";
 import PersonalDashboardContent from "./PersonalDashboardContent";
+import MessDashboardContent from "./MessDashboardContent";
+import CompanyDashboardContent from "./CompanyDashboardContent";
+import { AdaptiveView } from "../../components/adaptive";
+import {
+  WebPersonalDashboard,
+  WebBusinessDashboard,
+  WebMessDashboard,
+  WebCompanyDashboard,
+} from "../../web/screens/dashboard";
 import { useTranslation } from "../../i18n/useTranslation";
 import { useFormat } from "../../i18n/useFormat";
 import { useRefreshHandler } from "../../native/refresh";
@@ -107,132 +114,6 @@ const ROLE_META: Record<
   admin: { icon: ShieldCheck, labelKey: "role.admin", color: "#3b82f6" },
   member: { icon: Users, labelKey: "role.member", color: "#10b981" },
   viewer: { icon: Eye, labelKey: "role.viewer", color: "#64748b" },
-};
-
-/* ─── Meal Dashboard Widget ───────────────────────────── */
-const MealDashboardWidget = ({ businessId }: { businessId: string }) => {
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { num, monthName } = useFormat();
-  const [data, setData] = useState<{ total: number; days: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    mealService.getSummary(businessId)
-      .then((res) => { if (!cancelled) setData(res); })
-      .catch(() => {/* silent */ })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [businessId]);
-
-  const currentMonth = monthName(new Date().getMonth(), "long");
-  const avg = data?.days ? Math.round((data.total / data.days) * 10) / 10 : 0;
-
-  return (
-    <button
-      onClick={() => navigate("/meals")}
-      className="w-full text-left rounded-2xl p-5 press group relative overflow-hidden"
-      style={{
-        background: "rgba(139,92,246,0.06)",
-        border: "1px solid rgba(139,92,246,0.2)",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.1)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "rgba(139,92,246,0.06)";
-      }}
-    >
-      {/* top shimmer line */}
-      <div
-        className="absolute top-0 left-8 right-8 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.5), transparent)" }}
-      />
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(139,92,246,0.15)", color: "#8b5cf6" }}
-          >
-            <UtensilsCrossed size={16} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{t("mealWidget.title")}</p>
-            <p className="text-xs" style={{ color: "var(--text-faint)" }}>
-              {t("mealWidget.monthLabel", { month: currentMonth })}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span
-            className="text-xs px-2 py-0.5 rounded-full font-medium"
-            style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}
-          >
-            {t("mealWidget.tag")}
-          </span>
-          <ChevronRight
-            size={14}
-            style={{ color: "#8b5cf6" }}
-            className="group-hover:translate-x-0.5 transition-transform"
-          />
-        </div>
-      </div>
-
-      {/* Stats */}
-      {loading ? (
-        <div className="flex items-center gap-2 py-1">
-          <Loader2 size={14} className="animate-spin" style={{ color: "#8b5cf6" }} />
-          <span className="text-xs" style={{ color: "var(--text-faint)" }}>{t("common.loading")}</span>
-        </div>
-      ) : (
-        <div className="flex items-end gap-6">
-          {/* Total meals */}
-          <div>
-            <p
-              className="text-3xl font-bold leading-none"
-              style={{ color: "#8b5cf6", fontFamily: "'DM Serif Display', serif" }}
-            >
-              {num(data?.total ?? 0)}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
-              {t("mealWidget.totalMeals")}
-            </p>
-          </div>
-
-          {/* Days */}
-          <div className="mb-0.5">
-            <p className="text-xl font-bold leading-none"
-              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-              {num(data?.days ?? 0)}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{t("mealWidget.days")}</p>
-          </div>
-
-          {/* Avg */}
-          <div className="mb-0.5">
-            <p className="text-xl font-bold leading-none"
-              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}>
-              {num(avg, { maximumFractionDigits: 1 })}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{t("mealWidget.avgPerDay")}</p>
-          </div>
-
-          {/* CTA */}
-          <div className="flex-1 flex justify-end mb-0.5">
-            <div
-              className="text-xs px-2.5 py-1.5 rounded-xl font-medium transition-all group-hover:scale-105"
-              style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa" }}
-            >
-              {t("mealWidget.details")}
-            </div>
-          </div>
-        </div>
-      )}
-    </button>
-  );
 };
 
 /* ─── Business Card ───────────────────────────────────── */
@@ -476,39 +357,115 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen" style={{ background: C.bg }}>
-      <div className="px-4 pt-5 pb-16 lg:px-8 lg:pt-8 lg:pb-20 max-w-5xl mx-auto space-y-5">
+      <div className="px-4 pt-5 pb-16 lg:px-8 lg:pt-6 lg:pb-16 max-w-7xl mx-auto space-y-5">
 
-        {/* ── Header ──────────────────────────────────── */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm mb-0.5" style={{ color: "var(--text-faint)" }}>
-              {greeting}
-            </p>
-            <h1
-              className="text-2xl lg:text-3xl font-bold"
-              style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
+        {/* ── Header (for generic views only when no business active) ──── */}
+        {!activeBusiness && (
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm mb-0.5" style={{ color: "var(--text-faint)" }}>
+                {greeting}
+              </p>
+              <h1
+                className="text-2xl lg:text-3xl font-bold"
+                style={{ fontFamily: "'DM Serif Display', serif", color: "var(--text-primary)" }}
+              >
+                {user?.firstName} {user?.lastName}
+              </h1>
+            </div>
+            <button
+              onClick={() => { fetchBusinesses(true); fetchBusinessData(); }}
+              className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
+              style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
             >
-              {user?.firstName} {user?.lastName}
-            </h1>
+              <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+            </button>
           </div>
-          <button
-            onClick={() => { fetchBusinesses(true); fetchBusinessData(); }}
-            className="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
-            style={{ background: C.card, border: `1px solid ${C.border}`, color: "var(--text-muted)" }}
-          >
-            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
-          </button>
-        </div>
+        )}
 
         {activeBusiness?.type === "business" ? (
-          <BusinessDashboardContent business={activeBusiness} />
+          <AdaptiveView
+            mobile={
+              <BusinessDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebBusinessDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+          />
+        ) : activeBusiness?.type === "company" ? (
+          <AdaptiveView
+            mobile={
+              <CompanyDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebCompanyDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+          />
         ) : activeBusiness?.type === "personal" ? (
-          <PersonalDashboardContent
-            business={activeBusiness}
-            onRefresh={() => {
-              fetchBusinesses(true);
-              fetchBusinessData();
-            }}
+          <AdaptiveView
+            mobile={
+              <PersonalDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebPersonalDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+          />
+        ) : activeBusiness?.type === "mass" || activeBusiness?.mealEnabled ? (
+          <AdaptiveView
+            mobile={
+              <MessDashboardContent
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
+            desktop={
+              <WebMessDashboard
+                business={activeBusiness}
+                onRefresh={() => {
+                  fetchBusinesses(true);
+                  fetchBusinessData();
+                }}
+              />
+            }
           />
         ) : (
           <>
@@ -580,11 +537,6 @@ const DashboardPage = () => {
           ))}
         </div>
 
-        {/* ── Meal Widget (mass type only) ─────────────── */}
-        {isMass && activeBusiness && (
-          <MealDashboardWidget businessId={activeBusiness._id} />
-        )}
-
         {/* ── Monthly chart ────────────────────────────── */}
         {activeBusiness && (
           <div
@@ -599,8 +551,8 @@ const DashboardPage = () => {
                 >
                   {t("dashboard.yearOverview", { year: num(new Date().getFullYear(), { useGrouping: false }) })}
                 </h2>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                  {t("dashboard.chartSubtitle", { business: activeBusiness.name })}
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+                  {t("dashboard.yearComparisonSubtitle")}
                 </p>
               </div>
               <div
@@ -830,7 +782,9 @@ const DashboardPage = () => {
                   {[
                     { label: t("txn.income"), icon: TrendingUp, color: "#10b981", to: "/transactions?type=income" },
                     { label: t("txn.expense"), icon: TrendingDown, color: "#ef4444", to: "/transactions?type=expense" },
-                    { label: t("nav.members"), icon: Users, color: "#3b82f6", to: "/members" },
+                    ...(activeBusiness.type !== "personal"
+                      ? [{ label: t("nav.members"), icon: Users, color: "#3b82f6", to: "/members" }]
+                      : []),
                     ...(isMass
                       ? [{ label: t("nav.meals"), icon: UtensilsCrossed, color: "#8b5cf6", to: "/meals" }]
                       : [{ label: t("nav.transactions"), icon: Wallet, color: "#f59e0b", to: "/transactions" }]

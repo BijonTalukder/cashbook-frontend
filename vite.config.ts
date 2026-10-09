@@ -17,6 +17,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: true,
+      },
       includeAssets: [
         "icons/icon-192.png",
         "icons/icon-512.png",
@@ -69,6 +72,17 @@ export default defineConfig({
             // cached 200 would tell the offline layer the API is up when it is
             // not. Listed first so it wins over the /api/ rule below.
             urlPattern: /\/api\/health$/i,
+            handler: "NetworkOnly",
+          },
+          {
+            // Account register, login, password reset, and auth routes do not need
+            // offline support and should never be delayed or cached by service worker.
+            urlPattern: /\/api\/auth\/.*/i,
+            handler: "NetworkOnly",
+          },
+          {
+            // Onboarding and business setup routes must always hit the network directly.
+            urlPattern: /\/api\/(businesses\/complete-onboarding|categories).*/i,
             handler: "NetworkOnly",
           },
           {
