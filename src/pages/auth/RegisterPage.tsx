@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { authService } from "../../services/auth.service";
+import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useTranslation } from "../../i18n/useTranslation";
 import type { TFunction } from "../../i18n/useTranslation";
@@ -94,12 +95,24 @@ const RegisterPage = () => {
 
   const selectedType = watch("businessType");
 
+  // Pre-warm the backend immediately so cold start is resolved before form submission
+  useEffect(() => {
+    void api.get("/health", { timeout: 30000 }).catch(() => {});
+  }, []);
+
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const res = await authService.register(data);
+      const payload: FormData = {
+        ...data,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim().toLowerCase(),
+      };
 
-      // ✅ token সহ setAuth — empty string না
+      const res = await authService.register(payload);
+
+      // ✅ token সহ setAuth
       setAuth(res.data.user, res.data.token);
       toast.success(t("auth.welcome", { name: res.data.user.firstName }));
 

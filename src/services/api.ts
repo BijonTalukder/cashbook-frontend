@@ -4,18 +4,30 @@ import { reportRequestOutcome } from "../offline/network";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-
-  // "https://backend-1-theta-sepia.vercel.app/api/", http://localhost:5000/api/
   withCredentials: true,
+  timeout: 30000,
   headers: { "Content-Type": "application/json" },
 });
 
 api.interceptors.request.use((config) => {
-  const raw = localStorage.getItem("auth-storage");
-  if (raw) {
-    const parsed = JSON.parse(raw);
-    const token = parsed?.state?.token;
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+  const isPublicAuth =
+    config.url?.includes("/auth/register") ||
+    config.url?.includes("/auth/login") ||
+    config.url?.includes("/auth/forgot-password") ||
+    config.url?.includes("/auth/verify-otp") ||
+    config.url?.includes("/health");
+
+  if (!isPublicAuth) {
+    const raw = localStorage.getItem("auth-storage");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        const token = parsed?.state?.token;
+        if (token) config.headers.Authorization = `Bearer ${token}`;
+      } catch {}
+    }
+  } else if (config.headers?.Authorization) {
+    delete config.headers.Authorization;
   }
   return config;
 });

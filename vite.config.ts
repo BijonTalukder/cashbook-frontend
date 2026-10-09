@@ -75,6 +75,17 @@ export default defineConfig({
             handler: "NetworkOnly",
           },
           {
+            // Account register, login, password reset, and auth routes do not need
+            // offline support and should never be delayed or cached by service worker.
+            urlPattern: /\/api\/auth\/.*/i,
+            handler: "NetworkOnly",
+          },
+          {
+            // Onboarding and business setup routes must always hit the network directly.
+            urlPattern: /\/api\/(businesses\/complete-onboarding|categories).*/i,
+            handler: "NetworkOnly",
+          },
+          {
             // API: try network first, fall back to cache
             urlPattern: /\/api\/.*/i,
             handler: "NetworkFirst",
