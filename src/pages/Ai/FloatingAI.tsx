@@ -36,6 +36,7 @@ interface Message {
   content: string;
   timestamp?: number;
   error?: boolean;
+  analytics?: AnalyticsResult;
 }
 
 const formatTime = (ts?: number) =>
@@ -87,9 +88,13 @@ const callAI = async (
   businessId: string,
   messages: Message[],
   t: TFunction,
-): Promise<string> => {
+): Promise<{ reply: string; analytics?: AnalyticsResult }> => {
   const { data } = await api.post("/ai/chat", { businessId, messages });
-  return data.data?.reply ?? t("ai.noReply");
+  const rawReply = typeof data.data === "string" ? data.data : data.data?.reply;
+  return {
+    reply: rawReply ?? t("ai.noReply"),
+    analytics: data.data?.analytics,
+  };
 };
 
 /* ── Message Bubble ───────────────────────────────── */
@@ -163,6 +168,11 @@ const Bubble = ({ msg, onRetry }: { msg: Message; onRetry?: () => void }) => {
         >
           {isUser ? msg.content : <RichText text={msg.content} />}
         </div>
+        {!isUser && msg.analytics && (
+          <div className="w-full mt-2">
+            <AnalyticsView analytics={msg.analytics} />
+          </div>
+        )}
         <div className="flex items-center gap-2 mt-1 px-1">
           {msg.timestamp && (
             <span className="text-[10px]" style={{ color: "var(--text-faint)" }}>
@@ -387,8 +397,15 @@ const FloatingAI = () => {
         role: "user",
         content: t("ai.greetingPrompt", { business: biz.name }),
       };
-      const reply = await callAI(biz._id, [firstMsg], t);
-      setMessages([{ role: "assistant", content: reply, timestamp: Date.now() }]);
+      const result = await callAI(biz._id, [firstMsg], t);
+      setMessages([
+        {
+          role: "assistant",
+          content: result.reply,
+          analytics: result.analytics,
+          timestamp: Date.now(),
+        },
+      ]);
     } catch {
       toast.error(t("ai.connectFailed"));
       handleReset();
@@ -411,10 +428,15 @@ const FloatingAI = () => {
     lastPayloadRef.current = newMsgs;
     setThinking(true);
     try {
-      const reply = await callAI(selected._id, newMsgs, t);
+      const result = await callAI(selected._id, newMsgs, t);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: reply, timestamp: Date.now() },
+        {
+          role: "assistant",
+          content: result.reply,
+          analytics: result.analytics,
+          timestamp: Date.now(),
+        },
       ]);
       lastPayloadRef.current = null;
     } catch {
@@ -441,10 +463,15 @@ const FloatingAI = () => {
     });
     setThinking(true);
     try {
-      const reply = await callAI(selected._id, lastPayloadRef.current, t);
+      const result = await callAI(selected._id, lastPayloadRef.current, t);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: reply, timestamp: Date.now() },
+        {
+          role: "assistant",
+          content: result.reply,
+          analytics: result.analytics,
+          timestamp: Date.now(),
+        },
       ]);
       lastPayloadRef.current = null;
     } catch {
@@ -797,10 +824,18 @@ const FloatingAI = () => {
 
                 {/* Input */}
                 <div
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 relative"
                   style={{ borderTop: "1px solid var(--border)" }}
                 >
-                <div className="px-4 pt-3 flex gap-2">
+                  <CommandAutocomplete
+                    query={input}
+                    visible={input.trim().startsWith("/") && !input.includes(" ")}
+                    onSelect={(cmd) => {
+                      setInput(cmd + " ");
+                      inputRef.current?.focus();
+                    }}
+                  />
+                  <div className="px-4 pt-3 flex gap-2">
                   <input
                     ref={inputRef}
                     value={input}

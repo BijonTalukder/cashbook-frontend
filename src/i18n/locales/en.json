@@ -8,6 +8,23 @@
       "expenseAnalysis": "Expense analysis",
       "savingsAdvice": "Savings advice"
     },
+    "chooseVisualization": "How would you like to view this data?",
+    "chooseVisualizationSub": "Select a format to visualize your insights",
+    "changeVisualization": "Change view",
+    "viewFormat": {
+      "bar": "Bar Chart",
+      "barDesc": "Side-by-side comparison",
+      "line": "Trend Line",
+      "lineDesc": "Changes over time",
+      "pie": "Pie Chart",
+      "pieDesc": "Category breakdown",
+      "table": "Data Table",
+      "tableDesc": "Detailed row-by-row",
+      "summary": "Summary Cards",
+      "summaryDesc": "Key metric overview"
+    },
+    "noChartData": "No detailed chart data available for this range",
+    "viewAsTable": "View as Table",
     "connectFailed": "Could not connect to the AI",
     "disclaimer": "AI can make mistakes — double-check important figures",
     "greetingPrompt": "Give me a short financial summary of this month for the business {{business}}.",
@@ -198,7 +215,8 @@
     "cashMethod": "Cash",
     "settledStatus": "Settled",
     "cashInvoice": "Cash Invoice",
-    "remaining": "left"
+    "remaining": "left",
+    "receivableAndPayable": "Receivables & Payables"
   },
   "business": {
     "loadFailed": "Failed to load businesses",
@@ -280,6 +298,7 @@
     "due": "Due",
     "edit": "Edit",
     "email": "Email",
+    "error": "An error occurred",
     "export": "Export",
     "filter": "Filter",
     "itemCountOne": "{{count}} item",
@@ -751,6 +770,7 @@
     "emailFailedToast": "Email couldn't be sent — share the link instead",
     "emailPlaceholder": "teammate@example.com",
     "empty": "No members yet",
+    "emptyDesc": "No members added yet",
     "emptyHint": "Invite your team to collaborate",
     "enterEmail": "Enter an email",
     "expiresOn": "Expires {{date}}",
@@ -1585,6 +1605,10 @@
     "loadFailed": "Failed to load suppliers",
     "loadOneFailed": "Failed to load supplier",
     "namePlaceholder": "Supplier name",
+    "addressPlaceholder": "Address",
+    "emailPlaceholder": "email@example.com",
+    "notesPlaceholder": "Optional notes",
+    "phonePlaceholder": "01XXXXXXXXX",
     "noHistory": "No purchases or payments yet",
     "noPayable": "Nothing payable",
     "notFound": "No suppliers found",
@@ -1773,7 +1797,10 @@
     "noBazaarThisMonth": "No bazaar expenses recorded this month",
     "noBazaarToday": "No bazaar expenses recorded this month",
     "recordBazaarNow": "Record bazaar expense",
-    "todaysTotalMealsRecorded": "Today's recorded meals: {{count}}"
+    "todaysTotalMealsRecorded": "Today's recorded meals: {{count}}",
+    "last7DaysTrends": "Last 7 Days Meal Trends",
+    "noMealTrends": "No meal trends available",
+    "avgPerDay": "Avg {{avg}}/day"
   },
   "validation": {
     "amountPositive": "Amount must be greater than 0",

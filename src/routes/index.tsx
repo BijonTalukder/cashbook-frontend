@@ -24,7 +24,27 @@ import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
  * opens the dashboard never downloads the reports charting library.
  */
 const page = (loader: () => Promise<{ default: ComponentType }>) => {
-  const Component = lazy(loader);
+  const Component = lazy(async () => {
+    try {
+      const mod = await loader();
+      sessionStorage.removeItem("hisabboi_chunk_route_retry");
+      return mod;
+    } catch (err: unknown) {
+      const isChunkError =
+        err instanceof Error &&
+        (err.message.includes("dynamically imported module") ||
+          err.message.includes("Loading chunk") ||
+          err.message.includes("Failed to fetch"));
+
+      const hasRetried = sessionStorage.getItem("hisabboi_chunk_route_retry");
+      if (isChunkError && !hasRetried) {
+        sessionStorage.setItem("hisabboi_chunk_route_retry", "1");
+        window.location.reload();
+        return new Promise<{ default: ComponentType }>(() => {});
+      }
+      throw err;
+    }
+  });
   return (
     <Suspense fallback={<ScreenFallback />}>
       <Component />

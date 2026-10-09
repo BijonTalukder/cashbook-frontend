@@ -158,6 +158,16 @@
         .boot-mark, .boot-bar span { animation: none; }
       }
     </style>
+    <script>
+      // Defensive fallback: ensure boot splash never hangs forever on slow mobile devices
+      setTimeout(function () {
+        var splash = document.getElementById("boot-splash");
+        if (splash && !splash.classList.contains("is-hidden")) {
+          splash.classList.add("is-hidden");
+          setTimeout(function () { splash.remove(); }, 400);
+        }
+      }, 3500);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -12,20 +12,9 @@ import { useFormat } from "../../i18n/useFormat";
 const OfflineAnnouncer = () => {
   const { t } = useTranslation();
   const { num } = useFormat();
-  const connectivity = useOfflineStore((s) => s.connectivity);
   const conflicts = useOfflineStore((s) => s.conflicts);
 
-  const previous = useRef(connectivity);
   const announcedConflicts = useRef(0);
-
-  useEffect(() => {
-    // "checking" is the startup state, not a transition worth announcing.
-    if (previous.current !== connectivity && previous.current !== "checking") {
-      if (connectivity === "offline") toast.warning(t("offline.wentOffline"));
-      if (connectivity === "online") toast.success(t("offline.backOnline"));
-    }
-    previous.current = connectivity;
-  }, [connectivity, t]);
 
   useEffect(() => {
     if (conflicts > announcedConflicts.current) {

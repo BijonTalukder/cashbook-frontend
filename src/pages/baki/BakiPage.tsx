@@ -66,10 +66,12 @@ const BakiPage = () => {
     ]);
 
     if (c.status === "fulfilled") {
-      setCustomers(c.value.filter((x) => x.totalDue > 0).sort((a, b) => b.totalDue - a.totalDue));
+      const list = Array.isArray(c.value) ? c.value : [];
+      setCustomers(list.filter((x) => x.totalDue > 0).sort((a, b) => b.totalDue - a.totalDue));
     }
     if (s.status === "fulfilled") {
-      setSuppliers(s.value.filter((x) => x.totalPayable > 0).sort((a, b) => b.totalPayable - a.totalPayable));
+      const list = Array.isArray(s.value) ? s.value : [];
+      setSuppliers(list.filter((x) => x.totalPayable > 0).sort((a, b) => b.totalPayable - a.totalPayable));
     }
 
     setReceivableFailed(c.status === "rejected");

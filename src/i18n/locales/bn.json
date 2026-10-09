@@ -8,6 +8,23 @@
       "expenseAnalysis": "খরচ বিশ্লেষণ",
       "savingsAdvice": "সঞ্চয়ের পরামর্শ"
     },
+    "chooseVisualization": "আপনি তথ্যটি কীভাবে দেখতে চান?",
+    "chooseVisualizationSub": "নিচে পছন্দের ফরম্যাটটি নির্বাচন করুন",
+    "changeVisualization": "ভিউ পরিবর্তন",
+    "viewFormat": {
+      "bar": "বার চার্ট",
+      "barDesc": "পাশাপাশি তুলনা",
+      "line": "ট্রেন্ড লাইন",
+      "lineDesc": "সময়ের সাথে পরিবর্তন",
+      "pie": "পাই চার্ট",
+      "pieDesc": "খাতভিত্তিক অনুপাত",
+      "table": "ডাটা টেবিল",
+      "tableDesc": "বিস্তারিত তালিকা",
+      "summary": "সারসংক্ষেপ",
+      "summaryDesc": "সংক্ষিপ্ত মেট্রিক কার্ড"
+    },
+    "noChartData": "এই সময়সীমার জন্য কোনো বিস্তারিত গ্রাফ তথ্য নেই",
+    "viewAsTable": "টেবিলে দেখুন",
     "connectFailed": "এআই-এর সাথে সংযোগ করা যায়নি",
     "disclaimer": "এআই ভুল করতে পারে — গুরুত্বপূর্ণ হিসাব যাচাই করে নিন",
     "greetingPrompt": "{{business}} ব্যবসার এই মাসের একটি সংক্ষিপ্ত আর্থিক সারসংক্ষেপ দাও।",
@@ -198,7 +215,8 @@
     "cashMethod": "নগদ",
     "settledStatus": "পরিশোধিত",
     "cashInvoice": "ক্যাশ চালান",
-    "remaining": "অবশিষ্ট"
+    "remaining": "অবশিষ্ট",
+    "receivableAndPayable": "পাওনা ও দেনার হিসাব"
   },
   "business": {
     "loadFailed": "ব্যবসার তালিকা লোড করা যায়নি",
@@ -280,6 +298,7 @@
     "due": "বকেয়া",
     "edit": "সম্পাদনা",
     "email": "ইমেইল",
+    "error": "একটি সমস্যা হয়েছে",
     "export": "এক্সপোর্ট",
     "filter": "ফিল্টার",
     "itemCountOne": "{{count}}টি পণ্য",
@@ -751,6 +770,7 @@
     "emailFailedToast": "ইমেইল পাঠানো যায়নি — লিংকটি শেয়ার করুন",
     "emailPlaceholder": "teammate@example.com",
     "empty": "এখনো কোনো সদস্য নেই",
+    "emptyDesc": "এখনো কোনো সদস্য যোগ করা হয়নি",
     "emptyHint": "একসাথে কাজ করতে টিমকে আমন্ত্রণ করুন",
     "enterEmail": "একটি ইমেইল দিন",
     "expiresOn": "মেয়াদ শেষ {{date}}",
@@ -1585,6 +1605,10 @@
     "loadFailed": "সরবরাহকারীর তালিকা লোড করা যায়নি",
     "loadOneFailed": "সরবরাহকারীর তথ্য লোড করা যায়নি",
     "namePlaceholder": "সরবরাহকারীর নাম",
+    "addressPlaceholder": "ঠিকানা",
+    "emailPlaceholder": "email@example.com",
+    "notesPlaceholder": "ঐচ্ছিক নোট",
+    "phonePlaceholder": "০১XXXXXXXXX",
     "noHistory": "এখনো কোনো ক্রয় বা পেমেন্ট নেই",
     "noPayable": "কোনো দেনা নেই",
     "notFound": "কোনো সরবরাহকারী পাওয়া যায়নি",
@@ -1773,7 +1797,10 @@
     "noBazaarThisMonth": "চলতি মাসে কোনো বাজার খরচ রেকর্ড করা হয়নি",
     "noBazaarToday": "চলতি মাসে কোনো বাজার খরচ রেকর্ড করা হয়নি",
     "recordBazaarNow": "বাজার খরচ যোগ করুন",
-    "todaysTotalMealsRecorded": "আজকের মোট এন্ট্রি করা মিল: {{count}} টি"
+    "todaysTotalMealsRecorded": "আজকের মোট এন্ট্রি করা মিল: {{count}} টি",
+    "last7DaysTrends": "বিগত ৭ দিনের মিলের প্রবণতা",
+    "noMealTrends": "কোনো মিলের তথ্য পাওয়া যায়নি",
+    "avgPerDay": "গড় {{avg}}/দিন"
   },
   "validation": {
     "amountPositive": "পরিমাণ ০-এর বেশি হতে হবে",

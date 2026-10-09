@@ -4,6 +4,16 @@ import "./index.css";
 import App from "./App.tsx";
 import { initFirebaseAnalytics } from "./config/firebase";
 
+// Auto-recover from stale chunks right after new deployments
+window.addEventListener("vite:preloadError", (event) => {
+  const key = "hisabboi_chunk_reload";
+  if (!sessionStorage.getItem(key)) {
+    sessionStorage.setItem(key, "1");
+    event.preventDefault();
+    window.location.reload();
+  }
+});
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
